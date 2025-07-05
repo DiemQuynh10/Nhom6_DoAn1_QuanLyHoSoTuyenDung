@@ -373,6 +373,10 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("email");
 
+                    b.Property<int>("GioiTinh")
+                        .HasColumnType("int")
+                        .HasColumnName("gioi_tinh");
+
                     b.Property<string>("HoTen")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")

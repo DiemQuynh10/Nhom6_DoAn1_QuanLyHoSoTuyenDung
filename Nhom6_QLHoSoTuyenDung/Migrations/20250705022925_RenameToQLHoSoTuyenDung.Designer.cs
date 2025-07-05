@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Nhom6_QLHoSoTuyenDung.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250704101905_InitCreate")]
-    partial class InitCreate
+    [Migration("20250705022925_RenameToQLHoSoTuyenDung")]
+    partial class RenameToQLHoSoTuyenDung
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -375,6 +375,10 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("email");
+
+                    b.Property<int>("GioiTinh")
+                        .HasColumnType("int")
+                        .HasColumnName("gioi_tinh");
 
                     b.Property<string>("HoTen")
                         .IsRequired()
