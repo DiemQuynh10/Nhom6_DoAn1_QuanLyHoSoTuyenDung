@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Nhom6_QLHoSoTuyenDung.Migrations
 {
     /// <inheritdoc />
-    public partial class InitCreate : Migration
+    public partial class RenameToQLHoSoTuyenDung : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -145,6 +145,7 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ho_ten = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ngay_sinh = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    gioi_tinh = table.Column<int>(type: "int", nullable: false),
                     email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     sdt = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     vi_tri_ung_tuyen_id = table.Column<string>(type: "nvarchar(450)", nullable: false),

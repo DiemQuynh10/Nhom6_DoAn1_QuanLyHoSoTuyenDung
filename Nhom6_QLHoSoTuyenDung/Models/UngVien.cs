@@ -16,6 +16,10 @@ namespace Nhom6_QLHoSoTuyenDung.Models
         [Column("ngay_sinh")]
         [DataType(DataType.Date)]
         public DateTime? NgaySinh { get; set; }
+        public enum GioiTinhEnum { Nam, Nu, Khac }
+
+        [Column("gioi_tinh")]
+        public GioiTinhEnum GioiTinh { get; set; }
 
         [Required, EmailAddress]
         [Column("email")]
