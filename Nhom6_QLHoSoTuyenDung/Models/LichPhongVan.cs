@@ -7,7 +7,8 @@ namespace Nhom6_QLHoSoTuyenDung.Models
     {
         [Key]
         [Column("id")]
-        public string Id { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public string? Id { get; set; }
 
         [Required]
         [Column("phong_phong_van_id")]

@@ -1,101 +1,468 @@
 ﻿@model IEnumerable<Nhom6_QLHoSoTuyenDung.Models.UngVien>
+@using Azure.Core
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using System.Text.Json
+
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Quản lý Ứng viên";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var nguonLabels = ViewBag.NguonLabels as List<string> ?? new List<string>();
+    var nguonValues = ViewBag.NguonValues as List<int> ?? new List<int>();
+    var trangThaiLabels = ViewBag.TrangThaiLabels as List<string> ?? new List<string>();
+    var trangThaiValues = ViewBag.TrangThaiValues as List<int> ?? new List<int>();
+    var viTriLabels = ViewBag.ViTriLabels as List<string> ?? new List<string>();
+    var viTriValues = ViewBag.ViTriValues as List<int> ?? new List<int>();
+    int totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
 }
 
-<h1>Index</h1>
+<style>
+    .card {
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.HoTen)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NgaySinh)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SoDienThoai)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LinkCV)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.KinhNghiem)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ThanhTich)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MoTa)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TrangThai)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NgayNop)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NguonUngTuyen)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ViTriUngTuyen)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.HoTen)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NgaySinh)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SoDienThoai)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LinkCV)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.KinhNghiem)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ThanhTich)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MoTa)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TrangThai)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NgayNop)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NguonUngTuyen)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ViTriUngTuyen.MaViTri)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.MaUngVien">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.MaUngVien">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaUngVien">Delete</a>
-            </td>
-        </tr>
+    canvas {
+        max-height: 250px;
+    }
+</style>
+
+<div class="container mt-4">
+    <!-- NÚt chức năng -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-people-fill fs-3 text-primary me-2"></i>
+            <h2 class="fw-bold m-0">Quản lý Ứng viên</h2>
+        </div>
+        <div>
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addUngVienModal">
+                <i class="bi bi-person-plus-fill me-1"></i> Thêm Ứng viên
+            </button>
+            <button class="btn btn-outline-success me-2" data-bs-toggle="modal" data-bs-target="#importExcelModal"> 📥Nhập từ Excel</button>
+            <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#filterModal">
+                <i class="bi bi-funnel-fill me-1"></i> Lọc nâng cao
+            </button>
+        </div>
+    </div>
+
+   
+    <!-- THÔNG BÁO -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-warning">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+    <!-- THỐNG KÊ -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Tổng ứng viên</div><h4>@ViewBag.TongUngVien</h4></div></div>
+        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Mới tuần này</div><h4>@ViewBag.MoiTuanNay</h4></div></div>
+        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Đã phỏng vấn</div><h4>@ViewBag.DaPhongVan</h4></div></div>
+        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Đã tuyển</div><h4>@ViewBag.DaTuyen</h4></div></div>
+        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Tỷ lệ chuyển đổi</div><h4>@ViewBag.TyLeChuyenDoi %</h4></div></div>
+    </div>
+
+    <!-- BIỂU ĐỒ -->
+    <div class="row mb-4">
+        <div class="col-md-4"><div class="card p-3"><h6 class="text-center">Ứng viên theo nguồn</h6><canvas id="chartNguon"></canvas></div></div>
+        <div class="col-md-4"><div class="card p-3"><h6 class="text-center">Ứng viên theo trạng thái</h6><canvas id="chartTrangThai"></canvas></div></div>
+        <div class="col-md-4"><div class="card p-3"><h6 class="text-center">Ứng viên theo vị trí</h6><canvas id="chartViTri"></canvas></div></div>
+    </div>
+
+    <!-- DANH SÁCH ỨNG VIÊN -->
+    @await Html.PartialAsync("_UngVienListPartial", Model)
+</div>
+<!-- Phân trang -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        Hiển thị @(ViewBag.PageSize * (ViewBag.CurrentPage - 1) + 1)-@((ViewBag.PageSize * (ViewBag.CurrentPage - 1)) + Model.Count())
+        của @ViewBag.TotalItems kết quả
+    </div>
+    <div>
+        <form method="get" class="d-inline">
+            <label>Hiển thị:</label>
+            <select name="pageSize" onchange="this.form.submit()" class="form-select d-inline w-auto">
+                <option value="10" selected="@(ViewBag.PageSize == 10 ? "selected" : null)">10</option>
+                <option value="25" selected="@(ViewBag.PageSize == 25 ? "selected" : null)">25</option>
+                <option value="50" selected="@(ViewBag.PageSize == 50 ? "selected" : null)">50</option>
+                <option value="100" selected="@(ViewBag.PageSize == 100 ? "selected" : null)">100</option>
+            </select>
+        </form>
+
+
+        <ul class="pagination d-inline-flex ms-3">
+            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)&pageSize=@ViewBag.PageSize">‹</a>
+            </li>
+
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="?page=@i&pageSize=@ViewBag.PageSize">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)&pageSize=@ViewBag.PageSize">›</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="modal fade" id="cvModal" tabindex="-1" aria-labelledby="cvModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cvModalLabel">Xem CV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="cvViewer" width="100%" height="600px" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL NHẬP EXCEL -->
+<div class="modal fade" id="importExcelModal" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="ImportFromExcel" enctype="multipart/form-data" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importExcelModalLabel">📥 Nhập ứng viên từ Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn file Excel (.xlsx)</label>
+                        <input type="file" name="excelFile" class="form-control" accept=".xlsx" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="~/templates/import-ungvien-chuan.xlsx" class="btn btn-outline-secondary" download>⬇️ File mẫu</a>
+                    <button type="submit" class="btn btn-primary">Nhập</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- MODAL THÊM ỨNG VIÊN -->
+<div class="modal fade" id="addUngVienModal" tabindex="-1" aria-labelledby="addUngVienModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="max-height: 90vh;">
+            <form asp-action="Create" enctype="multipart/form-data" method="post">
+                <div class="modal-header bg-light border-bottom shadow-sm">
+                    <h5 class="modal-title fw-bold text-primary d-flex align-items-center" id="addUngVienModalLabel">
+                        <i class="bi bi-person-plus-fill me-2"></i> Thêm Ứng viên mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+
+                <div class="modal-body overflow-auto" style="max-height: 70vh;">
+                    <div class="container-fluid">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Họ tên</label>
+                                <input name="HoTen" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Giới tính</label>
+                                <select name="GioiTinh" class="form-select" required>
+                                    @foreach (var item in (SelectList)ViewBag.GioiTinhList)
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Ngày sinh</label>
+                                <input type="date" name="NgaySinh" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="Email" class="form-control" required />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Số điện thoại</label>
+                                <input name="SoDienThoai" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Vị trí ứng tuyển</label>
+                                <select name="ViTriUngTuyenId" class="form-select" required>
+                                    @foreach (var item in (SelectList)ViewBag.ViTriList)
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label">Kinh nghiệm</label>
+                                <textarea name="KinhNghiem" class="form-control" rows="2" required></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Thành tích</label>
+                                <textarea name="ThanhTich" class="form-control" rows="2" required></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Mô tả</label>
+                                <textarea name="MoTa" class="form-control" rows="2" required></textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Nguồn ứng tuyển</label>
+                                <input name="NguonUngTuyen" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Trạng thái</label>
+                                <input name="TrangThai" class="form-control" value="Mới" required />
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label">Tải lên CV</label>
+                                <input type="file" name="CvFile" class="form-control" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="submit" class="btn btn-success">💾 Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL LỌC NÂNG CAO -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form method="get">
+                <div class="modal-header bg-light border-bottom shadow-sm">
+                    <h5 class="modal-title fw-bold text-primary" id="filterModalLabel">
+                        <i class="bi bi-funnel-fill me-2"></i> Bộ lọc nâng cao
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Từ khóa (Họ tên)</label>
+                            <input type="text" name="Keyword" value="@(Context.Request.Query["Keyword"])" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Giới tính</label>
+                            <select name="GioiTinh" class="form-select">
+                                <option value="">-- Tất cả --</option>
+                                @foreach (var item in (SelectList)ViewBag.GioiTinhList)
+                                {
+                                    <option value="@item.Value" selected="@(item.Value.ToString() == Context.Request.Query["GioiTinh"] ? "selected" : null)">
+                                        @item.Text
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Vị trí ứng tuyển</label>
+                            <select name="ViTriId" class="form-select">
+                                <option value="">-- Tất cả --</option>
+                                @foreach (var item in (SelectList)ViewBag.ViTriList)
+                                {
+                                    <option value="@item.Value" selected="@(item.Value.ToString() == Context.Request.Query["ViTriId"] ? "selected" : null)">
+                                        @item.Text
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Trạng thái</label>
+                            <input name="TrangThai" value="@(Context.Request.Query["TrangThai"])" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Từ ngày</label>
+                            <input type="date" name="FromDate" value="@(Context.Request.Query["FromDate"])" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đến ngày</label>
+                            <input type="date" name="ToDate" value="@(Context.Request.Query["ToDate"])" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="submit" class="btn btn-primary">🔍 Áp dụng lọc</button>
+                    <a href="/UngViens" class="btn btn-secondary">↺ Đặt lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function toggleForm() {
+            var form = document.getElementById("formContainer");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+        function toggleUpload() {
+            var form = document.getElementById("uploadContainer");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+        function toggleFilter() {
+            var form = document.getElementById("filterContainer");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+    </script>
+    <script>
+        function toggleForm() {
+            var form = document.getElementById("formContainer");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+
+        const dataNguon = {
+            labels: @Html.Raw(JsonSerializer.Serialize(ViewBag.NguonLabels)),
+            datasets: [{
+                data: @Html.Raw(JsonSerializer.Serialize(ViewBag.NguonValues)),
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#8BC34A', '#9C27B0', '#00BCD4']
+            }]
+        };
+
+        const dataTrangThai = {
+            labels: @Html.Raw(JsonSerializer.Serialize(ViewBag.TrangThaiLabels)),
+            datasets: [{
+                data: @Html.Raw(JsonSerializer.Serialize(ViewBag.TrangThaiValues)),
+                backgroundColor: ['#42A5F5', '#BA68C8', '#FFB74D', '#4DB6AC', '#7986CB', '#EF5350']
+            }]
+        };
+
+        const dataViTri = {
+            labels: @Html.Raw(JsonSerializer.Serialize(ViewBag.ViTriLabels)),
+            datasets: [{
+                data: @Html.Raw(JsonSerializer.Serialize(ViewBag.ViTriValues)),
+                backgroundColor: ['#42A5F5', '#AB47BC', '#FF7043', '#66BB6A', '#29B6F6', '#EF5350']
+            }]
+        };
+
+        new Chart(document.getElementById('chartNguon'), {
+            type: 'doughnut',
+            data: dataNguon,
+            options: {
+                responsive: true,
+                plugins: { legend: { display: true } }
+            }
+        });
+
+        new Chart(document.getElementById('chartTrangThai'), {
+            type: 'bar',
+            data: dataTrangThai,
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        new Chart(document.getElementById('chartViTri'), {
+            type: 'bar',
+            data: dataViTri,
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        function xemLichPhongVan(ungVienId) {
+            fetch(`/LichPhongVans/ByUngVien?id=${ungVienId}`)
+                .then(res => res.text())
+                .then(html => {
+                    Swal.fire({
+                        title: 'Lịch phỏng vấn',
+                        html: html,
+                        showCloseButton: true,
+                        showConfirmButton: false,
+                        width: 600
+                    });
+                });
+        }
+
+        function showChiTiet(ungVienId) {
+            fetch(`/UngViens/Details?id=${ungVienId}`)
+                .then(res => res.text())
+                .then(html => {
+                    Swal.fire({
+                        title: 'Chi tiết ứng viên',
+                        html: html,
+                        showCloseButton: true,
+                        showConfirmButton: false,
+                        width: 600
+                    });
+                });
+        }
+    </script>
+    <script>
+        function showCV(url) {
+            const viewer = document.getElementById("cvViewer");
+            viewer.src = url;
+            const modal = new bootstrap.Modal(document.getElementById('cvModal'));
+            modal.show();
+        }
+    </script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const alert = document.getElementById("successAlert");
+            if (alert) {
+                setTimeout(() => {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }, 3000);
+            }
+
+            // ✅ Thêm đoạn toggle lọc nâng cao ở đây
+            document.querySelector("button.btn-outline-dark").addEventListener("click", () => {
+                const filterBox = document.getElementById("filterContainer");
+                filterBox.style.display = filterBox.style.display === "none" ? "block" : "none";
+            });
+
+            // ✅ Mở lại form Thêm nếu có lỗi validate
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <text>document.getElementById("formContainer").style.display = "block";</text>
+        }
+        });
+    </script>
+
+
 }
-    </tbody>
-</table>

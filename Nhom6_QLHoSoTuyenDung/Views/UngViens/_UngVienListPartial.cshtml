@@ -1,0 +1,136 @@
+﻿@using Microsoft.AspNetCore.Html
+@model IEnumerable<Nhom6_QLHoSoTuyenDung.Models.UngVien>
+
+@{
+    var lichMap = ViewBag.LichPhongVanMap as Dictionary<string, Nhom6_QLHoSoTuyenDung.Models.LichPhongVan>;
+}
+
+<div class="card p-3">
+    <h5 class="fw-bold mb-3">Danh sách ứng viên</h5>
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th><input type="checkbox" /></th>
+                <th>Ứng viên</th>
+                <th>Vị trí ứng tuyển</th>
+                <th>Nguồn</th>
+                <th>Ngày nộp</th>
+                <th>Trạng thái</th>
+                <th>CV</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var uv in Model)
+            {
+                var daCoLich = lichMap != null && lichMap.ContainsKey(uv.MaUngVien);
+
+                <tr>
+                    <td><input type="checkbox" /></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar rounded-circle text-white fw-bold me-2"
+                                 style="width:36px;height:36px;background-color:@GetColor(uv.HoTen)">
+                                @GetInitials(uv.HoTen)
+                            </div>
+                            <div>
+                                <div>@uv.HoTen</div>
+                                <small class="text-muted">@uv.Email</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@uv.ViTriUngTuyen?.TenViTri</td>
+                    <td>@RenderNguonIcon(uv.NguonUngTuyen)</td>
+                    <td>@(uv.NgayNop?.ToString("dd/MM/yyyy"))</td>
+                    <td>
+                        <span class="badge rounded-pill" style="background-color:@GetTrangThaiColor(uv.TrangThai)">
+                            @uv.TrangThai
+                        </span>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(uv.LinkCV))
+                        {
+                            <button class="btn btn-sm btn-outline-info" onclick="showCV('/uploads/@uv.LinkCV')" title="Xem CV trực tiếp">
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Không có</span>
+                        }
+                    </td>
+                    <td>
+                        <!-- Nút xem chi tiết -->
+                        <button class="btn btn-sm btn-outline-primary me-1"
+                                onclick="showChiTiet('@uv.MaUngVien')"
+                                title="Xem chi tiết ứng viên">
+                            <i class="bi bi-person-vcard"></i>
+                        </button>
+
+                        @if (daCoLich)
+                        {
+                            <!-- Nút xem lịch -->
+                            <button class="btn btn-sm btn-outline-success"
+                                    onclick="xemLichPhongVan('@uv.MaUngVien')"
+                                    title="Xem lịch phỏng vấn">
+                                <i class="bi bi-calendar-check-fill"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <!-- Nút tạo lịch -->
+                            <a href="/LichPhongVans/Create?ungVienId=@uv.MaUngVien"
+                               class="btn btn-sm btn-outline-secondary"
+                               title="Tạo lịch phỏng vấn">
+                                <i class="bi bi-calendar-plus-fill"></i>
+                            </a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@functions {
+    string GetInitials(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "";
+        var parts = name.Trim().Split(' ');
+        if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpper();
+        return (parts.First()[0].ToString() + parts.Last()[0].ToString()).ToUpper();
+    }
+
+    string GetColor(string name)
+    {
+        var colors = new[] { "#90CAF9", "#F48FB1", "#A5D6A7", "#FFCC80", "#EF9A9A", "#B39DDB" };
+        return colors[Math.Abs(name.GetHashCode()) % colors.Length];
+    }
+
+    IHtmlContent RenderNguonIcon(string nguon)
+    {
+        var icon = nguon?.ToLower() switch
+        {
+            var x when x.Contains("linkedin") => "<i class='bi bi-linkedin text-primary'></i> LinkedIn",
+            var x when x.Contains("website") => "<i class='bi bi-globe2 text-success'></i> Website",
+            var x when x.Contains("giới thiệu") => "<i class='bi bi-person-fill text-purple'></i> Giới thiệu",
+            var x when x.Contains("trực tiếp") => "<i class='bi bi-building text-dark'></i> Trực tiếp",
+            _ => "<i class='bi bi-question-circle'></i> Khác"
+        };
+        return new HtmlString(icon);
+    }
+
+    string GetTrangThaiColor(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "mới" => "#BBDEFB",
+            "sàng lọc" => "#FFF176",
+            "phỏng vấn" => "#AED581",
+            "đề nghị" => "#FFCC80",
+            "từ chối" => "#EF9A9A",
+            "đã tuyển" => "#B39DDB",
+            _ => "#CFD8DC"
+        };
+    }
+}

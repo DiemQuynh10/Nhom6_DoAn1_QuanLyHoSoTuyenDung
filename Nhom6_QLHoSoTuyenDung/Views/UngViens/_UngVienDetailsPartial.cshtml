@@ -1,14 +1,14 @@
 ﻿@model Nhom6_QLHoSoTuyenDung.Models.UngVien
 
-<div>
-    <h6 class="mb-3">@Model.HoTen</h6>
+<div class="p-3">
+    <h5 class="fw-bold">@Model.HoTen</h5>
     <p><strong>Email:</strong> @Model.Email</p>
-    <p><strong>Điện thoại:</strong> @Model.SoDienThoai</p>
+    <p><strong>Giới tính:</strong> @Model.GioiTinh</p>
+    <p><strong>Ngày nộp:</strong> @Model.NgayNop?.ToString("dd/MM/yyyy")</p>
     <p><strong>Vị trí ứng tuyển:</strong> @Model.ViTriUngTuyen?.TenViTri</p>
+    <p><strong>Nguồn ứng tuyển:</strong> @Model.NguonUngTuyen</p>
     <p><strong>Kinh nghiệm:</strong> @Model.KinhNghiem</p>
     <p><strong>Thành tích:</strong> @Model.ThanhTich</p>
     <p><strong>Trạng thái:</strong> @Model.TrangThai</p>
-    <p><strong>Ngày sinh:</strong> @(Model.NgaySinh?.ToString("dd/MM/yyyy"))</p>
-    <p><strong>Giới tính:</strong> @Model.GioiTinh</p>
-    <p><strong>Mô tả:</strong> @Model.MoTa</p>
+    <p><strong>Mô tả thêm:</strong> @Model.MoTa</p>
 </div>

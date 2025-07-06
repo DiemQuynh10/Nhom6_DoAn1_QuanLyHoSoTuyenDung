@@ -43,6 +43,5 @@ using Nhom6_QLHoSoTuyenDung.Models;
     public DbSet<NhanVienThamGiaPhongVan> NhanVienThamGiaPhongVans { get; set; }
     public DbSet<PhongBan> PhongBans { get; set; }
     public DbSet<PhongPhongVan> PhongPhongVans { get; set; }
-    public DbSet<ThongKeTuyenDung> ThongKeTuyenDungs { get; set; }
     public DbSet<ViTriTuyenDung> ViTriTuyenDungs { get; set; }
 }
