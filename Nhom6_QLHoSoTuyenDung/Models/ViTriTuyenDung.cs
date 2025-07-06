@@ -7,11 +7,12 @@ namespace Nhom6_QLHoSoTuyenDung.Models
     {
         [Key]
         [Column("id")]
-        public string MaViTri { get; set; }
+        public string? MaViTri { get; set; }
 
         [Required]
         [Column("ten_vi_tri")]
-        public string TenViTri { get; set; }
+        public string TenViTri { get; set; }=string.Empty;
+
 
         [Column("so_luong_can_tuyen")]
         public int? SoLuongCanTuyen { get; set; }
@@ -38,6 +39,5 @@ namespace Nhom6_QLHoSoTuyenDung.Models
 
         public virtual ICollection<UngVien>? UngViens { get; set; }
         public virtual ICollection<LichPhongVan>? LichPhongVans { get; set; }
-        public virtual ICollection<ThongKeTuyenDung>? ThongKeTuyenDungs { get; set; }
     }
 }

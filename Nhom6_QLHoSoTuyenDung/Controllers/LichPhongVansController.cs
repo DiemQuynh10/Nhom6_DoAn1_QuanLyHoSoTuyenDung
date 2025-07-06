@@ -18,13 +18,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             _context = context;
         }
 
-        // GET: LichPhongVans
-        public async Task<IActionResult> Index()
-        {
-            var appDbContext = _context.LichPhongVans.Include(l => l.PhongPhongVan).Include(l => l.UngVien).Include(l => l.ViTriTuyenDung);
-            return View(await appDbContext.ToListAsync());
-        }
-
         // GET: LichPhongVans/Details/5
         public async Task<IActionResult> Details(string id)
         {
@@ -46,125 +39,97 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             return View(lichPhongVan);
         }
 
-        // GET: LichPhongVans/Create
-        public IActionResult Create()
+        public async Task<IActionResult> ByUngVien(string id)
         {
-            ViewData["PhongPhongVanId"] = new SelectList(_context.Set<PhongPhongVan>(), "Id", "Id");
-            ViewData["UngVienId"] = new SelectList(_context.UngViens, "MaUngVien", "MaUngVien");
-            ViewData["ViTriId"] = new SelectList(_context.Set<ViTriTuyenDung>(), "MaViTri", "MaViTri");
+            var lich = await _context.LichPhongVans
+                .Include(l => l.PhongPhongVan)
+                .FirstOrDefaultAsync(l => l.UngVienId == id);
+
+            if (lich == null)
+            {
+                return Content("<p class='text-muted'>Chưa có lịch phỏng vấn.</p><a class='btn btn-primary mt-2' href='/LichPhongVans/Create?ungVienId=" + id + "'>Tạo lịch ngay</a>", "text/html");
+            }
+
+            string diaDiem = lich.PhongPhongVan?.DiaDiem ?? "Chưa rõ";
+
+            string html = $@"
+                <p><strong>Thời gian:</strong> {lich.ThoiGian:dd/MM/yyyy HH:mm}</p>
+                <p><strong>Địa điểm:</strong> {diaDiem}</p>
+                <p><strong>Ghi chú:</strong> {lich.GhiChu}</p>";
+
+            return Content(html, "text/html");
+        }
+
+        // GET: LichPhongVans/Create
+        public IActionResult Create(string ungVienId)
+        {
+            // Lấy danh sách phòng
+            var phongList = _context.PhongPhongVans
+                .Select(p => new { p.Id, Ten = p.TenPhong + " - " + p.DiaDiem }).ToList();
+
+            var uvList = _context.UngViens
+                .Select(uv => new { uv.MaUngVien, uv.HoTen }).ToList();
+
+            var viTriList = _context.ViTriTuyenDungs
+                .Select(v => new { v.MaViTri, v.TenViTri }).ToList();
+
+            string viTriMacDinh = null;
+
+            if (!string.IsNullOrEmpty(ungVienId))
+            {
+                var ungVien = _context.UngViens.FirstOrDefault(u => u.MaUngVien == ungVienId);
+                if (ungVien != null)
+                {
+                    viTriMacDinh = ungVien.ViTriUngTuyenId;
+                }
+            }
+
+            ViewBag.PhongPhongVanList = new SelectList(phongList, "Id", "Ten");
+            ViewBag.UngVienList = new SelectList(uvList, "MaUngVien", "HoTen", ungVienId);
+            ViewBag.ViTriList = new SelectList(viTriList, "MaViTri", "TenViTri", viTriMacDinh);
+
             return View();
         }
 
+
         // POST: LichPhongVans/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,PhongPhongVanId,UngVienId,ViTriId,ThoiGian,TrangThai,GhiChu")] LichPhongVan lichPhongVan)
+        public async Task<IActionResult> Create(LichPhongVan lich)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(lichPhongVan);
+                lich.Id = Guid.NewGuid().ToString();
+                _context.Add(lich);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                TempData["Success"] = "Đã tạo lịch phỏng vấn thành công!";
+                return RedirectToAction("Index", "UngViens");
             }
-            ViewData["PhongPhongVanId"] = new SelectList(_context.Set<PhongPhongVan>(), "Id", "Id", lichPhongVan.PhongPhongVanId);
-            ViewData["UngVienId"] = new SelectList(_context.UngViens, "MaUngVien", "MaUngVien", lichPhongVan.UngVienId);
-            ViewData["ViTriId"] = new SelectList(_context.Set<ViTriTuyenDung>(), "MaViTri", "MaViTri", lichPhongVan.ViTriId);
-            return View(lichPhongVan);
+            foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+            {
+                Console.WriteLine(error.ErrorMessage); // Debug ra Console
+            }
+
+            TempData["Error"] = "Tạo lịch thất bại. Vui lòng kiểm tra lại.";
+            await LoadDropdownsAsync(lich.UngVienId);
+            return View(lich);
         }
-
-        // GET: LichPhongVans/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        private async Task LoadDropdownsAsync(string ungVienId = null)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var lichPhongVan = await _context.LichPhongVans.FindAsync(id);
-            if (lichPhongVan == null)
-            {
-                return NotFound();
-            }
-            ViewData["PhongPhongVanId"] = new SelectList(_context.Set<PhongPhongVan>(), "Id", "Id", lichPhongVan.PhongPhongVanId);
-            ViewData["UngVienId"] = new SelectList(_context.UngViens, "MaUngVien", "MaUngVien", lichPhongVan.UngVienId);
-            ViewData["ViTriId"] = new SelectList(_context.Set<ViTriTuyenDung>(), "MaViTri", "MaViTri", lichPhongVan.ViTriId);
-            return View(lichPhongVan);
-        }
-
-        // POST: LichPhongVans/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,PhongPhongVanId,UngVienId,ViTriId,ThoiGian,TrangThai,GhiChu")] LichPhongVan lichPhongVan)
-        {
-            if (id != lichPhongVan.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+            var phongList = await _context.PhongPhongVans
+                .Select(p => new
                 {
-                    _context.Update(lichPhongVan);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!LichPhongVanExists(lichPhongVan.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["PhongPhongVanId"] = new SelectList(_context.Set<PhongPhongVan>(), "Id", "Id", lichPhongVan.PhongPhongVanId);
-            ViewData["UngVienId"] = new SelectList(_context.UngViens, "MaUngVien", "MaUngVien", lichPhongVan.UngVienId);
-            ViewData["ViTriId"] = new SelectList(_context.Set<ViTriTuyenDung>(), "MaViTri", "MaViTri", lichPhongVan.ViTriId);
-            return View(lichPhongVan);
-        }
+                    p.Id,
+                    Display = p.TenPhong + " - " + p.DiaDiem
+                }).ToListAsync();
+            ViewBag.PhongPhongVanList = new SelectList(phongList, "Id", "Display");
 
-        // GET: LichPhongVans/Delete/5
-        public async Task<IActionResult> Delete(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var uvList = await _context.UngViens.ToListAsync();
+            ViewBag.UngVienList = new SelectList(uvList, "MaUngVien", "HoTen", ungVienId);
 
-            var lichPhongVan = await _context.LichPhongVans
-                .Include(l => l.PhongPhongVan)
-                .Include(l => l.UngVien)
-                .Include(l => l.ViTriTuyenDung)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (lichPhongVan == null)
-            {
-                return NotFound();
-            }
-
-            return View(lichPhongVan);
-        }
-
-        // POST: LichPhongVans/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
-        {
-            var lichPhongVan = await _context.LichPhongVans.FindAsync(id);
-            if (lichPhongVan != null)
-            {
-                _context.LichPhongVans.Remove(lichPhongVan);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var viTriList = await _context.ViTriTuyenDungs.ToListAsync();
+            ViewBag.ViTriList = new SelectList(viTriList, "MaViTri", "TenViTri");
         }
 
         private bool LichPhongVanExists(string id)

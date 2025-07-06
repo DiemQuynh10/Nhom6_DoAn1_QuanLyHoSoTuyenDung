@@ -1,60 +1,78 @@
 ﻿@model Nhom6_QLHoSoTuyenDung.Models.LichPhongVan
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Tạo lịch phỏng vấn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Create</h1>
+<div class="container mt-4">
+    <h3 class="mb-4">Tạo lịch phỏng vấn</h3>
 
-<h4>LichPhongVan</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Id" class="control-label"></label>
-                <input asp-for="Id" class="form-control" />
-                <span asp-validation-for="Id" class="text-danger"></span>
+    <form asp-controller="LichPhongVans" asp-action="Create" method="post">
+        <div class="row g-3">
+
+            <!-- PHÒNG PHỎNG VẤN -->
+            <div class="col-md-6">
+                <label class="form-label">Phòng phỏng vấn (Tên - Địa điểm)</label>
+                <select asp-for="PhongPhongVanId" asp-items="ViewBag.PhongPhongVanList" class="form-select">
+                    <option value="">-- Chọn phòng --</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label asp-for="PhongPhongVanId" class="control-label"></label>
-                <select asp-for="PhongPhongVanId" class ="form-control" asp-items="ViewBag.PhongPhongVanId"></select>
+
+            <!-- ỨNG VIÊN -->
+            <div class="col-md-6">
+                <label class="form-label">Ứng viên</label>
+                <select asp-for="UngVienId" asp-items="ViewBag.UngVienList" class="form-select">
+                    <option value="">-- Chọn ứng viên --</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label asp-for="UngVienId" class="control-label"></label>
-                <select asp-for="UngVienId" class ="form-control" asp-items="ViewBag.UngVienId"></select>
+
+            <!-- VỊ TRÍ -->
+            <div class="col-md-6">
+                <label class="form-label">Vị trí tuyển dụng</label>
+                <select asp-for="ViTriId" asp-items="ViewBag.ViTriList" class="form-select">
+                    <option value="">-- Chọn vị trí --</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label asp-for="ViTriId" class="control-label"></label>
-                <select asp-for="ViTriId" class ="form-control" asp-items="ViewBag.ViTriId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="ThoiGian" class="control-label"></label>
-                <input asp-for="ThoiGian" class="form-control" />
+
+            <!-- THỜI GIAN -->
+            <div class="col-md-6">
+                <label class="form-label">Thời gian</label>
+                <input asp-for="ThoiGian" type="datetime-local" class="form-control" />
                 <span asp-validation-for="ThoiGian" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="TrangThai" class="control-label"></label>
-                <input asp-for="TrangThai" class="form-control" />
-                <span asp-validation-for="TrangThai" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="GhiChu" class="control-label"></label>
-                <input asp-for="GhiChu" class="form-control" />
-                <span asp-validation-for="GhiChu" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+            <!-- GHI CHÚ -->
+            <div class="col-md-12">
+                <label class="form-label">Ghi chú</label>
+                <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>
+            </div>
+
+            <!-- NÚT -->
+            <div class="col-12 mt-3">
+                <button type="submit" class="btn btn-primary">Lưu lịch</button>
+                <a asp-controller="UngViens" asp-action="Index" class="btn btn-secondary">Hủy</a>
+
+            </div>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var modelState in ViewData.ModelState.Values)
+            {
+                foreach (var error in modelState.Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
 }

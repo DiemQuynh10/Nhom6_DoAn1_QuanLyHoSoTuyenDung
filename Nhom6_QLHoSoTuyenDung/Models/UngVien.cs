@@ -1,40 +1,45 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Nhom6_QLHoSoTuyenDung.Models
 {
     public class UngVien
     {
         [Key]
+        [ValidateNever]
         [Column("id")]
-        public string MaUngVien { get; set; }
+        public string? MaUngVien { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Họ tên không được bỏ trống")]
         [Column("ho_ten")]
         public string HoTen { get; set; }
 
         [Column("ngay_sinh")]
         [DataType(DataType.Date)]
         public DateTime? NgaySinh { get; set; }
+
         public enum GioiTinhEnum { Nam, Nu, Khac }
 
         [Column("gioi_tinh")]
+        [Required(ErrorMessage = "Giới tính là bắt buộc")]
         public GioiTinhEnum GioiTinh { get; set; }
 
-        [Required, EmailAddress]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         [Column("email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Column("sdt")]
         [Phone]
-        public string SoDienThoai { get; set; }
+        public string? SoDienThoai { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Vui lòng chọn vị trí ứng tuyển")]
         [Column("vi_tri_ung_tuyen_id")]
         public string ViTriUngTuyenId { get; set; }
 
         [Column("link_cv")]
-        public string LinkCV { get; set; }
+        public string? LinkCV { get; set; }
 
         [Column("kinh_nghiem")]
         public string KinhNghiem { get; set; }
