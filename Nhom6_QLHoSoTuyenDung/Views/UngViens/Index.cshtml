@@ -31,86 +31,24 @@
 </style>
 
 <div class="container mt-4">
-    <!-- TIÊU ĐỀ -->
-    <h2 class="mb-2">Quản lý Ứng viên</h2>
-
     <!-- NÚt chức năng -->
-    <div class="mb-3">
-        <button class="btn btn-primary me-2" onclick="toggleForm()">+ Thêm Ứng viên</button>
-        <button class="btn btn-outline-primary me-2">📎 Tải CV hàng loạt</button>
-        <button class="btn btn-outline-dark">🔍 Lọc nâng cao</button>
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-people-fill fs-3 text-primary me-2"></i>
+            <h2 class="fw-bold m-0">Quản lý Ứng viên</h2>
+        </div>
+        <div>
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addUngVienModal">
+                <i class="bi bi-person-plus-fill me-1"></i> Thêm Ứng viên
+            </button>
+            <button class="btn btn-outline-success me-2" data-bs-toggle="modal" data-bs-target="#importExcelModal"> 📥Nhập từ Excel</button>
+            <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#filterModal">
+                <i class="bi bi-funnel-fill me-1"></i> Lọc nâng cao
+            </button>
+        </div>
     </div>
 
-    <!-- FORM THÊM ỨNG VIÊN -->
-    <div id="formContainer" style="display:none;" class="mb-4">
-        <form asp-action="Create" enctype="multipart/form-data" method="post">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label>Họ tên</label>
-                    <input name="HoTen" class="form-control" required />
-                </div>
-                <div class="col-md-6">
-                    <label>Giới tính</label>
-                    <select name="GioiTinh" class="form-select">
-                        @foreach (var item in (SelectList)ViewBag.GioiTinhList)
-                        {
-                            <option value="@item.Value">@item.Text</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label>Ngày sinh</label>
-                    <input type="date" name="NgaySinh" class="form-control" required />
-                </div>
-                <div class="col-md-6">
-                    <label>Email</label>
-                    <input type="email" name="Email" class="form-control" required />
-                </div>
-                <div class="col-md-6">
-                    <label>SĐT</label>
-                    <input name="SoDienThoai" class="form-control" required />
-                </div>
-                <div class="col-md-6">
-                    <label>Vị trí ứng tuyển</label>
-                    <select name="ViTriUngTuyenId" class="form-select" required>
-                        @foreach (var item in (SelectList)ViewBag.ViTriList)
-                        {
-                            <option value="@item.Value">@item.Text</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-12">
-                    <label>Kinh nghiệm</label>
-                    <textarea name="KinhNghiem" class="form-control" required></textarea>
-                </div>
-                <div class="col-md-12">
-                    <label>Thành tích</label>
-                    <textarea name="ThanhTich" class="form-control" required></textarea>
-                </div>
-                <div class="col-md-12">
-                    <label>Mô tả</label>
-                    <textarea name="MoTa" class="form-control" required></textarea>
-                </div>
-                <div class="col-md-6">
-                    <label>Nguồn ứng tuyển</label>
-                    <input name="NguonUngTuyen" class="form-control" required />
-                </div>
-                <div class="col-md-6">
-                    <label>Trạng thái</label>
-                    <input name="TrangThai" class="form-control" value="Mới" required />
-                </div>
-                <div class="col-md-12">
-                    <label>Tải CV</label>
-                    <input type="file" name="CvFile" class="form-control" required />
-                </div>
-                <div class="col-12 mt-3">
-                    <button type="submit" class="btn btn-success">Lưu</button>
-                    <button type="button" class="btn btn-secondary" onclick="toggleForm()">Hủy</button>
-                </div>
-            </div>
-        </form>
-        <hr />
-    </div>
+   
     <!-- THÔNG BÁO -->
     @if (TempData["Success"] != null)
     {
@@ -118,6 +56,14 @@
             @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
         </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
     }
     @if (TempData["Error"] != null)
     {
@@ -134,62 +80,6 @@
             </ul>
         </div>
     }
-    <!-- FORM LỌC NÂNG CAO -->
-    <div id="filterContainer" style="display:none;" class="card card-body mb-4">
-        <form method="get">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label>Từ khóa (Họ tên)</label>
-                    <input type="text" name="Keyword" value="@(Context.Request.Query["Keyword"])" class="form-control" />
-                </div>
-                <div class="col-md-2">
-                    <label>Giới tính</label>
-                    <select name="GioiTinh" class="form-select">
-                        <option value="">-- Tất cả --</option>
-                        @foreach (var item in (SelectList)ViewBag.GioiTinhList)
-                        {
-                            <option value="@item.Value" selected="@(item.Value.ToString() == Context.Request.Query["GioiTinh"] ? "selected" : null)">
-                                @item.Text
-                            </option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label>Vị trí ứng tuyển</label>
-                    <select name="ViTriId" class="form-select">
-                        <option value="">-- Tất cả --</option>
-                        @foreach (var item in (SelectList)ViewBag.ViTriList)
-                        {
-                            <option value="@item.Value" selected="@(item.Value.ToString() == Context.Request.Query["ViTriId"] ? "selected" : null)">
-                                @item.Text
-                            </option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label>Trạng thái</label>
-                    <input name="TrangThai" value="@(Context.Request.Query["TrangThai"])" class="form-control" />
-                </div>
-                <div class="col-md-2">
-                    <label>Từ ngày</label>
-                    <input type="date" name="FromDate" value="@(Context.Request.Query["FromDate"])" class="form-control" />
-                </div>
-                <div class="col-md-2">
-                    <label>Đến ngày</label>
-                    <input type="date" name="ToDate" value="@(Context.Request.Query["ToDate"])" class="form-control" />
-                </div>
-                <div class="col-md-2 align-self-end">
-                    <button type="submit" class="btn btn-outline-primary w-100">Áp dụng lọc</button>
-                </div>
-                <div class="col-md-2 align-self-end">
-                    <a href="/UngViens" class="btn btn-secondary w-100">Đặt lại</a>
-                </div>
-            </div>
-        </form>
-    </div>
-
-
-
     <!-- THỐNG KÊ -->
     <div class="row mb-4 text-center">
         <div class="col-md-2"><div class="card p-2"><div class="text-muted">Tổng ứng viên</div><h4>@ViewBag.TongUngVien</h4></div></div>
@@ -258,9 +148,203 @@
         </div>
     </div>
 </div>
+<!-- MODAL NHẬP EXCEL -->
+<div class="modal fade" id="importExcelModal" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="ImportFromExcel" enctype="multipart/form-data" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importExcelModalLabel">📥 Nhập ứng viên từ Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn file Excel (.xlsx)</label>
+                        <input type="file" name="excelFile" class="form-control" accept=".xlsx" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="~/templates/import-ungvien-chuan.xlsx" class="btn btn-outline-secondary" download>⬇️ File mẫu</a>
+                    <button type="submit" class="btn btn-primary">Nhập</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- MODAL THÊM ỨNG VIÊN -->
+<div class="modal fade" id="addUngVienModal" tabindex="-1" aria-labelledby="addUngVienModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="max-height: 90vh;">
+            <form asp-action="Create" enctype="multipart/form-data" method="post">
+                <div class="modal-header bg-light border-bottom shadow-sm">
+                    <h5 class="modal-title fw-bold text-primary d-flex align-items-center" id="addUngVienModalLabel">
+                        <i class="bi bi-person-plus-fill me-2"></i> Thêm Ứng viên mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+
+                <div class="modal-body overflow-auto" style="max-height: 70vh;">
+                    <div class="container-fluid">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Họ tên</label>
+                                <input name="HoTen" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Giới tính</label>
+                                <select name="GioiTinh" class="form-select" required>
+                                    @foreach (var item in (SelectList)ViewBag.GioiTinhList)
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Ngày sinh</label>
+                                <input type="date" name="NgaySinh" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="Email" class="form-control" required />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Số điện thoại</label>
+                                <input name="SoDienThoai" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Vị trí ứng tuyển</label>
+                                <select name="ViTriUngTuyenId" class="form-select" required>
+                                    @foreach (var item in (SelectList)ViewBag.ViTriList)
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label">Kinh nghiệm</label>
+                                <textarea name="KinhNghiem" class="form-control" rows="2" required></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Thành tích</label>
+                                <textarea name="ThanhTich" class="form-control" rows="2" required></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Mô tả</label>
+                                <textarea name="MoTa" class="form-control" rows="2" required></textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Nguồn ứng tuyển</label>
+                                <input name="NguonUngTuyen" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Trạng thái</label>
+                                <input name="TrangThai" class="form-control" value="Mới" required />
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label">Tải lên CV</label>
+                                <input type="file" name="CvFile" class="form-control" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="submit" class="btn btn-success">💾 Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL LỌC NÂNG CAO -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form method="get">
+                <div class="modal-header bg-light border-bottom shadow-sm">
+                    <h5 class="modal-title fw-bold text-primary" id="filterModalLabel">
+                        <i class="bi bi-funnel-fill me-2"></i> Bộ lọc nâng cao
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Từ khóa (Họ tên)</label>
+                            <input type="text" name="Keyword" value="@(Context.Request.Query["Keyword"])" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Giới tính</label>
+                            <select name="GioiTinh" class="form-select">
+                                <option value="">-- Tất cả --</option>
+                                @foreach (var item in (SelectList)ViewBag.GioiTinhList)
+                                {
+                                    <option value="@item.Value" selected="@(item.Value.ToString() == Context.Request.Query["GioiTinh"] ? "selected" : null)">
+                                        @item.Text
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Vị trí ứng tuyển</label>
+                            <select name="ViTriId" class="form-select">
+                                <option value="">-- Tất cả --</option>
+                                @foreach (var item in (SelectList)ViewBag.ViTriList)
+                                {
+                                    <option value="@item.Value" selected="@(item.Value.ToString() == Context.Request.Query["ViTriId"] ? "selected" : null)">
+                                        @item.Text
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Trạng thái</label>
+                            <input name="TrangThai" value="@(Context.Request.Query["TrangThai"])" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Từ ngày</label>
+                            <input type="date" name="FromDate" value="@(Context.Request.Query["FromDate"])" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đến ngày</label>
+                            <input type="date" name="ToDate" value="@(Context.Request.Query["ToDate"])" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="submit" class="btn btn-primary">🔍 Áp dụng lọc</button>
+                    <a href="/UngViens" class="btn btn-secondary">↺ Đặt lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function toggleForm() {
+            var form = document.getElementById("formContainer");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+        function toggleUpload() {
+            var form = document.getElementById("uploadContainer");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+        function toggleFilter() {
+            var form = document.getElementById("filterContainer");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+    </script>
     <script>
         function toggleForm() {
             var form = document.getElementById("formContainer");

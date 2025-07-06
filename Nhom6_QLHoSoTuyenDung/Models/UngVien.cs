@@ -20,8 +20,6 @@ namespace Nhom6_QLHoSoTuyenDung.Models
         [DataType(DataType.Date)]
         public DateTime? NgaySinh { get; set; }
 
-        public enum GioiTinhEnum { Nam, Nu, Khac }
-
         [Column("gioi_tinh")]
         [Required(ErrorMessage = "Giới tính là bắt buộc")]
         public GioiTinhEnum GioiTinh { get; set; }

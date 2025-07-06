@@ -1,4 +1,5 @@
 ﻿// ================== Controller: UngViensController.cs ==================
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -21,15 +22,30 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         private async Task LoadDropdownsAsync()
         {
             ViewBag.ViTriList = new SelectList(await _context.ViTriTuyenDungs.ToListAsync(), "MaViTri", "TenViTri");
-            ViewBag.GioiTinhList = new SelectList(Enum.GetValues(typeof(UngVien.GioiTinhEnum)).Cast<UngVien.GioiTinhEnum>().Select(gt => new {
-                Value = gt,
-                Text = gt.GetType().GetMember(gt.ToString())[0]
-                    .GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
-                    .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>()
-                    .FirstOrDefault()?.Name ?? gt.ToString()
-            }), "Value", "Text");
+            ViewBag.GioiTinhList = new SelectList(
+    Enum.GetValues(typeof(GioiTinhEnum))
+        .Cast<GioiTinhEnum>()
+        .Select(gt => new
+        {
+            Value = gt,
+            Text = gt.GetDisplayName()
+        }),
+    "Value", "Text");
         }
+        public async Task<IActionResult> Details(string id)
+        {
+            if (id == null)
+                return NotFound();
 
+            var ungVien = await _context.UngViens
+                .Include(x => x.ViTriUngTuyen)
+                .FirstOrDefaultAsync(x => x.MaUngVien == id);
+
+            if (ungVien == null)
+                return NotFound();
+
+            return PartialView("_UngVienDetailsPartial", ungVien);
+        }
         private IQueryable<UngVien> ApplyFilter(IQueryable<UngVien> query, UngVienFilterVM filter)
         {
             if (!string.IsNullOrEmpty(filter.Keyword))
@@ -79,6 +95,99 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             ViewBag.LichPhongVanMap = await _context.LichPhongVans.GroupBy(l => l.UngVienId).ToDictionaryAsync(g => g.Key, g => g.First());
 
             return View(pagedUngViens);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ImportFromExcel(IFormFile excelFile)
+        {
+            if (excelFile == null || excelFile.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn file Excel hợp lệ.";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                var viTriDict = _context.ViTriTuyenDungs
+                    .ToList();
+
+                int importedCount = 0;
+
+                using (var stream = new MemoryStream())
+                {
+                    await excelFile.CopyToAsync(stream);
+                    using (var workbook = new XLWorkbook(stream))
+                    {
+                        var worksheet = workbook.Worksheet(1); // sheet đầu tiên
+                        var rows = worksheet.RowsUsed().Skip(1); // bỏ tiêu đề
+
+                        foreach (var row in rows)
+                        {
+                            try
+                            {
+                                var viTriTen = row.Cell(6).GetString().Trim();
+                                var viTri = viTriDict
+                                    .FirstOrDefault(v => v.TenViTri.Trim().Equals(viTriTen, StringComparison.OrdinalIgnoreCase));
+                                if (viTri == null)
+                                {
+                                    Console.WriteLine($"❌ Không tìm thấy vị trí: {viTriTen}");
+                                    continue;
+                                }
+
+                                var ungVien = new UngVien
+                                {
+                                    MaUngVien = Guid.NewGuid().ToString(),
+                                    HoTen = row.Cell(1).GetString().Trim(),
+                                    GioiTinh = EnumExtensions.GetEnumFromDisplayName<GioiTinhEnum>(row.Cell(2).GetString())
+                                        .GetValueOrDefault(GioiTinhEnum.Khac),
+                                    NgaySinh = DateTime.TryParse(row.Cell(3).GetString(), out var ns) ? ns : null,
+                                    SoDienThoai = row.Cell(4).GetString().Trim(),
+                                    Email = row.Cell(5).GetString().Trim(),
+                                    ViTriUngTuyenId = viTri.MaViTri,
+                                    KinhNghiem = row.Cell(7).GetString().Trim(),
+                                    ThanhTich = row.Cell(8).GetString().Trim(),
+                                    MoTa = row.Cell(9).GetString().Trim(),
+                                    TrangThai = row.Cell(10).GetString().Trim(),
+                                    NgayNop = DateTime.TryParse(row.Cell(11).GetString(), out var nn) ? nn : null,
+                                    NguonUngTuyen = row.Cell(12).GetString().Trim()
+                                };
+
+                                _context.UngViens.Add(ungVien);
+                                importedCount++;
+                            }
+                            catch (Exception exRow)
+                            {
+                                Console.WriteLine($"❌ Lỗi đọc dòng Excel: {exRow.Message}");
+                                continue;
+                            }
+                        }
+
+                        try
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            var fullMessage = ex.InnerException?.Message ?? ex.Message;
+                            TempData["ErrorMessage"] = $"❌ Lỗi khi lưu vào DB: {fullMessage}";
+                        }
+                    }
+                }
+
+                TempData["SuccessMessage"] = $"✅ Đã nhập {importedCount} ứng viên.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"❌ Lỗi tổng quát: {ex.Message}";
+            }
+
+            return RedirectToAction("Index");
+        }
+
+
+        private GioiTinhEnum ParseGioiTinh(string value)
+        {
+            return EnumExtensions.GetEnumFromDisplayName<GioiTinhEnum>(value) ?? GioiTinhEnum.Khac;
         }
 
         public class UngVienFilterVM
