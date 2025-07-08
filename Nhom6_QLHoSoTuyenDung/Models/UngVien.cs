@@ -10,17 +10,20 @@ namespace Nhom6_QLHoSoTuyenDung.Models
         [Key]
         [ValidateNever]
         [Column("id")]
-        public string? MaUngVien { get; set; }
+        public string MaUngVien { get; set; } = "";
 
         [Required(ErrorMessage = "Họ tên không được bỏ trống")]
         [Column("ho_ten")]
-        public string HoTen { get; set; }
+        [Display(Name = "Họ tên")]
+        public string HoTen { get; set; }= "";
 
         [Column("ngay_sinh")]
         [DataType(DataType.Date)]
+        [Display(Name = "Ngày sinh")]
         public DateTime? NgaySinh { get; set; }
 
         [Column("gioi_tinh")]
+        [Display(Name = "Giới tính")]
         [Required(ErrorMessage = "Giới tính là bắt buộc")]
         public GioiTinhEnum GioiTinh { get; set; }
 
@@ -30,32 +33,41 @@ namespace Nhom6_QLHoSoTuyenDung.Models
 
         [Column("sdt")]
         [Phone]
+        [Display(Name = "Số điện thoại")]
         public string? SoDienThoai { get; set; }
 
         [Required(ErrorMessage = "Vui lòng chọn vị trí ứng tuyển")]
         [Column("vi_tri_ung_tuyen_id")]
-        public string ViTriUngTuyenId { get; set; }
+        [Display(Name = "Vị trí ứng tuyển")]
+        public string ViTriUngTuyenId { get; set; } = "";
 
         [Column("link_cv")]
         public string? LinkCV { get; set; }
 
         [Column("kinh_nghiem")]
-        public string KinhNghiem { get; set; }
+        [Display(Name = "Kinh nghiệm")]
+        public string KinhNghiem { get; set; } = "";
 
         [Column("thanh_tich")]
-        public string ThanhTich { get; set; }
+
+        [Display(Name = "Thành tích")]
+        public string ThanhTich { get; set; } = "";
 
         [Column("mo_ta")]
-        public string MoTa { get; set; }
+        [Display(Name = "Mô tả")]
+        public string MoTa { get; set; } = "";
 
         [Column("trang_thai")]
-        public string TrangThai { get; set; }  // VD: Moi, Da duyet, Phong van, Dat, Truot
+        [Display(Name = "Trạng thái")]
+        public string TrangThai { get; set; } = "";  // VD: Moi, Da duyet, Phong van, Dat, Truot
 
         [Column("ngay_nop")]
+        [Display(Name = "Ngày nộp")]
         [DataType(DataType.Date)]
         public DateTime? NgayNop { get; set; }
 
         [Column("nguon_ung_tuyen")]
+        [Display(Name = "Nguồn ứng tuyển")]
         public string NguonUngTuyen { get; set; }
 
         [ForeignKey("ViTriUngTuyenId")]

@@ -1,5 +1,4 @@
-﻿// ================== Controller: UngViensController.cs ==================
-using ClosedXML.Excel;
+﻿using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -96,6 +95,52 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return View(pagedUngViens);
         }
+        [HttpPost]
+        public async Task<IActionResult> Create(UngVien model, IFormFile CvFile)
+        {
+            if (!ModelState.IsValid)
+            {
+                await LoadDropdownsAsync();
+
+                var danhSach = await _context.UngViens.Include(x => x.ViTriUngTuyen).ToListAsync();
+
+                TempData["Error"] = "Vui lòng nhập đầy đủ thông tin hợp lệ.";
+                return View("Index", danhSach); // không redirect!
+            }
+            if (string.IsNullOrEmpty(model.TrangThai))
+                model.TrangThai = "Mới";
+
+            // Kiểm tra trùng email (có thể thêm các điều kiện khác nếu cần)
+            bool isDuplicate = _context.UngViens.Any(u =>
+                u.Email == model.Email &&
+                u.HoTen == model.HoTen &&
+                u.ViTriUngTuyenId == model.ViTriUngTuyenId
+            );
+            if (isDuplicate)
+            {
+                TempData["ErrorMessage"] = "Ứng viên đã tồn tại.";
+                return RedirectToAction("Index");
+            }
+
+            // Xử lý upload file và lưu model
+            string fileName = Guid.NewGuid() + Path.GetExtension(CvFile.FileName);
+            string path = Path.Combine(_env.WebRootPath, "cv", fileName);
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await CvFile.CopyToAsync(stream);
+            }
+
+            model.MaUngVien = Guid.NewGuid().ToString();
+            model.LinkCV = "/cv/" + fileName;
+            model.NgayNop = DateTime.Now;
+
+            _context.UngViens.Add(model);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Thêm ứng viên thành công!";
+            return RedirectToAction("Index");
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> ImportFromExcel(IFormFile excelFile)
