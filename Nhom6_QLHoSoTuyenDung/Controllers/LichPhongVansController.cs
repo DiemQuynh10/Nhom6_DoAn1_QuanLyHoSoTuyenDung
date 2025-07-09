@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Models;
@@ -17,147 +13,103 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         {
             _context = context;
         }
-        public IActionResult Index()
-        {
-            var danhSach = _context.LichPhongVans
-                .Include(l => l.UngVien)
-                .Include(l => l.PhongPhongVan)
-                .Include(l => l.ViTriTuyenDung)
-                .ToList();
 
-            return View(danhSach);
+        // -------------------------
+        // 1. Trả form tạo lịch (popup)
+        // -------------------------
+        public async Task<IActionResult> TaoLichPopup(string ungVienId)
+        {
+            var ungVien = await _context.UngViens
+                .Include(u => u.ViTriUngTuyen)
+                .FirstOrDefaultAsync(u => u.MaUngVien == ungVienId);
+
+            if (ungVien == null)
+                return NotFound();
+
+            ViewBag.UngVien = ungVien;
+            ViewBag.ViTri = ungVien.ViTriUngTuyen;
+
+            var phongList = _context.PhongPhongVans
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id,
+                    Text = p.TenPhong + " - " + p.DiaDiem
+                }).ToList();
+
+            ViewBag.PhongList = phongList;
+
+            return PartialView("_FormTaoLichPhongVan", new LichPhongVan());
         }
 
-        // GET: LichPhongVans/Details/5
-        public async Task<IActionResult> Details(string id)
+        // -------------------------
+        // 2. Nhận và xử lý POST từ form popup
+        // -------------------------
+        [HttpPost]
+        public async Task<IActionResult> CreateLichFromPopup(LichPhongVan model)
         {
-            if (id == null)
+            // ✅ Kiểm tra ứng viên có tồn tại không
+            var ungVien = await _context.UngViens.FirstOrDefaultAsync(u => u.MaUngVien == model.UngVienId);
+            if (ungVien == null)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Ứng viên không tồn tại." });
             }
 
-            var lichPhongVan = await _context.LichPhongVans
-                .Include(l => l.PhongPhongVan)
-                .Include(l => l.UngVien)
-                .Include(l => l.ViTriTuyenDung)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (lichPhongVan == null)
+            // ✅ Gán lại vị trí ứng tuyển từ ứng viên
+            model.ViTriId = ungVien.ViTriUngTuyenId;
+            model.Id = Guid.NewGuid().ToString();
+
+            // ❌ Không cho chọn thời gian trong quá khứ
+            if (model.ThoiGian < DateTime.Now)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Không thể tạo lịch với thời gian trong quá khứ." });
             }
 
-            return View(lichPhongVan);
+            // ✅ Kiểm tra trùng lịch trong cùng phòng, cách nhau < 30 phút
+            var lichCungPhong = await _context.LichPhongVans
+                .Where(l => l.PhongPhongVanId == model.PhongPhongVanId)
+                .ToListAsync();
+
+            var clash = lichCungPhong.Any(l =>
+                Math.Abs((l.ThoiGian - model.ThoiGian).Value.TotalMinutes) < 30
+            );
+
+            if (clash)
+            {
+                return Json(new { success = false, message = "Phòng đã có lịch phỏng vấn gần thời gian này. Vui lòng chọn thời gian khác." });
+            }
+
+            // ✅ Thêm vào DB
+            _context.LichPhongVans.Add(model);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Đã tạo lịch phỏng vấn thành công!" });
         }
 
+
+        // -------------------------
+        // 3. (Tùy chọn) Xem chi tiết lịch theo ứng viên
+        // -------------------------
         public async Task<IActionResult> ByUngVien(string id)
         {
             var lich = await _context.LichPhongVans
                 .Include(l => l.PhongPhongVan)
+                .Include(l => l.UngVien)
                 .FirstOrDefaultAsync(l => l.UngVienId == id);
 
             if (lich == null)
             {
-                return Content("<p class='text-muted'>Chưa có lịch phỏng vấn.</p><a class='btn btn-primary mt-2' href='/LichPhongVans/Create?ungVienId=" + id + "'>Tạo lịch ngay</a>", "text/html");
+                return Content("<p class='text-muted'>Chưa có lịch phỏng vấn cho ứng viên này.</p>", "text/html");
             }
 
-            string diaDiem = lich.PhongPhongVan?.DiaDiem ?? "Chưa rõ";
-
-            string html = $@"
-                <p><strong>Thời gian:</strong> {lich.ThoiGian:dd/MM/yyyy HH:mm}</p>
-                <p><strong>Địa điểm:</strong> {diaDiem}</p>
-                <p><strong>Ghi chú:</strong> {lich.GhiChu}</p>";
-
+            var html = $@"
+                <div>
+                    <p><strong>Ứng viên:</strong> {lich.UngVien.HoTen}</p>
+                    <p><strong>Thời gian:</strong> {lich.ThoiGian:dd/MM/yyyy HH:mm}</p>
+                    <p><strong>Phòng:</strong> {lich.PhongPhongVan?.TenPhong} - {lich.PhongPhongVan?.DiaDiem}</p>
+                    <p><strong>Trạng thái:</strong> {lich.TrangThai}</p>
+                    <p><strong>Ghi chú:</strong> {lich.GhiChu}</p>
+                </div>";
             return Content(html, "text/html");
-        }
-
-        // GET: LichPhongVans/Create
-        public IActionResult Create(string ungVienId)
-        {
-            // Lấy danh sách phòng
-            var phongList = _context.PhongPhongVans
-                .Select(p => new { p.Id, Ten = p.TenPhong + " - " + p.DiaDiem }).ToList();
-
-            var uvList = _context.UngViens
-                .Select(uv => new { uv.MaUngVien, uv.HoTen }).ToList();
-
-            var viTriList = _context.ViTriTuyenDungs
-                .Select(v => new { v.MaViTri, v.TenViTri }).ToList();
-
-            string viTriMacDinh = null;
-
-            if (!string.IsNullOrEmpty(ungVienId))
-            {
-                var ungVien = _context.UngViens.FirstOrDefault(u => u.MaUngVien == ungVienId);
-                if (ungVien != null)
-                {
-                    viTriMacDinh = ungVien.ViTriUngTuyenId;
-                }
-            }
-
-            ViewBag.PhongPhongVanList = new SelectList(phongList, "Id", "Ten");
-            ViewBag.UngVienList = new SelectList(uvList, "MaUngVien", "HoTen", ungVienId);
-            ViewBag.ViTriList = new SelectList(viTriList, "MaViTri", "TenViTri", viTriMacDinh);
-
-            return View();
-        }
-        private async Task LoadDropdownsAsync(string ungVienId = null)
-        {
-            var phongList = await _context.PhongPhongVans
-                .Select(p => new
-                {
-                    p.Id,
-                    Display = p.TenPhong + " - " + p.DiaDiem
-                }).ToListAsync();
-            ViewBag.PhongPhongVanList = new SelectList(phongList, "Id", "Display");
-
-            var uvList = await _context.UngViens
-                .Select(u => new { u.MaUngVien, u.HoTen }).ToListAsync();
-            ViewBag.UngVienList = new SelectList(uvList, "MaUngVien", "HoTen", ungVienId);
-
-            var viTriList = await _context.ViTriTuyenDungs.ToListAsync();
-            ViewBag.ViTriList = new SelectList(viTriList, "MaViTri", "TenViTri");
-        }
-
-
-        // POST: LichPhongVans/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(LichPhongVan lich)
-        {
-            if (ModelState.IsValid)
-            {
-                // 🔐 BẢO VỆ: Ép lại ViTriId từ ứng viên, không dùng giá trị gửi lên
-                var ungVien = await _context.UngViens.FirstOrDefaultAsync(u => u.MaUngVien == lich.UngVienId);
-                if (ungVien == null)
-                {
-                    TempData["Error"] = "Không tìm thấy ứng viên.";
-                    return RedirectToAction("Index", "UngViens");
-                }
-
-                lich.ViTriId = ungVien.ViTriUngTuyenId; // ✅ Gán lại để tránh sai
-                lich.Id = Guid.NewGuid().ToString();
-
-                _context.Add(lich);
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Đã tạo lịch phỏng vấn thành công!";
-                return RedirectToAction("Index", "UngViens");
-            }
-
-            foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-            {
-                Console.WriteLine(error.ErrorMessage);
-            }
-
-            TempData["Error"] = "Tạo lịch thất bại. Vui lòng kiểm tra lại.";
-            await LoadDropdownsAsync(lich.UngVienId);
-            return View(lich);
-        }
-
-
-        private bool LichPhongVanExists(string id)
-        {
-            return _context.LichPhongVans.Any(e => e.Id == id);
         }
     }
 }

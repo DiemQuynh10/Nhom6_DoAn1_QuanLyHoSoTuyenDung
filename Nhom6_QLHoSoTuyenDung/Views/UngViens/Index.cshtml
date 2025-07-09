@@ -405,5 +405,68 @@
         }
         });
     </script>
+    <script>
+        function moPopupTaoLich(ungVienId) {
+            fetch(`/LichPhongVans/FormTaoLich?ungVienId=${ungVienId}`)
+                .then(res => res.text())
+                .then(html => {
+                    Swal.fire({
+                        title: 'Tạo lịch phỏng vấn',
+                        html: html,
+                        showCloseButton: true,
+                        showConfirmButton: false,
+                        width: 800
+                    });
+                });
+        }
+
+        function moFormTaoLich(ungVienId) {
+            fetch(`/LichPhongVans/TaoLichPopup?ungVienId=${ungVienId}`) // ✅ sửa lại tên action ở đây
+                .then(res => res.text())
+                .then(html => {
+                    Swal.fire({
+                        title: 'Tạo lịch phỏng vấn',
+                        html: html,
+                        showCloseButton: true,
+                        showConfirmButton: false,
+                        width: 700,
+                        didOpen: () => {
+                                    const form = document.getElementById('formTaoLich');
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const thoiGianInput = form.querySelector('input[name="ThoiGian"]');
+            const selectedTime = new Date(thoiGianInput.value);
+            const now = new Date();
+
+            if (selectedTime < now) {
+                Swal.fire('❌ Lỗi', 'Không thể tạo lịch với thời gian trong quá khứ.', 'error');
+                return;
+            }
+
+            const formData = new FormData(form);
+            fetch('/LichPhongVans/CreateLichFromPopup', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    Swal.fire('✅ Thành công', result.message, 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('❌ Lỗi', result.message, 'error');
+                }
+            })
+            .catch(() => {
+                Swal.fire('❌ Lỗi', 'Gửi dữ liệu thất bại!', 'error');
+            });
+        });
+                        }
+                    });
+                });
+        }
+
+    </script>
 
 }

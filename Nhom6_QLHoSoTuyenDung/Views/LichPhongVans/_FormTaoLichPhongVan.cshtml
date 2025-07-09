@@ -1,0 +1,46 @@
+﻿@model Nhom6_QLHoSoTuyenDung.Models.LichPhongVan
+@{
+    var ungVien = ViewBag.UngVien as Nhom6_QLHoSoTuyenDung.Models.UngVien;
+    var viTri = ViewBag.ViTri as Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung;
+    var phongList = ViewBag.PhongList as List<SelectListItem>;
+}
+
+<form id="formTaoLich" class="row g-3">
+    <input type="hidden" name="UngVienId" value="@ungVien.MaUngVien" />
+    <input type="hidden" name="ViTriId" value="@viTri?.MaViTri" />
+
+    <div class="col-md-6">
+        <label class="form-label fw-bold">Ứng viên</label>
+        <input type="text" class="form-control bg-light" value="@ungVien.HoTen" disabled />
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-bold">Vị trí ứng tuyển</label>
+        <input type="text" class="form-control bg-light" value="@viTri?.TenViTri" disabled />
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-bold">Phòng phỏng vấn</label>
+        <select name="PhongPhongVanId" class="form-select" required>
+            <option value="">-- Chọn phòng --</option>
+            @foreach (var item in phongList)
+            {
+                <option value="@item.Value">@item.Text</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-bold">Thời gian</label>
+        <input type="datetime-local" name="ThoiGian" class="form-control" required />
+    </div>
+
+    <div class="col-md-12">
+        <label class="form-label fw-bold">Ghi chú (nếu có)</label>
+        <textarea name="GhiChu" class="form-control" rows="2"></textarea>
+    </div>
+
+    <div class="col-12 text-end">
+        <button type="submit" class="btn btn-success">💾 Lưu lịch</button>
+    </div>
+</form>

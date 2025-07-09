@@ -96,7 +96,11 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = totalItems;
             ViewBag.LichPhongVanMap = await _context.LichPhongVans.GroupBy(l => l.UngVienId).ToDictionaryAsync(g => g.Key, g => g.First());
+            var lichPhongVanMap = _context.LichPhongVans
+    .Include(l => l.UngVien)
+    .ToDictionary(l => l.UngVien.MaUngVien, l => l);
 
+            ViewBag.LichPhongVanMap = lichPhongVanMap;
             return View(pagedUngViens);
         }
         [HttpPost]
