@@ -1,0 +1,29 @@
+﻿@{
+    var vaiTro = Context.Session.GetString("VaiTro");
+}
+
+@if (!string.IsNullOrEmpty(vaiTro))
+{
+    <ul class="nav flex-column">
+        @if (vaiTro == "Admin" || vaiTro == "HR")
+        {
+            <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">🏠 Tổng quan</a></li>
+            <li><a class="nav-link" asp-controller="UngViens" asp-action="Index">👤 Ứng viên</a></li>
+            <li><a class="nav-link" asp-controller="ViTriTuyenDungs" asp-action="Index">📌 Vị trí tuyển dụng</a></li>
+            <li><a class="nav-link" asp-controller="LichPhongVans" asp-action="Index">💬 Phỏng vấn</a></li>
+            <li><a class="nav-link" asp-controller="ThongKe" asp-action="Index">📊 Thống kê & báo cáo</a></li>
+            <li><a class="nav-link" asp-controller="NhanViens" asp-action="Index">🧑‍💼 Nhân viên</a></li>
+            <li><a class="nav-link" asp-controller="Settings" asp-action="Index">⚙️ Cài đặt</a></li>
+        }
+        else if (vaiTro == "Interviewer")
+        {
+            <li><a asp-controller="LichPhongVan" asp-action="Index" class="nav-link">💬 Lịch phỏng vấn</a></li>
+        }
+    </ul>
+}
+else
+{
+    <div class="text-danger fw-bold">Không có quyền truy cập sidebar (VaiTro bị null)</div>
+}
+
+        </ul>

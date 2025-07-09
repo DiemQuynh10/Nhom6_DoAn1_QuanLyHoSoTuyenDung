@@ -17,6 +17,16 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         {
             _context = context;
         }
+        public IActionResult Index()
+        {
+            var danhSach = _context.LichPhongVans
+                .Include(l => l.UngVien)
+                .Include(l => l.PhongPhongVan)
+                .Include(l => l.ViTriTuyenDung)
+                .ToList();
+
+            return View(danhSach);
+        }
 
         // GET: LichPhongVans/Details/5
         public async Task<IActionResult> Details(string id)
@@ -90,31 +100,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return View();
         }
-
-
-        // POST: LichPhongVans/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(LichPhongVan lich)
-        {
-            if (ModelState.IsValid)
-            {
-                lich.Id = Guid.NewGuid().ToString();
-                _context.Add(lich);
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Đã tạo lịch phỏng vấn thành công!";
-                return RedirectToAction("Index", "UngViens");
-            }
-            foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-            {
-                Console.WriteLine(error.ErrorMessage); // Debug ra Console
-            }
-
-            TempData["Error"] = "Tạo lịch thất bại. Vui lòng kiểm tra lại.";
-            await LoadDropdownsAsync(lich.UngVienId);
-            return View(lich);
-        }
         private async Task LoadDropdownsAsync(string ungVienId = null)
         {
             var phongList = await _context.PhongPhongVans
@@ -125,12 +110,50 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                 }).ToListAsync();
             ViewBag.PhongPhongVanList = new SelectList(phongList, "Id", "Display");
 
-            var uvList = await _context.UngViens.ToListAsync();
+            var uvList = await _context.UngViens
+                .Select(u => new { u.MaUngVien, u.HoTen }).ToListAsync();
             ViewBag.UngVienList = new SelectList(uvList, "MaUngVien", "HoTen", ungVienId);
 
             var viTriList = await _context.ViTriTuyenDungs.ToListAsync();
             ViewBag.ViTriList = new SelectList(viTriList, "MaViTri", "TenViTri");
         }
+
+
+        // POST: LichPhongVans/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(LichPhongVan lich)
+        {
+            if (ModelState.IsValid)
+            {
+                // 🔐 BẢO VỆ: Ép lại ViTriId từ ứng viên, không dùng giá trị gửi lên
+                var ungVien = await _context.UngViens.FirstOrDefaultAsync(u => u.MaUngVien == lich.UngVienId);
+                if (ungVien == null)
+                {
+                    TempData["Error"] = "Không tìm thấy ứng viên.";
+                    return RedirectToAction("Index", "UngViens");
+                }
+
+                lich.ViTriId = ungVien.ViTriUngTuyenId; // ✅ Gán lại để tránh sai
+                lich.Id = Guid.NewGuid().ToString();
+
+                _context.Add(lich);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Đã tạo lịch phỏng vấn thành công!";
+                return RedirectToAction("Index", "UngViens");
+            }
+
+            foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+            {
+                Console.WriteLine(error.ErrorMessage);
+            }
+
+            TempData["Error"] = "Tạo lịch thất bại. Vui lòng kiểm tra lại.";
+            await LoadDropdownsAsync(lich.UngVienId);
+            return View(lich);
+        }
+
 
         private bool LichPhongVanExists(string id)
         {

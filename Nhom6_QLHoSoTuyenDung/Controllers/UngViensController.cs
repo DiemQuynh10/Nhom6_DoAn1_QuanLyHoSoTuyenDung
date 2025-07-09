@@ -64,6 +64,10 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
         public async Task<IActionResult> Index(UngVienFilterVM filter, int page = 1, int pageSize = 10)
         {
+            if (HttpContext.Session.GetString("VaiTro") == "interviewer")
+            {
+                return RedirectToAction("Index", "LichPhongVan");
+            }
             await LoadDropdownsAsync();
             var query = _context.UngViens.Include(x => x.ViTriUngTuyen).AsQueryable();
             query = ApplyFilter(query, filter);
