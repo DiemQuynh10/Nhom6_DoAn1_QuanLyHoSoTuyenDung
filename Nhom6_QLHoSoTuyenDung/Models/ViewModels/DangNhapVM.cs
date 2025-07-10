@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Nhom6_QLHoSoTuyenDung.Models
+namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels
 {
     public class DangNhapVM
     {

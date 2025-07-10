@@ -2,8 +2,9 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 
-namespace Nhom6_QLHoSoTuyenDung.Models
+namespace Nhom6_QLHoSoTuyenDung.Models.Entities
 {
     public class UngVien
     {

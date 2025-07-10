@@ -1,5 +1,12 @@
-﻿@model Nhom6_QLHoSoTuyenDung.Models.BieuDoViTriVM
+﻿@model BieuDoViTriVM
 @using System.Text.Json
+@using System.Text.Json
+@using Nhom6_QLHoSoTuyenDung.Models.Helpers
+@using Nhom6_QLHoSoTuyenDung.Models.Entities
+@using Nhom6_QLHoSoTuyenDung.Models.Helpers
+Models.ViewModels
+@using Nhom6_QLHoSoTuyenDung.Models.Enums
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels
 
 @{
     ViewData["Title"] = "Vị trí tuyển dụng";
@@ -227,38 +234,102 @@
     </div>
 
 
-    <!-- Vị trí đang tuyển -->
-    <div class="card p-3 mb-5">
-        <div class="d-flex justify-content-between">
-            <h5 class="fw-bold mb-3">Vị trí đang tuyển</h5>
-        </div>
-        @if (Model.DanhSachViTri.Any(v => v.TrangThai == "Đang tuyển"))
-        {
-            @foreach (var item in Model.DanhSachViTri.Where(v => v.TrangThai == "Đang tuyển"))
-            {
-                <div class="border rounded p-2 mb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>@item.TenViTri</strong>
-                            <span class="badge bg-success ms-2">ĐANG TUYỂN</span>
-                            <div class="text-muted">@item.MaViTri • @item.PhongBan?.TenPhong</div>
-                        </div>
-                        <div class="text-muted text-end">
-                            <div>@(item.LichPhongVans?.Count ?? 0) phỏng vấn</div>
-                            <div>@(item.UngViens?.Count ?? 0) ứng viên</div>
-                        </div>
-                    </div>
-                    <div class="progress mt-2" style="height: 8px;">
-                        <div class="progress-bar bg-primary" style="width: 75%"></div>
-                    </div>
+    <div class="row">
+        <!-- Cột trái: Vị trí đang tuyển -->
+        <div class="col-md-6">
+            <div class="card p-3 h-100">
+                <div class="d-flex justify-content-between">
+                    <h5 class="fw-bold mb-3">Vị trí đang tuyển</h5>
+                    <a href="/ViTriTuyenDungs/HoatDongGanDay" class="text-decoration-none">Xem tất cả →</a>
                 </div>
-            }
-        }
-        else
-        {
-            <div class="text-muted fst-italic">Không có vị trí đang tuyển nào phù hợp.</div>
-        }
+
+                @foreach (var item in Model.DanhSachViTri.Where(v => v.TrangThai == "Đang tuyển" || v.TrangThai == "Tạm dừng"))
+                {
+                    var tongHoSo = item.UngViens?.Count() ?? 0;
+                    var daPhongVan = item.LichPhongVans?.Count() ?? 0;
+                    var daDeXuat = item.UngViens?.Count(uv => uv.TrangThai == TrangThaiUngVienEnum.DeXuat.ToString()) ?? 0;
+                    var tongXuLy = daPhongVan + daDeXuat;
+                    var tiLe = (tongHoSo == 0) ? 0 : (int)((double)tongXuLy / tongHoSo * 100);
+                    <div class="border rounded p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>@item.TenViTri</strong>
+                                <span class="badge bg-@((item.TrangThai == "Đang tuyển") ? "success" : "warning text-dark") ms-2">@item.TrangThai.ToUpper()</span>
+                                <div class="text-muted small">@item.MaViTri • @item.PhongBan?.TenPhong</div>
+                            </div>
+                            <div class="text-end small text-muted">
+                                <div>@daPhongVan phỏng vấn</div>
+                                <div>@tongHoSo hồ sơ</div>
+                                <div>@daDeXuat đề xuất</div>
+                                <div>
+                                    @{
+                                        var trangThai = item.TrangThai;
+                                        var moTa = trangThai switch
+                                        {
+                                            "Đang tuyển" => "Đang mở nhận hồ sơ",
+                                            "Tạm dừng" => "Tạm dừng tuyển",
+                                            "Đã đóng" => "Đã kết thúc",
+                                            _ => "Không xác định"
+                                        };
+                                    }
+                                    @moTa
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar bg-primary" style="width:@($"{tiLe}%")"></div>
+                        </div>
+                        <small class="text-muted">@tiLe% hồ sơ đã xử lý</small>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Cột phải: Hoạt động gần đây -->
+        <div class="col-md-6">
+            <div class="card p-3 h-100">
+                <div class="d-flex justify-content-between">
+                    <h5 class="fw-bold mb-3">Hoạt động gần đây</h5>
+                    <a asp-action="TatCaHoatDong" class="text-decoration-none">Xem tất cả →</a>
+                </div>
+
+                @foreach (var log in Model.HoatDongGanDay.Take(4))
+                {
+                    var boxClass = log.Loai switch
+                    {
+                        "create" => "activity-box activity-create",
+                        "upload" => "activity-box activity-upload",
+                        "schedule" => "activity-box activity-schedule",
+                        "complete" => "activity-box activity-complete",
+                        _ => "activity-box"
+                    };
+
+                    <div class="@boxClass">
+                        <div class="fw-bold">@log.TieuDe</div>
+                        <div>@log.NoiDung</div>
+
+                        @if (!string.IsNullOrEmpty(log.Icon) || !string.IsNullOrEmpty(log.NguoiThucHien))
+                        {
+                            <div class="mt-1 text-muted small d-flex align-items-center gap-2">
+                                @if (!string.IsNullOrEmpty(log.Icon))
+                                {
+                                    <i class="@log.Icon"></i>
+                                }
+                                <span>@log.NguoiThucHien</span>
+                            </div>
+                        }
+
+                        @if (log.ThoiGian != null)
+                        {
+                            <div class="text-end text-muted small mt-1">@ThoiGianHelper.TinhTuLuc(log.ThoiGian)</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
     </div>
+
     
 
 </div>

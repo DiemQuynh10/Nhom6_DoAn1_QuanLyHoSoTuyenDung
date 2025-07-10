@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Nhom6_QLHoSoTuyenDung.Models
+namespace Nhom6_QLHoSoTuyenDung.Models.Entities
 {
     public class DanhGiaPhongVan
     {

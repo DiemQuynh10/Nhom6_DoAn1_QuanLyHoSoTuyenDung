@@ -1,0 +1,40 @@
+﻿@using Nhom6_QLHoSoTuyenDung.Models.Helpers
+@using Nhom6_QLHoSoTuyenDung.Models.Helpers
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels
+@model List<HoatDongVM>
+
+<div class="container mt-4">
+    <h4 class="fw-bold mb-4">Tất cả hoạt động trong 7 ngày gần đây</h4>
+
+    @foreach (var log in Model)
+    {
+        var boxClass = log.Loai switch
+        {
+            "create" => "activity-box activity-create",
+            "upload" => "activity-box activity-upload",
+            "schedule" => "activity-box activity-schedule",
+            "complete" => "activity-box activity-complete",
+            _ => "activity-box"
+        };
+
+        <div class="@boxClass">
+            <div class="fw-semibold">@log.TieuDe</div>
+            <div class="text-muted mb-1 small">@log.NoiDung</div>
+
+            @if (!string.IsNullOrEmpty(log.Icon) || !string.IsNullOrEmpty(log.NguoiThucHien))
+            {
+                <div class="d-flex align-items-center gap-2 small text-muted">
+                    @if (!string.IsNullOrEmpty(log.Icon))
+                    {
+                        <i class="@log.Icon"></i>
+                    }
+                    <span>@log.NguoiThucHien</span>
+                </div>
+            }
+
+            <div class="text-end text-muted small mt-1">
+                @ThoiGianHelper.TinhTuLuc(log.ThoiGian)
+            </div>
+        </div>
+    }
+</div>

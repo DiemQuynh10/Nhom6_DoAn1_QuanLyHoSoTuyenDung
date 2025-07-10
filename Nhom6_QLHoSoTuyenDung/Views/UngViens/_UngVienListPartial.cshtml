@@ -1,8 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Html
-@model IEnumerable<Nhom6_QLHoSoTuyenDung.Models.UngVien>
+@using Nhom6_QLHoSoTuyenDung.Models.Entities
+@model IEnumerable<UngVien>
 
 @{
-    var lichMap = ViewBag.LichPhongVanMap as Dictionary<string, Nhom6_QLHoSoTuyenDung.Models.LichPhongVan>;
+    var lichMap = ViewBag.LichPhongVanMap as Dictionary<string, LichPhongVan>;
 }
 
 <div class="card p-3">

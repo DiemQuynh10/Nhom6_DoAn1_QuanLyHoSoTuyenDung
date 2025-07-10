@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
-namespace Nhom6_QLHoSoTuyenDung.Models
+namespace Nhom6_QLHoSoTuyenDung.Models.Enums
 {
     public static class EnumExtensions
     {

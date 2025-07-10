@@ -1,7 +1,8 @@
-﻿@model Nhom6_QLHoSoTuyenDung.Models.LichPhongVan
+﻿@using Nhom6_QLHoSoTuyenDung.Models.Entities
+@model LichPhongVan
 @{
-    var ungVien = ViewBag.UngVien as Nhom6_QLHoSoTuyenDung.Models.UngVien;
-    var viTri = ViewBag.ViTri as Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung;
+    var ungVien = ViewBag.UngVien as UngVien;
+    var viTri = ViewBag.ViTri as ViTriTuyenDung;
     var phongList = ViewBag.PhongList as List<SelectListItem>;
 }
 

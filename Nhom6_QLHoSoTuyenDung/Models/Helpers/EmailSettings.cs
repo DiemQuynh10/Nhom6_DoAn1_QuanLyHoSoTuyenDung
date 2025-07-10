@@ -1,4 +1,4 @@
-﻿namespace Nhom6_QLHoSoTuyenDung.Models
+﻿namespace Nhom6_QLHoSoTuyenDung.Models.Helpers
 {
     public class EmailSettings
     {

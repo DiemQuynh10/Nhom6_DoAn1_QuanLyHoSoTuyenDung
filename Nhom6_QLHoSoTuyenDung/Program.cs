@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Nhom6_QLHoSoTuyenDung.Data;
-using Nhom6_QLHoSoTuyenDung.Models;
+using Nhom6_QLHoSoTuyenDung.Models.Helpers;
+using Nhom6_QLHoSoTuyenDung.Services.Implementations;
+using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 namespace Nhom6_QLHoSoTuyenDung
 {
     public class Program
@@ -22,8 +24,9 @@ namespace Nhom6_QLHoSoTuyenDung
             });
             builder.Services.AddHttpContextAccessor(); 
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-
-
+            builder.Services.AddScoped<IUngVienService, UngVienService>();
+            builder.Services.AddScoped<IViTriTuyenDungService, ViTriTuyenDungService>();
+            builder.Services.AddScoped<ITaiKhoanService, TaiKhoanService>();
             var app = builder.Build();
             using (var scope = app.Services.CreateScope())
             {

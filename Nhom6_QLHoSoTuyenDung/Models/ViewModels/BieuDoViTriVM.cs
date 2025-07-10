@@ -1,4 +1,6 @@
-﻿namespace Nhom6_QLHoSoTuyenDung.Models
+﻿using Nhom6_QLHoSoTuyenDung.Models.Entities;
+
+namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels
 {
     public class QuyTrinhTuyenDungItem
     {
@@ -16,6 +18,7 @@
         public List<int> SoLuongViTriMoi { get; set; } = new();
         public List<int> SoLuongHoanThanh { get; set; } = new(); // nếu muốn biểu đồ 2 đường
         public List<QuyTrinhTuyenDungItem> QuyTrinhTuyenDung { get; set; } = new(); // <- CẦN CÓ
+        public List<HoatDongVM> HoatDongGanDay { get; set; } = new();
     }
 
 }

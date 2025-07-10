@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Nhom6_QLHoSoTuyenDung.Models
+namespace Nhom6_QLHoSoTuyenDung.Models.Entities
 {
     public class NguoiDung
     {
@@ -19,7 +19,7 @@ namespace Nhom6_QLHoSoTuyenDung.Models
 
         [Required]
         [Column("vai_tro")]
-        public string VaiTro { get; set; } // enum: admin, hr
+        public string VaiTro { get; set; } = string.Empty; // enum: admin, hr
 
         [Column("phong_ban_id")]
         public string? PhongBanId { get; set; }

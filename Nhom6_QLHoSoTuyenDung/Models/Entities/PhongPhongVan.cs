@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Nhom6_QLHoSoTuyenDung.Models
+namespace Nhom6_QLHoSoTuyenDung.Models.Entities
 {
-    public class PhongBan
+    public class PhongPhongVan
     {
         [Key]
         [Column("id")]
@@ -13,6 +13,9 @@ namespace Nhom6_QLHoSoTuyenDung.Models
         [Column("ten_phong")]
         public string TenPhong { get; set; }
 
+        [Column("dia_diem")]
+        public string? DiaDiem { get; set; }
+
         [Column("mo_ta")]
         public string? MoTa { get; set; }
 
@@ -20,8 +23,6 @@ namespace Nhom6_QLHoSoTuyenDung.Models
         // Navigation Property
         // -----------------------------
 
-        public virtual ICollection<NhanVien>? NhanViens { get; set; }
-        public virtual ICollection<NguoiDung>? NguoiDungs { get; set; }
-        public virtual ICollection<ViTriTuyenDung>? ViTriTuyenDungs { get; set; }
+        public virtual ICollection<LichPhongVan>? LichPhongVans { get; set; }
     }
 }

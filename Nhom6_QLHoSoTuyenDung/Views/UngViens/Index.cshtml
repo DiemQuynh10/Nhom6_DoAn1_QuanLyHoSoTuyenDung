@@ -1,12 +1,13 @@
-﻿@model IEnumerable<Nhom6_QLHoSoTuyenDung.Models.UngVien>
+﻿@model IEnumerable<UngVien>
+@using System.Text.Json
 @using Azure.Core
 @using Microsoft.AspNetCore.Mvc.Rendering
-@using System.Text.Json
+@using Nhom6_QLHoSoTuyenDung.Models.Entities
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Quản lý Ứng viên";
-
     var nguonLabels = ViewBag.NguonLabels as List<string> ?? new List<string>();
     var nguonValues = ViewBag.NguonValues as List<int> ?? new List<int>();
     var trangThaiLabels = ViewBag.TrangThaiLabels as List<string> ?? new List<string>();
@@ -15,7 +16,6 @@
     var viTriValues = ViewBag.ViTriValues as List<int> ?? new List<int>();
     int totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
 }
-
 <style>
     .card {
         border-radius: 8px;
@@ -31,23 +31,19 @@
 
 <div class="container mt-4">
     <!-- NÚt chức năng -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-        <div class="d-flex align-items-center">
-            <i class="bi bi-people-fill fs-3 text-primary me-2"></i>
-            <h2 class="fw-bold m-0">Quản lý Ứng viên</h2>
-        </div>
-        <div>
-            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addUngVienModal">
-                <i class="bi bi-person-plus-fill me-1"></i> Thêm Ứng viên
-            </button>
-            <button class="btn btn-outline-success me-2" data-bs-toggle="modal" data-bs-target="#importExcelModal"> 📥Nhập từ Excel</button>
-            <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#filterModal">
-                <i class="bi bi-funnel-fill me-1"></i> Lọc nâng cao
-            </button>
-        </div>
-    </div>
+    <!-- TIÊU ĐỀ & NÚT CHỨC NĂNG – sticky -->
+    @await Html.PartialAsync("_ControlBarPartial", new ControlBarViewModel
+{
+    Title = "Quản lý Ứng viên",
+    Icon = "bi bi-people-fill",
+    CreateTargetId = "#addUngVienModal",
+    ImportTargetId = "#importExcelModal",
+    ShowFilterButton = true
+})
 
-   
+
+
+
     <!-- THÔNG BÁO -->
     @if (TempData["Success"] != null)
     {
@@ -97,6 +93,7 @@
 
     <!-- DANH SÁCH ỨNG VIÊN -->
     @await Html.PartialAsync("_UngVienListPartial", Model)
+    @await Html.PartialAsync("_FilterOffcanvasPartial", (FilterViewModel)ViewBag.FilterViewModel)
 </div>
 <!-- Phân trang -->
 <div class="d-flex justify-content-between align-items-center mt-3">
@@ -179,76 +176,11 @@
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                @await Html.PartialAsync("_CreateFormPartial", new Nhom6_QLHoSoTuyenDung.Models.UngVien())
+                @await Html.PartialAsync("_CreateFormPartial", new Nhom6_QLHoSoTuyenDung.Models.Entities.UngVien())
             </div>
         </div>
     </div>
 </div>
-<!-- MODAL LỌC NÂNG CAO -->
-<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <form method="get">
-                <div class="modal-header bg-light border-bottom shadow-sm">
-                    <h5 class="modal-title fw-bold text-primary" id="filterModalLabel">
-                        <i class="bi bi-funnel-fill me-2"></i> Bộ lọc nâng cao
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Từ khóa (Họ tên)</label>
-                            <input type="text" name="Keyword" value="@(Context.Request.Query["Keyword"])" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Giới tính</label>
-                            <select name="GioiTinh" class="form-select">
-                                <option value="">-- Tất cả --</option>
-                                @foreach (var item in (SelectList)ViewBag.GioiTinhList)
-                                {
-                                    <option value="@item.Value" selected="@(item.Value.ToString() == Context.Request.Query["GioiTinh"] ? "selected" : null)">
-                                        @item.Text
-                                    </option>
-                                }
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">Vị trí ứng tuyển</label>
-                            <select name="ViTriId" class="form-select">
-                                <option value="">-- Tất cả --</option>
-                                @foreach (var item in (SelectList)ViewBag.ViTriList)
-                                {
-                                    <option value="@item.Value" selected="@(item.Value.ToString() == Context.Request.Query["ViTriId"] ? "selected" : null)">
-                                        @item.Text
-                                    </option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Trạng thái</label>
-                            <input name="TrangThai" value="@(Context.Request.Query["TrangThai"])" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Từ ngày</label>
-                            <input type="date" name="FromDate" value="@(Context.Request.Query["FromDate"])" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Đến ngày</label>
-                            <input type="date" name="ToDate" value="@(Context.Request.Query["ToDate"])" class="form-control" />
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="submit" class="btn btn-primary">🔍 Áp dụng lọc</button>
-                    <a href="/UngViens" class="btn btn-secondary">↺ Đặt lại</a>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -371,13 +303,6 @@
                     bsAlert.close();
                 }, 3000);
             }
-
-            // ✅ Thêm đoạn toggle lọc nâng cao ở đây
-            document.querySelector("button.btn-outline-dark").addEventListener("click", () => {
-                const filterBox = document.getElementById("filterContainer");
-                filterBox.style.display = filterBox.style.display === "none" ? "block" : "none";
-            });
-
             // ✅ Mở lại form Thêm nếu có lỗi validate
         @if (!ViewData.ModelState.IsValid)
         {
@@ -399,8 +324,8 @@
         @if (!ViewData.ModelState.IsValid)
         {
             <text>
-                        var addModal = new bootstrap.Modal(document.getElementById('addUngVienModal'));
-                        addModal.show();
+                            var addModal = new bootstrap.Modal(document.getElementById('addUngVienModal'));
+                            addModal.show();
             </text>
         }
         });
@@ -421,7 +346,7 @@
         }
 
         function moFormTaoLich(ungVienId) {
-            fetch(`/LichPhongVans/TaoLichPopup?ungVienId=${ungVienId}`) // ✅ sửa lại tên action ở đây
+            fetch(`/LichPhongVans/TaoLichPopup?ungVienId=${ungVienId}`)
                 .then(res => res.text())
                 .then(html => {
                     Swal.fire({
