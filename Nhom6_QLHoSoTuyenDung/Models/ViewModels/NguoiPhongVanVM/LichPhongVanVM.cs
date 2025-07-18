@@ -1,4 +1,6 @@
-﻿namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
 {
     public class LichPhongVanVM
     {
@@ -14,6 +16,9 @@
         public string KinhNghiem { get; set; } = "";
         public string TenPhong { get; set; } = "";
         public string DiaDiem { get; set; }
+        [Display(Name = "Trạng thái")]
+        public string TrangThai { get; set; } = string.Empty;
+
 
     }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM;
 
 public class LichPhongVanService : ILichPhongVanService
@@ -82,20 +83,28 @@ public class LichPhongVanService : ILichPhongVanService
 
     public async Task<LichPhongVanDashboardVM> GetDashboardAsync()
     {
-        var lich = await _context.LichPhongVans
+        // 1. Lấy toàn bộ danh sách để thống kê đúng
+        var allLich = await _context.LichPhongVans
             .Include(l => l.UngVien)
             .Include(l => l.ViTriTuyenDung)
             .Include(l => l.PhongPhongVan)
             .ToListAsync();
 
+        // 2. Chỉ lấy lịch đang chờ để hiển thị trong dashboard (không gồm đã tiếp nhận/hủy)
+        var lichHienThi = allLich
+            .Where(l => l.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString()
+                     && l.TrangThai != TrangThaiPhongVanEnum.Huy.ToString())
+            .ToList();
+
+        // 3. Tạo model
         var model = new LichPhongVanDashboardVM
         {
-            TongSoLich = lich.Count,
-            DaPhongVan = lich.Count(l => l.TrangThai == "Hoàn thành"),
-            ChuaPhongVan = lich.Count(l => l.TrangThai != "Hoàn thành"),
-            DanhSachLich = lich,
-            ViTriLabels = lich.Select(l => l.ViTriTuyenDung.TenViTri).Distinct().ToList(),
-            ViTriCounts = lich
+            TongSoLich = allLich.Count,
+            DaPhongVan = allLich.Count(l => l.TrangThai == TrangThaiPhongVanEnum.HoanThanh.ToString()),
+            ChuaPhongVan = allLich.Count(l => l.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString()),
+            DanhSachLich = lichHienThi,
+            ViTriLabels = lichHienThi.Select(l => l.ViTriTuyenDung.TenViTri).Distinct().ToList(),
+            ViTriCounts = lichHienThi
                 .GroupBy(l => l.ViTriTuyenDung.TenViTri)
                 .Select(g => g.Count())
                 .ToList()
@@ -103,5 +112,6 @@ public class LichPhongVanService : ILichPhongVanService
 
         return model;
     }
+
 
 }

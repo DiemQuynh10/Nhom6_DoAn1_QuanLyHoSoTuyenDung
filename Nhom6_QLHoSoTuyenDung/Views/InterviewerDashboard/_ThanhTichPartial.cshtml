@@ -1,0 +1,14 @@
+﻿@model Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.DashboardNguoiPhongVanVM
+
+<div class="card shadow-sm rounded-4 p-3 h-100">
+    <h5 class="fw-bold mb-3"><i class="bi bi-trophy"></i> Thành tích của tôi</h5>
+    <p class="fw-bold">@Model.HoTen</p>
+    <p class="text-muted mb-2">@Model.ChucDanh</p>
+    <p><span class="text-primary fw-bold">@Model.TyLeThanhCong%</span> - @Model.TongSoPhongVan phỏng vấn</p>
+    <p class="text-success mb-1">@Model.SoThanhCong Thành công</p>
+    <p class="text-danger mb-1">@Model.SoKhongPhuHop Không phù hợp</p>
+    <div class="text-muted">Xếp hạng trong team</div>
+    <div class="progress mt-1" style="height: 8px;">
+        <div class="progress-bar bg-secondary" role="progressbar" style="width: 30%;"></div>
+    </div>
+</div>

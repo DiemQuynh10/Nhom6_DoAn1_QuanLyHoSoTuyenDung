@@ -4,10 +4,10 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels
 {
     public class XacNhanMaVM
     {
-        [Required]
-        public string TenDangNhap { get; set; }
+        public string TenDangNhap { get; set; } = "";
 
         [Required(ErrorMessage = "Vui lòng nhập mã xác nhận")]
-        public string MaXacNhan { get; set; }
+        [RegularExpression(@"^\d{6}$", ErrorMessage = "Mã gồm 6 chữ số")]
+        public string MaXacNhan { get; set; } = "";
     }
 }

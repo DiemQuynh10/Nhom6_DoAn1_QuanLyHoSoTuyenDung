@@ -35,39 +35,37 @@ public class DanhGiaPhongVanService : IDanhGiaPhongVanService
 
     }
 
-    public async Task<bool> LuuAsync(DanhGiaPhongVanVM vm, int nguoiDungId)
+    public async Task<bool> LuuAsync(DanhGiaPhongVanVM vm, string nguoiDungId)
     {
-        var nguoiDungIdStr = nguoiDungId.ToString();
-        var nhanVien = await _context.NhanViens
-            .FirstOrDefaultAsync(n => n.MaNhanVien == nguoiDungIdStr);
-
+        var nhanVien = await _context.NhanViens.FirstOrDefaultAsync(n => n.MaNhanVien == nguoiDungId);
         if (nhanVien == null) return false;
 
-        var danhGia = new DanhGiaPhongVan
-        {
-            Id = Guid.NewGuid().ToString(),
-            LichPhongVanId = vm.LichPhongVanId,
-            NhanVienDanhGiaId = nhanVien.MaNhanVien,
-            DiemDanhGia = vm.DiemDanhGia,
-            NhanXet = vm.NhanXet,
-            DeXuat = vm.DeXuat
-        };
+        var danhGia = await _context.DanhGiaPhongVans
+            .FirstOrDefaultAsync(d => d.LichPhongVanId == vm.LichPhongVanId && d.NhanVienDanhGiaId == nhanVien.MaNhanVien);
 
-        _context.DanhGiaPhongVans.Add(danhGia);
-
-        var lich = await _context.LichPhongVans.FindAsync(vm.LichPhongVanId);
-        if (lich != null)
+        if (danhGia == null)
         {
-            if (vm.DeXuat == "TiepNhan")
-                lich.TrangThai = TrangThaiPhongVanEnum.HoanThanh.ToString();
-            else if (vm.DeXuat == "TuChoi")
-                lich.TrangThai = TrangThaiPhongVanEnum.Huy.ToString();
+            danhGia = new DanhGiaPhongVan
+            {
+                Id = Guid.NewGuid().ToString(),
+                LichPhongVanId = vm.LichPhongVanId,
+                NhanVienDanhGiaId = nhanVien.MaNhanVien
+            };
+            _context.DanhGiaPhongVans.Add(danhGia);
         }
 
+        // Cập nhật nội dung
+        danhGia.DiemDanhGia = (int)vm.DiemDanhGia;
+        danhGia.NhanXet = vm.NhanXet;
+        if (vm.DeXuat.HasValue)
+        {
+            danhGia.DeXuat = vm.DeXuat.Value.ToString();
+        }
 
         await _context.SaveChangesAsync();
         return true;
     }
+
 
 
 

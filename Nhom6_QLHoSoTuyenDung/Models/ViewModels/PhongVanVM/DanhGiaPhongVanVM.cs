@@ -1,4 +1,5 @@
 ﻿using Nhom6_QLHoSoTuyenDung.Models.Entities;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -22,13 +23,13 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
         // Dữ liệu đầu vào từ người đánh giá
         [Required(ErrorMessage = "Vui lòng nhập điểm đánh giá")]
         [Range(0, 10, ErrorMessage = "Điểm đánh giá phải từ 0 đến 10")]
-        public int DiemDanhGia { get; set; }
+        public float DiemDanhGia { get; set; }
 
         [Display(Name = "Nhận xét")]
         public string? NhanXet { get; set; }
 
         [Display(Name = "Đề xuất")]
-        public string? DeXuat { get; set; }
+        public DeXuatEnum? DeXuat { get; set; }
         public string? KinhNghiem { get; set; }
         public string? LinkCV { get; set; }
 

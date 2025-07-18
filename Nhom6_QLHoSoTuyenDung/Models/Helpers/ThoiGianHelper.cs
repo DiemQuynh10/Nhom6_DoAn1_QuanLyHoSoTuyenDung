@@ -19,6 +19,33 @@
             else
                 return "Vừa xong";
         }
+        public static string TinhThoiGianConLai(DateTime? thoiGian)
+        {
+            if (!thoiGian.HasValue)
+                return "Không rõ thời gian";
 
+            var now = DateTime.Now;
+            var span = thoiGian.Value - now;
+
+            if (span.TotalDays >= 2)
+            {
+                return $"Phỏng vấn lúc {thoiGian.Value:dd/MM/yyyy HH:mm}";
+            }
+            else if (span.TotalDays >= 1)
+            {
+                int gio = (int)(span.TotalHours - 24);
+                return $"1 ngày {(gio > 0 ? $"{gio} giờ " : "")}nữa";
+            }
+            else if (span.TotalMinutes > 0)
+            {
+                int gio = (int)span.TotalHours;
+                int phut = span.Minutes;
+                return $"{gio} giờ {phut} phút nữa";
+            }
+            else
+            {
+                return "Đã quá giờ";
+            }
+        }
     }
 }

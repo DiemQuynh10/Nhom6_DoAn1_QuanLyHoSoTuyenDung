@@ -1,15 +1,53 @@
 ﻿@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
+@using Nhom6_QLHoSoTuyenDung.Models.Enums
 @model DanhGiaPhongVanVM
 
 @{
     Layout = "~/Views/Shared/_LayoutInterviewer.cshtml";
     ViewData["Title"] = "Đánh giá ứng viên";
+    Enum.TryParse(ViewBag.TrangThai?.ToString(), out TrangThaiPhongVanEnum trangThai);
+    float? diemTrungBinh = ViewBag.DiemTrungBinh as float?;
+    bool daDanhGia = ViewBag.DaDanhGia != null && (bool)ViewBag.DaDanhGia;
+    string mauDiem = diemTrungBinh >= 8 ? "bg-success" : diemTrungBinh >= 6 ? "bg-primary" :
+                     diemTrungBinh >= 4 ? "bg-warning" : "bg-danger";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+        <i class="bi bi-check-circle-fill me-1"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+    </div>
 }
 
 <div class="container mt-4">
-    <h4 class="mb-4 fw-bold text-primary">
-        <i class="bi bi-star-fill"></i> Đánh giá Ứng viên
+    <a asp-controller="InterviewerDashboard" asp-action="LichPhongVan" class="btn btn-link text-decoration-none mb-3">
+        <i class="bi bi-arrow-left-circle me-1"></i> Quay lại danh sách lịch phỏng vấn
+    </a>
+
+    <h4 class="mb-3 fw-bold text-primary">
+        <i class="bi bi-star-fill me-1"></i> Đánh giá Ứng viên
     </h4>
+
+    @if (ViewBag.TrangThai != null)
+    {
+        var css = trangThai == TrangThaiPhongVanEnum.HoanThanh ? "success"
+        : trangThai == TrangThaiPhongVanEnum.Huy ? "danger"
+        : "primary";
+
+        <div class="mb-3">
+            <span class="badge bg-@css px-3 py-2 fs-6">
+                <i class="bi bi-info-circle me-1"></i> Trạng thái: @trangThai.GetDisplayName()
+            </span>
+        </div>
+    }
+
+    @if (daDanhGia)
+    {
+        <div class="alert alert-primary mt-2">
+            <i class="bi bi-check2-circle me-1"></i> Đã có đánh giá chi tiết cho ứng viên này.
+        </div>
+    }
 
     <div class="card p-4 mb-4 shadow-sm border-0">
         <div class="d-flex align-items-center justify-content-between">
@@ -19,7 +57,7 @@
 
                 @if (!string.IsNullOrEmpty(Model.KinhNghiem))
                 {
-                    <h5 class="mt-4 text-primary">🧠 Kinh nghiệm & kỹ năng</h5>
+                    <h5 class="mt-3 text-primary">🧠 Kinh nghiệm & kỹ năng</h5>
                     <div class="alert alert-light border border-primary">
                         <i class="bi bi-check2-circle me-1"></i> @Model.KinhNghiem
                     </div>
@@ -33,29 +71,33 @@
                 </p>
             </div>
 
-            @if (Model.DiemDanhGia > 0)
+            @if (diemTrungBinh != null && diemTrungBinh > 0)
             {
                 <div class="text-center">
-                    <div class="rounded-circle bg-success text-white fw-bold fs-4 p-4" style="width: 100px; height: 100px;">
-                        @Model.DiemDanhGia
+                    <div class="rounded-circle text-white fw-bold fs-4 p-4 @mauDiem" style="width: 100px; height: 100px;">
+                        @diemTrungBinh
                     </div>
                     <p class="mt-2 fw-bold text-uppercase">
                         @{
-                            if (Model.DiemDanhGia >= 8)
+                            if (diemTrungBinh >= 8)
                             {
-                                @:Xuất sắc
+                                <span>Xuất sắc</span>
+                                ;
                             }
-                            else if (Model.DiemDanhGia >= 6)
+                            else if (diemTrungBinh >= 6)
                             {
-                                @:Tốt
+                                <span>Tốt</span>
+                                ;
                             }
-                            else if (Model.DiemDanhGia >= 4)
+                            else if (diemTrungBinh >= 4)
                             {
-                                @:Trung bình
+                                <span>Trung bình</span>
+                                ;
                             }
                             else
                             {
-                                @:Kém
+                                <span>Kém</span>
+                                ;
                             }
                         }
                     </p>
@@ -64,40 +106,53 @@
         </div>
 
         <div class="d-flex gap-2 mt-3">
-            <a asp-action="DanhGiaChiTiet" asp-route-id="@Model.LichPhongVanId" class="btn btn-outline-primary">
-                <i class="bi bi-star-fill me-1"></i> Đánh giá chi tiết
+            <a asp-action="DanhGiaChiTiet" asp-route-lichPhongVanId="@Model.LichPhongVanId" class="btn btn-outline-primary">
+                <i class="bi bi-pencil-square me-1"></i>
+                @(daDanhGia ? "Sửa đánh giá chi tiết" : "Đánh giá chi tiết")
             </a>
+
             <a href="@Model.LinkCV" class="btn btn-outline-secondary" target="_blank">
                 <i class="bi bi-file-earmark"></i> Tài liệu CV
             </a>
-            <a href="#" class="btn btn-outline-info">
-                <i class="bi bi-chat-dots"></i> Phỏng vấn
-            </a>
+
+            @if (daDanhGia)
+            {
+                <a asp-action="InDanhGia" asp-route-id="@Model.LichPhongVanId" class="btn btn-outline-dark">
+                    🖨️ In báo cáo đánh giá
+                </a>
+            }
         </div>
+
+        @if (!string.IsNullOrEmpty(ViewBag.NhanXet as string))
+        {
+            <div class="mt-4">
+                <label class="fw-bold">Nhận xét:</label>
+                <div class="border p-2 rounded">@ViewBag.NhanXet</div>
+            </div>
+        }
     </div>
 
-    <form asp-action="DanhGia" method="post">
-        @Html.AntiForgeryToken()
-        @Html.HiddenFor(m => m.LichPhongVanId)
-
-        <div class="mb-3">
-            <label asp-for="DiemDanhGia" class="form-label">Điểm đánh giá (0 - 10)</label>
-            <input asp-for="DiemDanhGia" class="form-control" type="number" min="0" max="10" />
-            <span class="text-danger">@Html.ValidationMessageFor(m => m.DiemDanhGia)</span>
+    @if (trangThai != TrangThaiPhongVanEnum.HoanThanh && trangThai != TrangThaiPhongVanEnum.Huy)
+    {
+        <div class="text-muted small mb-2">
+            Hãy chọn hành động tiếp theo để cập nhật trạng thái cho ứng viên:
         </div>
 
-        <div class="mb-3">
-            <label asp-for="NhanXet" class="form-label">Nhận xét</label>
-            <textarea asp-for="NhanXet" class="form-control" rows="3"></textarea>
-        </div>
-
-        <div class="d-flex gap-2">
-            <button name="deXuat" value="TiepNhan" class="btn btn-success">
-                <i class="bi bi-check-circle-fill me-1"></i> Tiếp nhận
-            </button>
-            <button name="deXuat" value="TuChoi" class="btn btn-danger">
-                <i class="bi bi-x-circle-fill me-1"></i> Từ chối
-            </button>
-        </div>
-    </form>
+        <form asp-action="CapNhatTrangThai" method="post" class="mt-1">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.LichPhongVanId" />
+            <div class="d-flex gap-2">
+                <button name="deXuat" value="TiepNhan" class="btn btn-success">
+                    <i class="bi bi-check-circle-fill me-1"></i> Tiếp nhận
+                </button>
+                <button name="deXuat" value="TuChoi" class="btn btn-danger">
+                    <i class="bi bi-x-circle-fill me-1"></i> Từ chối
+                </button>
+            </div>
+        </form>
+    }
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

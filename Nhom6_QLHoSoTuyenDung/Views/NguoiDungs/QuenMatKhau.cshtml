@@ -3,38 +3,95 @@
 @{
     Layout = null;
 }
-
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
-    <title>Quên mật khẩu</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <title>Quên mật khẩu – CarritoGo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="~/css/auth.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 </head>
-<body class="bg-light">
-    <div class="container mt-5" style="max-width: 500px;">
-        <h3 class="text-center text-primary mb-4">Quên mật khẩu</h3>
+<body class="login-page">
 
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">@TempData["Error"]</div>
-        }
+  <div class="bubbles" aria-hidden="true">
+    @for(int i=0;i<10;i++){<div class="bubble"></div>}
+  </div>
 
-        <form asp-action="QuenMatKhau" method="post">
-            <div class="mb-3">
-                <label class="form-label">Tên đăng nhập</label>
-                <input asp-for="TenDangNhap" class="form-control" />
-                <span asp-validation-for="TenDangNhap" class="text-danger"></span>
-            </div>
+  <div class="login-container single-form">
 
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input asp-for="Email" type="email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100">Gửi mã xác nhận</button>
-        </form>
+    <div class="login-header text-center mb-4">
+      <div class="icon-circle mb-3"><i class="fa-solid fa-envelope fa-lg"></i></div>
+      <h2>Quên mật khẩu</h2>
+      <p class="subtitle">Nhập tài khoản và email để nhận mã xác nhận</p>
     </div>
+
+    <div id="alertPlaceholder"></div>
+
+    <form id="forgotForm" novalidate>
+      @Html.AntiForgeryToken()
+      <div class="input-group mb-3">
+        <input name="TenDangNhap" type="text" class="form-control" placeholder="Tên đăng nhập" autocomplete="username" />
+        <span class="icon"><i class="fa-solid fa-user"></i></span>
+        <div class="invalid-feedback" id="userError"></div>
+      </div>
+      <div class="input-group mb-4">
+        <input name="Email" type="email" class="form-control" placeholder="Email" autocomplete="email" />
+        <span class="icon"><i class="fa-solid fa-envelope"></i></span>
+        <div class="invalid-feedback" id="emailError"></div>
+      </div>
+      <button type="submit" class="btn-login w-100 mb-3">Gửi mã xác nhận</button>
+    </form>
+
+    <p class="text-center uv-link">
+      <a asp-action="DangNhap"><i class="fa-solid fa-arrow-left me-1"></i> Quay về đăng nhập</a>
+    </p>
+
+    <div class="footer-info mt-4">
+      <h4><i class="fa-solid fa-shield-halved me-2"></i>Bảo mật & Quyền riêng tư</h4>
+      <p>Thông tin đăng nhập được mã hóa theo tiêu chuẩn cao nhất.<br/>CarritoGo cam kết bảo vệ dữ liệu cá nhân & thông tin công ty.</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <partial name="_ValidationScriptsPartial" />
+
+  <script>
+    (function(){
+      const form   = document.getElementById('forgotForm'),
+            alertP = document.getElementById('alertPlaceholder');
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        alertP.innerHTML = '';
+
+        const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+        const ten   = form['TenDangNhap'].value.trim();
+        const email = form['Email'].value.trim();
+
+        try {
+          const res = await fetch('@Url.Action("QuenMatKhauAjax","NguoiDungs")', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'RequestVerificationToken': token
+            },
+            body: JSON.stringify({ TenDangNhap: ten, Email: email })
+          });
+          const json = await res.json();
+
+          if (json.success) {
+            // Chuyển thẳng sang trang nhập OTP
+            window.location.href = '@Url.Action("XacNhanMa","NguoiDungs")'
+              + '?tenDangNhap=' + encodeURIComponent(ten);
+          } else {
+            alertP.innerHTML = `<div class="alert alert-danger">${json.error}</div>`;
+          }
+        } catch {
+          alertP.innerHTML = '<div class="alert alert-danger">Không thể kết nối, thử lại sau.</div>';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

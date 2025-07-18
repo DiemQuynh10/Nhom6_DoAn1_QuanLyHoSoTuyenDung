@@ -7,33 +7,22 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
         [Required]
         public string LichPhongVanId { get; set; }
 
-        [Display(Name = "Kỹ năng chuyên môn")]
-        [Range(0, 10)]
-        public int KyNangChuyenMon { get; set; }
+        [Range(1, 10)]
+        public float KyNangChuyenMon { get; set; }
 
-        [Display(Name = "Kỹ năng giao tiếp")]
-        [Range(0, 10)]
-        public int GiaoTiep { get; set; }
+        [Range(1, 10)]
+        public float GiaoTiep { get; set; }
 
-        [Display(Name = "Giải quyết vấn đề")]
-        [Range(0, 10)]
-        public int GiaiQuyetVanDe { get; set; }
+        [Range(1, 10)]
+        public float GiaiQuyetVanDe { get; set; }
 
-        [Display(Name = "Thái độ – Tinh thần")]
-        [Range(0, 10)]
-        public int ThaiDo { get; set; }
+        [Range(1, 10)]
+        public float ThaiDoLamViec { get; set; }
 
-        [Display(Name = "Khả năng học hỏi")]
-        [Range(0, 10)]
-        public int HocHoi { get; set; }
+        [Range(1, 10)]
+        public float TinhThanHocHoi { get; set; }
 
-        [Display(Name = "Nhận xét tổng quát")]
         public string? NhanXet { get; set; }
-
-        [Display(Name = "Đề xuất")]
         public string? DeXuat { get; set; }
-
-        public double DiemTrungBinh =>
-            Math.Round((KyNangChuyenMon + GiaoTiep + GiaiQuyetVanDe + ThaiDo + HocHoi) / 5.0, 2);
     }
 }

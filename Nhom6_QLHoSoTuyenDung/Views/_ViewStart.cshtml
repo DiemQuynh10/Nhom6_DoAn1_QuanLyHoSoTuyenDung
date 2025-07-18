@@ -1,11 +1,17 @@
 ﻿@using System.Security.Claims
 @{
-    var role = Context.User.FindFirst(ClaimTypes.Role)?.Value;
+    var role = Context.User.FindFirst(ClaimTypes.Role)?.Value ?? "";
 
-    Layout = role switch
+    if (role == "Admin" || role == "HR")
     {
-        "Interviewer" => "~/Views/Shared/LayoutInterviewer.cshtml",
-        "Admin" or "HR" => "~/Views/Shared/_Layout.cshtml",
-        _ => "~/Views/Shared/_Layout.cshtml"
-    };
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+    else if (role == "Interviewer")
+    {
+        Layout = "~/Views/Shared/_LayoutInterviewer.cshtml";
+    }
+    else
+    {
+        Layout = null; // Hoặc layout mặc định cho khách, ví dụ "~/Views/Shared/_AuthLayout.cshtml"
+    }
 }

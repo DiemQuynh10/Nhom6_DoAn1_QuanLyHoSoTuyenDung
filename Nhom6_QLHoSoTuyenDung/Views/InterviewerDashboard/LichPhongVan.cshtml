@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.LichPhongVanVM>
+﻿@using Nhom6_QLHoSoTuyenDung.Models.Helpers
+@model IEnumerable<Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.LichPhongVanVM>
 @{
     Layout = "~/Views/Shared/_LayoutInterviewer.cshtml";
     var lichGanNhat = ViewBag.LichGanNhat as Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.LichPhongVanVM;
@@ -8,15 +9,14 @@
     <h3 class="fw-bold text-primary mb-4">📅 Lịch Phỏng Vấn</h3>
 
     <!-- 🎯 Lịch Gần Nhất -->
-    @if (lichGanNhat != null)
+    @if (lichGanNhat != null && lichGanNhat.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString() && lichGanNhat.TrangThai != TrangThaiPhongVanEnum.Huy.ToString())
     {
         <div class="card shadow-lg border-start border-danger border-5 mb-4 p-4 bg-light">
             <div class="d-flex justify-content-between">
                 <div>
                     <span class="badge bg-danger me-2">🔥 Khẩn cấp - Tiếp theo</span>
                     <span class="text-danger fw-bold">
-                        <i class="bi bi-alarm"></i>
-                        @((lichGanNhat.ThoiGian.Value - DateTime.Now).Minutes) phút nữa
+                        <i class="bi bi-alarm"></i> @ThoiGianHelper.TinhThoiGianConLai(lichGanNhat.ThoiGian)
                     </span>
                 </div>
                 <div>
@@ -54,6 +54,7 @@
             </div>
         </div>
     }
+
 
     <!-- 📋 Lịch hôm nay còn lại -->
     <h5 class="fw-bold mb-3">📋 Lịch hôm nay còn lại</h5>

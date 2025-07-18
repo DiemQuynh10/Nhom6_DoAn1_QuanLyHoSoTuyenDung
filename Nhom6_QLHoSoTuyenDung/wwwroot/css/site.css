@@ -1,96 +1,709 @@
-﻿html {
-  font-size: 14px;
+﻿﻿ /* ============================= */
+/* 1. Google Font & Global       */
+/* ============================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    height: 100%;
+    overflow: hidden;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-body {
-  margin-bottom: 60px;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-.bg-light-success { background-color: #e6f4ea; }
-.bg-light-primary { background-color: #eaf1fb; }
-.bg-light-warning { background-color: #fff9e5; }
-.bg-light-purple  { background-color: #f6f0fa; }
-
-.border-start-success { border-left-color: #198754 !important; }
-.border-start-primary { border-left-color: #0d6efd !important; }
-.border-start-warning { border-left-color: #ffc107 !important; }
-.border-start-purple  { border-left-color: #6f42c1 !important; }
-
-.activity-box {
-    padding: 1rem;
-    border-radius: 0.75rem;
-    margin-bottom: 1rem;
-    border-left: 4px solid transparent;
-}
-
-.activity-create {
-    background-color: #e6f4ea; /* Xanh lá nhạt */
-    border-left-color: #198754;
-}
-
-.activity-upload {
-    background-color: #eaf1fb; /* Xanh dương nhạt */
-    border-left-color: #0d6efd;
-}
-
-.activity-schedule {
-    background-color: #fff9e5; /* Vàng nhạt */
-    border-left-color: #ffc107;
-}
-
-.activity-complete {
-    background-color: #f6f0fa; /* Tím nhạt */
-    border-left-color: #6f42c1;
-}
-.sidebar-mini-logo {
-    height: 48px;
-    padding-top: 8px;
-    padding-left: 12px;
-}
-
-    .sidebar-mini-logo img {
-        height: 36px;
-        width: auto;
-        display: block;
+    /* ============================= */
+    /* 2. Dynamic Pastel-Teal Gradient */
+    /* ============================= */
+    body.login-page {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #D0F0EA 0%, /* very light teal */
+        #A8E0D2 25%, /* light teal */
+        #70C1B3 50%, /* medium teal */
+        #47B39C 75%, /* deeper teal */
+        #1CA39C 100% /* rich teal */
+        );
+        background-size: 400% 400%;
+        animation: gradientBG 25s ease infinite;
     }
 
-.sidebar-header {
+@keyframes gradientBG {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* ============================= */
+/* 3. Bubbles (crisp + blur)     */
+/* ============================= */
+.bubbles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+    /* 3. Bubbles (crisp + blur – ĐÃ NÂNG CẤP) */
+    .bubbles .bubble {
+        position: absolute;
+        bottom: -7px; /* rời xa mép dưới hơn một chút */
+        background: rgba(255,255,255,0.35); /* sáng hơn */
+        border: 2px solid rgba(255,255,255,0.85);
+        border-radius: 50%;
+        /* ↓ Giảm blur – tăng nét, thêm glow & highlight */
+        filter: blur(4px);
+        box-shadow: 0 0 12px rgba(255,255,255,0.55), inset 0 0 6px rgba(255,255,255,0.8);
+        animation: rise 20s infinite ease-in;
+    }
+
+        /* Hiệu ứng highlight mềm trên mỗi bong bóng */
+        .bubbles .bubble::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            /* điểm sáng lệch về 30% cho cảm giác bóng */
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.0) 65%);
+            mix-blend-mode: screen; /* hoà trộn để tự “ăn” nền */
+            pointer-events: none;
+        }
+
+
+@keyframes rise {
+    0% {
+        transform: translateY(0) scale(0.4);
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 0.6;
+    }
+    /* sớm hiện rõ nét */
+    100% {
+        transform: translateY(-130vh) scale(1.6);
+        opacity: 0;
+    }
+}
+
+/* sizes & delays */
+.bubble:nth-child(1) {
+    width: 30px;
+    height: 30px;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.bubble:nth-child(2) {
+    width: 50px;
+    height: 50px;
+    left: 30%;
+    animation-delay: 3s;
+}
+
+.bubble:nth-child(3) {
+    width: 25px;
+    height: 25px;
+    left: 50%;
+    animation-delay: 5s;
+}
+
+.bubble:nth-child(4) {
+    width: 70px;
+    height: 70px;
+    left: 70%;
+    animation-delay: 2s;
+}
+
+.bubble:nth-child(5) {
+    width: 40px;
+    height: 40px;
+    left: 85%;
+    animation-delay: 4s;
+}
+
+.bubble:nth-child(6) {
+    width: 20px;
+    height: 20px;
+    left: 20%;
+    animation-delay: 6s;
+}
+
+.bubble:nth-child(7) {
+    width: 60px;
+    height: 60px;
+    left: 40%;
+    animation-delay: 1s;
+}
+
+.bubble:nth-child(8) {
+    width: 35px;
+    height: 35px;
+    left: 60%;
+    animation-delay: 7s;
+}
+
+.bubble:nth-child(9) {
+    width: 55px;
+    height: 55px;
+    left: 80%;
+    animation-delay: 3.5s;
+}
+
+.bubble:nth-child(10) {
+    width: 45px;
+    height: 45px;
+    left: 90%;
+    animation-delay: 2.5s;
+}
+
+/* ============================= */
+/* 4. Main Container             */
+/* ============================= */
+.login-container {
+    position: relative;
+    z-index: 1;
+    width: 95%;
+    max-width: 1100px;
+    height: 85vh;
+    background: rgba(255,255,255,0.95);
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    display: flex;
+    overflow: hidden;
+}
+
+/* ============================= */
+/* 5. Left Column (Info)         */
+/* ============================= */
+.left {
+    flex: 1;
+    padding: 36px;
+    background: #FFF;
+    overflow-y: auto;
+}
+
+    .left::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        border-radius: 3px;
+    }
+/* Branding */
+.logo-row {
     display: flex;
     align-items: center;
-    padding: 16px;
+    margin-bottom: 22px;
 }
 
-    .sidebar-header img {
-        height: 48px;
-        width: auto;
+.logo-square {
+    width: 450px;
+}
+
+.brand-info {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #212121;
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+/* Sections */
+.left h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #04777A;
+    margin-bottom: 8px;
+}
+
+.left h3 {
+    font-size: 18px;
+    font-weight: 500;
+    color: #212121;
+    margin-bottom: 16px;
+}
+
+.left p {
+    font-size: 0.95rem;
+    color: #424242;
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+/* Boxes */
+.box-about, .box-features {
+    background: #E0F7FA;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+    .box-about h4, .box-features h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #039EA6;
+        margin-bottom: 10px;
     }
 
-    .sidebar-header span {
-        font-weight: bold;
-        font-size: 1.1rem;
-        margin-left: 10px;
-        color: #333;
+    .box-about ul li, .box-features ul li {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+        color: #212121;
+        margin-bottom: 6px;
     }
+
+    .box-about i, .box-features i {
+        margin-right: 8px;
+        color: #0288D1;
+    }
+/* Stats */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 10px;
+}
+
+    .stats .item {
+        background: #E0F7FA;
+        border-radius: 6px;
+        padding: 10px;
+        text-align: center;
+    }
+
+        .stats .item strong {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #039EA6;
+        }
+
+        .stats .item span {
+            font-size: 0.85rem;
+            color: #424242;
+        }
+
+/* ============================= */
+/* 6. Right Column (Login Form)  */
+/* ============================= */
+.right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #FFF;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+    .right::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        border-radius: 3px;
+    }
+    /* Title */
+    .right h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #04777A;
+        margin-bottom: 12px;
+        position: relative;
+    }
+
+        .right h2::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg,#039EA6,#04777A);
+            border-radius: 2px;
+            position: absolute;
+            left: 0;
+            bottom: -4px;
+            animation: expand 1s forwards;
+        }
+
+@keyframes expand {
+    to {
+        width: 40px;
+    }
+}
+
+/* Header Icon */
+.login-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+    .login-header .icon-circle {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 12px;
+        background: linear-gradient(45deg,#0288D1,#81D4FA);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2.5s infinite ease-in-out;
+    }
+
+        .login-header .icon-circle i {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+@keyframes pulse {
+    0%,100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Body */
+.login-body {
+    flex: 1;
+    padding-bottom: 16px;
+}
+
+/* Inputs */
+.input-group {
+    position: relative;
+    margin-bottom: 18px;
+}
+
+    .input-group input {
+        width: 100%;
+        padding: 10px 14px 10px 10px;
+        border: 1px solid #B0BEC5;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        transition: border-color .3s;
+    }
+
+        .input-group input:focus {
+            border-color: #0288D1;
+            outline: none;
+        }
+    /* Clickable lock icon */
+    .input-group .icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #039EA6;
+        cursor: pointer;
+    }
+
+/* Actions */
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 22px;
+}
+
+    .actions a {
+        color: #0288D1;
+        text-decoration: none;
+    }
+
+        .actions a:hover {
+            color: #01579B;
+        }
+
+/* Submit */
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg,#04777A,#039EA6);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-position .4s,box-shadow .3s;
+}
+
+    .btn-login:hover {
+        background-position: right;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+/* Links */
+.links {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 0.85rem;
+}
+
+    .links a {
+        color: #0288D1;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+/* Footer */
+.footer-info {
+    margin: 20px 0 0;
+    padding: 14px;
+    background: #E0F2F1;
+    border-left: 4px solid #039EA6;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #212121;
+}
+
+    .footer-info h4 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #039EA6;
+    }
+
+    .footer-info p {
+        margin: 0;
+        line-height: 1.4;
+    }
+
+/* ============================= */
+/* 7. Reset-password (single-form) */
+/* ============================= */
+.login-container.single-form {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 450px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+    /* reuse header, title as above */
+    /* password toggle */
+    .login-container.single-form .input-group {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+        .login-container.single-form .input-group.password input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color .3s,box-shadow .3s;
+        }
+
+    .login-container.single-form .toggle-pass {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        color: #0288D1;
+    }
+
+    .login-container.single-form .btn-reset {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg,#04777A,#039EA6);
+        background-size: 200% 200%;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-position .4s,box-shadow .3s;
+    }
+
+        .login-container.single-form .btn-reset:hover {
+            background-position: right;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+    .login-container.single-form .text-danger {
+        margin-top: 4px;
+        display: block;
+        font-size: 0.85rem;
+    }
+
+    .login-container.single-form .links {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.9rem;
+    }
+
+        .login-container.single-form .links a {
+            color: #0288D1;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+            .login-container.single-form .links a:hover {
+                text-decoration: underline;
+            }
+
+/* ============================= */
+/* Settings page animations & cards */
+/* ============================= */
+.settings-page {
+    animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header-gradient {
+    background: linear-gradient(135deg, #04777A, #039EA6);
+}
+
+.settings-page .card {
+    border: none;
+    border-radius: 8px;
+}
+
+.settings-page .btn-outline-primary {
+    transition: background 0.3s, color 0.3s;
+}
+
+    .settings-page .btn-outline-primary:hover {
+        background: #039EA6;
+        color: #fff;
+    }
+
+.settings-page .btn-outline-success:hover {
+    background: #47B39C;
+    color: #fff;
+}
+
+/* ============================= */
+/* 8. Responsive sidebar         */
+/* ============================= */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+        .sidebar.show {
+            transform: translateX(0);
+            z-index: 1000;
+        }
+
+    .content-wrapper {
+        margin-left: 0;
+    }
+}
+/* ===== Sidebar Interviewer ===== */
+.iv-sidebar {
+    width: 260px;
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #fff;
+    border-right: 1px solid #e6e8f0;
+    display: flex;
+    flex-direction: column;
+    padding: 1.4rem 1rem;
+    z-index: 1040;
+}
+
+.iv-brand h5 {
+    color: #6366f1;
+    font-weight: 700;
+    margin-bottom: .1rem;
+}
+
+.iv-item {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .6rem 1rem;
+    border-radius: .55rem;
+    margin: .25rem;
+    color: #334155;
+    font-weight: 500;
+    transition: .15s;
+    text-decoration: none;
+}
+
+    .iv-item:hover {
+        background: #eef1ff;
+        color: #4f46e5;
+    }
+
+    .iv-item.is-active {
+        background: #e0e7ff;
+        color: #4338ca;
+        text-decoration: none;
+    }
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    font-size: 1.2rem
+}
+
+    .btn-icon:hover {
+        color: #111
+    }
+/* account block */
+.iv-account {
+    border-top: 1px solid #e6e8f0;
+    padding-top: 1.2rem;
+}
+/* content margin desktop */
+@media(min-width:992px) {
+    .iv-wrapper, .dashboard-header {
+        margin-left: 260px
+    }
+}
+/* mobile: off‑canvas */
+@media(max-width:992px) {
+    .iv-sidebar {
+        transform: translateX(-100%);
+        transition: .3s;
+    }
+
+    body.iv-open::before { /* ❸ lớp mờ nền khi mở menu */
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.35);
+        z-index: 1030;
+    }
+
+    body.iv-open .iv-sidebar {
+        transform: none;
+        box-shadow: 0 0 0 9999px rgba(0,0,0,.4)
+    }
+}

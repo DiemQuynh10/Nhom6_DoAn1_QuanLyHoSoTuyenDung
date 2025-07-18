@@ -1,58 +1,77 @@
-﻿@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
+﻿@using Nhom6_QLHoSoTuyenDung.Models.Enums
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
 @model DanhGiaChiTietVM
 
 @{
     Layout = "~/Views/Shared/_LayoutInterviewer.cshtml";
-    ViewData["Title"] = "Đánh giá chi tiết ứng viên";
+    ViewData["Title"] = "Đánh giá ứng viên";
 }
 
-<h2 class="mb-4 fw-bold">📝 Đánh giá chi tiết ứng viên</h2>
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4">Đánh giá ứng viên</h2>
 
-<form asp-action="DanhGiaChiTiet" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="LichPhongVanId" />
+    <!-- 🔸 Hiển thị lỗi tổng quát -->
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-    <div class="mb-3">
-        <label asp-for="KyNangChuyenMon" class="form-label"></label>
-        <input asp-for="KyNangChuyenMon" class="form-control" type="number" min="0" max="10" />
-    </div>
+    <form asp-action="DanhGiaChiTiet" asp-controller="DanhGiaPhongVans" method="post">
+        <input type="hidden" name="LichPhongVanId" value="@Model.LichPhongVanId" />
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="KyNangChuyenMon" class="form-label">Kỹ năng chuyên môn</label>
+                <input asp-for="KyNangChuyenMon" type="number" min="1" max="10" class="form-control" />
+                <span asp-validation-for="KyNangChuyenMon" class="text-danger"></span>
+            </div>
 
-    <div class="mb-3">
-        <label asp-for="GiaoTiep" class="form-label"></label>
-        <input asp-for="GiaoTiep" class="form-control" type="number" min="0" max="10" />
-    </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="GiaoTiep" class="form-label">Giao tiếp</label>
+                <input asp-for="GiaoTiep" type="number" min="1" max="10" class="form-control" />
+                <span asp-validation-for="GiaoTiep" class="text-danger"></span>
+            </div>
 
-    <div class="mb-3">
-        <label asp-for="GiaiQuyetVanDe" class="form-label"></label>
-        <input asp-for="GiaiQuyetVanDe" class="form-control" type="number" min="0" max="10" />
-    </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="GiaiQuyetVanDe" class="form-label">Giải quyết vấn đề</label>
+                <input asp-for="GiaiQuyetVanDe" type="number" min="1" max="10" class="form-control" />
+                <span asp-validation-for="GiaiQuyetVanDe" class="text-danger"></span>
+            </div>
 
-    <div class="mb-3">
-        <label asp-for="ThaiDo" class="form-label"></label>
-        <input asp-for="ThaiDo" class="form-control" type="number" min="0" max="10" />
-    </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="ThaiDoLamViec" class="form-label">Thái độ làm việc</label>
+                <input asp-for="ThaiDoLamViec" type="number" min="1" max="10" class="form-control" />
+                <span asp-validation-for="ThaiDoLamViec" class="text-danger"></span>
+            </div>
 
-    <div class="mb-3">
-        <label asp-for="HocHoi" class="form-label"></label>
-        <input asp-for="HocHoi" class="form-control" type="number" min="0" max="10" />
-    </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="TinhThanHocHoi" class="form-label">Tinh thần học hỏi</label>
+                <input asp-for="TinhThanHocHoi" type="number" min="1" max="10" class="form-control" />
+                <span asp-validation-for="TinhThanHocHoi" class="text-danger"></span>
+            </div>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="NhanXet" class="form-label"></label>
-        <textarea asp-for="NhanXet" class="form-control" rows="3"></textarea>
-    </div>
+        <div class="mb-3">
+            <label asp-for="NhanXet" class="form-label">Nhận xét</label>
+            <textarea asp-for="NhanXet" rows="3" class="form-control"></textarea>
+            <span asp-validation-for="NhanXet" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="DeXuat" class="form-label">Đề xuất</label>
+            <select asp-for="DeXuat" class="form-select" asp-items="Html.GetEnumSelectList<DeXuatEnum>()">
+                <option disabled selected value="">-- Chọn đề xuất --</option>
+            </select>
+            <span asp-validation-for="DeXuat" class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="DeXuat" class="form-label"></label>
-        <select asp-for="DeXuat" class="form-select">
-            <option value="">-- Chọn --</option>
-            <option value="Phù hợp">Phù hợp</option>
-            <option value="Vào vòng 2">Vào vòng 2</option>
-            <option value="Không phù hợp">Không phù hợp</option>
-        </select>
-    </div>
+        <div class="d-flex justify-content-between mt-3">
+            <a asp-action="DanhGia" asp-route-id="@Model.LichPhongVanId" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-circle me-1"></i> Quay lại
+            </a>
 
-    <button type="submit" class="btn btn-primary">
-        <i class="bi bi-save"></i> Lưu đánh giá
-    </button>
-</form>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Lưu đánh giá
+            </button>
+        </div>
+
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

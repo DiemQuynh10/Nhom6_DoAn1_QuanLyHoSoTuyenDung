@@ -4,16 +4,15 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels
 {
     public class DatLaiMatKhauVM
     {
-        public string TenDangNhap { get; set; }
+        public string TenDangNhap { get; set; } = "";
 
         [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới")]
-        [MinLength(6, ErrorMessage = "Mật khẩu ít nhất 6 ký tự")]
         [DataType(DataType.Password)]
-        public string MatKhauMoi { get; set; }
+        public string MatKhauMoi { get; set; } = "";
 
-        [Required]
-        [Compare("MatKhauMoi", ErrorMessage = "Xác nhận mật khẩu không khớp")]
+        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu mới")]
         [DataType(DataType.Password)]
-        public string XacNhanMatKhauMoi { get; set; }
+        [Compare("MatKhauMoi", ErrorMessage = "Nhập lại mật khẩu không khớp")]
+        public string XacNhanMkMoi { get; set; } = "";
     }
 }
