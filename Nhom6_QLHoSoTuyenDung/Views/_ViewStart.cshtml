@@ -1,3 +1,11 @@
-﻿@{
-    Layout = "_Layout";
+﻿@using System.Security.Claims
+@{
+    var role = Context.User.FindFirst(ClaimTypes.Role)?.Value;
+
+    Layout = role switch
+    {
+        "Interviewer" => "~/Views/Shared/LayoutInterviewer.cshtml",
+        "Admin" or "HR" => "~/Views/Shared/_Layout.cshtml",
+        _ => "~/Views/Shared/_Layout.cshtml"
+    };
 }

@@ -1,6 +1,6 @@
-﻿namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels
+﻿namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.UngVien
 {
-    public class UngVienFilterVM
+    public class UngVienBoLocDonGianVM
     {
         public string? Keyword { get; set; }
         public string? GioiTinh { get; set; }

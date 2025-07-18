@@ -64,7 +64,12 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column p-3" id="sidebarMenu">
-        <h5 class="text-primary">📝 ProCV</h5>
+        <div class="sidebar-header">
+            <img src="/images/logo1.png" alt="CarriGO Logo" />
+            <span>CarriGO</span>
+        </div>
+
+
         @await Html.PartialAsync("_SidebarPartial")
         @if ((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "UngViens")
         {

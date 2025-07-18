@@ -32,7 +32,7 @@
 <div class="container mt-4">
     <!-- NÚt chức năng -->
     <!-- TIÊU ĐỀ & NÚT CHỨC NĂNG – sticky -->
-    @await Html.PartialAsync("_ControlBarPartial", new ControlBarViewModel
+    @await Html.PartialAsync("_ControlBarPartial", new ThanhDieuKhienVM
 {
     Title = "Quản lý Ứng viên",
     Icon = "bi bi-people-fill",
@@ -93,7 +93,7 @@
 
     <!-- DANH SÁCH ỨNG VIÊN -->
     @await Html.PartialAsync("_UngVienListPartial", Model)
-    @await Html.PartialAsync("_FilterOffcanvasPartial", (FilterViewModel)ViewBag.FilterViewModel)
+    @await Html.PartialAsync("_FilterOffcanvasPartial", (BoLocViewModel)ViewBag.FilterViewModel)
 </div>
 <!-- Phân trang -->
 <div class="d-flex justify-content-between align-items-center mt-3">

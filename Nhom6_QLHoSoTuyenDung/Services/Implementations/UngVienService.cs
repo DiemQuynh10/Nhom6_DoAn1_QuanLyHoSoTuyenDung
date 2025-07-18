@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Data;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
 using Nhom6_QLHoSoTuyenDung.Models.Enums;
-using Nhom6_QLHoSoTuyenDung.Models.ViewModels;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.UngVien;
 using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 using static Nhom6_QLHoSoTuyenDung.Controllers.UngViensController;
 
@@ -19,7 +19,7 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
             _context = context;
         }
 
-        public async Task<List<UngVien>> GetAllAsync(UngVienFilterVM filter)
+        public async Task<List<UngVien>> GetAllAsync(UngVienBoLocDonGianVM filter)
         {
             var query = _context.UngViens.Include(x => x.ViTriUngTuyen).AsQueryable();
 

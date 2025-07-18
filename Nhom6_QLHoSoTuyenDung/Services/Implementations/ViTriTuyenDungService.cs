@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Data;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
-using Nhom6_QLHoSoTuyenDung.Models.ViewModels;
 using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 using Nhom6_QLHoSoTuyenDung.Models.Helpers;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.ViTriTuyenDungVM;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.Dashboard;
 
 namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
 {
@@ -104,7 +105,7 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
             return ThongKeViTriHelper.ThongKeQuyTrinhTuyenDung(dsUngVien);
         }
 
-        public List<HoatDongVM> LayHoatDongGanDay()
+        public List<HoatDongDashboardVM> LayHoatDongGanDay()
         {
             return ThongKeViTriHelper.LayHoatDong7Ngay(_context);
         }

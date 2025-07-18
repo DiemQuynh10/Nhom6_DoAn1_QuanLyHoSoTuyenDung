@@ -1,6 +1,6 @@
 ﻿namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels
 {
-    public class ControlBarViewModel
+    public class ThanhDieuKhienVM
     {
         public string Title { get; set; } = "";
         public string Icon { get; set; } = "bi bi-folder"; // ví dụ: bi bi-people-fill

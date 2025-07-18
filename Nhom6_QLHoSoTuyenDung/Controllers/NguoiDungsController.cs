@@ -1,12 +1,18 @@
 ﻿// PHẦN XỬ LÝ ĐĂNG NHẬP - TRÍCH XUẤT TỪ NguoiDungsController
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels;
 using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
+using System.Security.Claims;
 
 namespace Nhom6_QLHoSoTuyenDung.Controllers
 {
+    [AllowAnonymous]
     public partial class NguoiDungsController : Controller
     {
         private readonly ITaiKhoanService _taiKhoanService;
@@ -44,16 +50,45 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                 return View(model);
             }
 
-            await HttpContext.Session.CommitAsync();
-            string controller = user.VaiTro switch
-            {
-                "Admin" or "HR" => "UngViens",
-                "Interviewer" => "LichPhongVans",
-                _ => "NguoiDungs"
-            };
-            return RedirectToAction("Index", controller);
-        }
+            // Lưu thông tin vào session nếu cần (không bắt buộc nữa nếu dùng Claims)
+            HttpContext.Session.SetString("VaiTro", user.VaiTro);
+            HttpContext.Session.SetString("TenDangNhap", user.TenDangNhap);
+            HttpContext.Session.SetString("HoTen", user.HoTen ?? "");
 
+            var claims = new List<Claim>
+{
+    new Claim(ClaimTypes.Name, user.TenDangNhap),
+    new Claim(ClaimTypes.Role, user.VaiTro),
+    new Claim("HoTen", user.HoTen ?? "")
+};
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+            // Đăng nhập bằng scheme "Cookies"
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                claimsPrincipal);
+
+            // Chuyển hướng tùy theo vai trò
+            if (user.VaiTro == RoleNames.Admin || user.VaiTro == RoleNames.HR)
+            {
+                return RedirectToAction("Index", "UngViens");
+            }
+            else if (user.VaiTro == RoleNames.Interviewer)
+            {
+                return RedirectToAction("Index", "InterviewerDashboard");
+            }
+            else
+            {
+                return RedirectToAction("Index", "NguoiDungs");
+            }
+
+        }
+        public IActionResult AccessDenied()
+        {
+            return View(); // Tạo view AccessDenied.cshtml trong Views/NguoiDungs
+        }
         public IActionResult Logout()
         {
             _taiKhoanService.DangXuat(HttpContext);

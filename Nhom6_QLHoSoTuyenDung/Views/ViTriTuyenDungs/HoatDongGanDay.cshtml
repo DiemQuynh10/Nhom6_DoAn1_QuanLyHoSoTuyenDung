@@ -1,7 +1,9 @@
 ﻿@using Nhom6_QLHoSoTuyenDung.Models.Helpers
 @using Nhom6_QLHoSoTuyenDung.Models.Helpers
 @using Nhom6_QLHoSoTuyenDung.Models.ViewModels
-@model List<HoatDongVM>
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.Dashboard
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.ViTriTuyenDungVM
+@model List<HoatDongDashboardVM>
 
 <div class="container mt-4">
     <h4 class="fw-bold mb-4">Tất cả hoạt động trong 7 ngày gần đây</h4>
@@ -32,9 +34,13 @@
                 </div>
             }
 
-            <div class="text-end text-muted small mt-1">
-                @ThoiGianHelper.TinhTuLuc(log.ThoiGian)
-            </div>
+            @if (log.ThoiGian.HasValue)
+            {
+                <div class="text-end text-muted small mt-1">
+                    @ThoiGianHelper.TinhTuLuc(log.ThoiGian.Value)
+                </div>
+            }
+
         </div>
     }
 </div>

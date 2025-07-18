@@ -2,7 +2,7 @@
 
 namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels
 {
-    public class FilterViewModel
+    public class BoLocViewModel
     {
         public string? Keyword { get; set; }
         public string? TrangThai { get; set; }

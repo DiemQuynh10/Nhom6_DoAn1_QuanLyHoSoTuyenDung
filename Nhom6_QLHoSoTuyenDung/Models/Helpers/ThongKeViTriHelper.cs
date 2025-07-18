@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
-using Nhom6_QLHoSoTuyenDung.Models.ViewModels;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.Dashboard;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.ViTriTuyenDungVM;
 
 namespace Nhom6_QLHoSoTuyenDung.Models.Helpers
 {
@@ -55,16 +56,16 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Helpers
     };
         }
 
-        public static List<HoatDongVM> LayHoatDong7Ngay(AppDbContext context)
+        public static List<HoatDongDashboardVM> LayHoatDong7Ngay(AppDbContext context)
         {
             DateTime tuNgay = DateTime.Now.AddDays(-7);
-            var hoatDong = new List<HoatDongVM>();
+            var hoatDong = new List<HoatDongDashboardVM>();
 
             // 1. Vị trí mới tạo
             var viTriMoi = context.ViTriTuyenDungs
                 .Include(v => v.PhongBan)
                 .Where(v => v.NgayTao >= tuNgay)
-                .Select(v => new HoatDongVM
+                .Select(v => new HoatDongDashboardVM
                 {
                     Loai = "create",
                     TieuDe = "Vị trí mới được tạo",
@@ -81,7 +82,7 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Helpers
                 .Include(u => u.ViTriUngTuyen)
                 .Where(u => u.NgayNop >= tuNgay)
                 .GroupBy(u => u.ViTriUngTuyen)
-                .Select(g => new HoatDongVM
+                .Select(g => new HoatDongDashboardVM
                 {
                     Loai = "upload",
                     TieuDe = "Ứng viên mới",
@@ -97,7 +98,7 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Helpers
             var lichPhongVan = context.LichPhongVans
                 .Include(l => l.UngVien)
                 .Where(l => l.ThoiGian >= tuNgay)
-                .Select(l => new HoatDongVM
+                .Select(l => new HoatDongDashboardVM
                 {
                     Loai = "schedule",
                     TieuDe = "Lịch phỏng vấn",
@@ -115,7 +116,7 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Helpers
             var daTuyen = context.UngViens
                 .Include(u => u.ViTriUngTuyen)
                 .Where(u => u.TrangThai == "Đã tuyển" && u.NgayNop >= tuNgay)
-                .Select(u => new HoatDongVM
+                .Select(u => new HoatDongDashboardVM
                 {
                     Loai = "complete",
                     TieuDe = "Hoàn thành tuyển dụng",

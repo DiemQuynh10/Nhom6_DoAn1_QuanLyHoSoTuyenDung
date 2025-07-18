@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
 using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.UngVien;
 using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 
 namespace Nhom6_QLHoSoTuyenDung.Controllers
 {
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.HR}")]
     public class UngViensController : Controller
     {
         private readonly IUngVienService _ungVienService;
@@ -35,7 +38,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                 "Value", "Text");
         }
 
-        public async Task<IActionResult> Index(UngVienFilterVM filter, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(UngVienBoLocDonGianVM filter, int page = 1, int pageSize = 10)
         {
             if (HttpContext.Session.GetString("VaiTro") == "interviewer")
                 return RedirectToAction("Index", "LichPhongVan");
@@ -57,7 +60,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             ViewBag.ViTriLabels = stats["ViTriLabels"];
             ViewBag.ViTriValues = stats["ViTriValues"];
 
-            var filterViewModel = new FilterViewModel
+            var filterViewModel = new BoLocViewModel
             {
                 Keyword = filter.Keyword,
                 TrangThai = filter.TrangThai,

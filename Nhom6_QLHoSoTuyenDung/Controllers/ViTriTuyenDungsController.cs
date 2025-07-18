@@ -1,12 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.ViTriTuyenDungVM;
 using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 
 namespace Nhom6_QLHoSoTuyenDung.Controllers
 {
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.HR}")]
     public class ViTriTuyenDungsController : Controller
     {
         private readonly IViTriTuyenDungService _viTriService;
@@ -28,7 +32,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             var quyTrinh = _viTriService.ThongKeQuyTrinh(dsUngVien);
             var hoatDongGanDay = _viTriService.LayHoatDongGanDay();
 
-            var vm = new BieuDoViTriVM
+            var vm = new BieuDoViTriTuyenDungVM
             {
                 DanhSachViTri = dsViTri,
                 PhanBoTrangThai = phanBoTrangThai,

@@ -1,66 +1,139 @@
-﻿@using Nhom6_QLHoSoTuyenDung.Models.Entities
-@model IEnumerable<LichPhongVan>
-
+﻿@model LichPhongVanDashboardVM
+@using System.Text.Json
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Lịch phỏng vấn";
+
+    var viTriLabels = JsonSerializer.Serialize(Model.ViTriLabels);
+    var viTriCounts = JsonSerializer.Serialize(Model.ViTriCounts);
+    bool isHR = User.IsInRole("HR");
 }
 
-<h1>Index</h1>
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Quản lý lịch phỏng vấn</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTaoLich">
+            <i class="bi bi-calendar-plus me-1"></i> Tạo lịch mới
+        </button>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ThoiGian)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TrangThai)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GhiChu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PhongPhongVan)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UngVien)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ViTriTuyenDung)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ThoiGian)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TrangThai)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.GhiChu)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PhongPhongVan.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UngVien.MaUngVien)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ViTriTuyenDung.MaViTri)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+    <!-- Thống kê -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-start border-primary border-4 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Tổng lịch phỏng vấn</h6>
+                    <h3 class="fw-bold">@Model.TongSoLich</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-start border-success border-4 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Đã phỏng vấn</h6>
+                    <h3 class="fw-bold">@Model.DaPhongVan</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-start border-warning border-4 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Chưa phỏng vấn</h6>
+                    <h3 class="fw-bold">@Model.ChuaPhongVan</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ vị trí -->
+    <div class="mb-5">
+        <canvas id="chartViTri" height="100"></canvas>
+    </div>
+
+    <!-- Danh sách lịch -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Danh sách lịch phỏng vấn</h5>
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ứng viên</th>
+                        <th>Vị trí</th>
+                        <th>Thời gian</th>
+                        <th>Phòng</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var lich in Model.DanhSachLich)
+                    {
+                        <tr>
+                            <td>@lich.UngVien?.HoTen</td>
+                            <td>@lich.ViTriTuyenDung?.TenViTri</td>
+                            <td>@lich.ThoiGian?.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@lich.PhongPhongVan?.TenPhong</td>
+                            <td>
+                                <span class="badge bg-@(lich.TrangThai == "Hoàn thành" ? "success" : "secondary")">
+                                    @lich.TrangThai
+                                </span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("ByUngVien", "LichPhongVans", new { id = lich.UngVienId })"
+                                   class="btn btn-sm btn-outline-info me-2">Chi tiết</a>
+                                @if (isHR)
+                                {
+                                    <a href="@Url.Action("DanhGia", "DanhGiaPhongVan", new { lichId = lich.Id })"
+                                       class="btn btn-sm btn-outline-primary">Đánh giá</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo lịch -->
+<div class="modal fade" id="modalTaoLich" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo lịch phỏng vấn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="formTaoLichContainer">
+                    <p class="text-muted">Vui lòng chọn ứng viên để tạo lịch.</p>
+                    <!-- Có thể thêm form động tại đây -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('chartViTri').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(viTriLabels),
+                datasets: [{
+                    label: 'Số lịch theo vị trí',
+                    data: @Html.Raw(viTriCounts),
+                    backgroundColor: '#3b82f6'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
 }
-    </tbody>
-</table>
