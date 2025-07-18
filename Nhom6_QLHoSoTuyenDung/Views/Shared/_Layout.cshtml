@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" /> 
+    <script src="~/js/site.js"></script>
 
     <style>
         body {
@@ -17,61 +19,23 @@
 
         .sidebar {
             width: 230px;
-            height: 100vh;
+            min-height: 100vh;
             background-color: #f8f9fa;
             position: fixed;
             top: 0;
             left: 0;
-            display: flex;
-            flex-direction: column;
             transition: all 0.3s;
-            padding: 0;
         }
 
-        .sidebar-scroll {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            padding: 1.5rem 1rem 1rem 1rem;
-        }
-
-        .sidebar .nav-link {
-            color: #333;
-        }
-
-            .sidebar .nav-link.active,
-            .sidebar .nav-link:hover {
-                font-weight: bold;
-                background-color: #e2e6ea;
+            .sidebar .nav-link {
+                color: #333;
             }
 
-        .sidebar-profile {
-            flex-shrink: 0;
-            padding: 1rem;
-            background: #2563eb;
-            color: #fff;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .active-stat {
-            background: #e0e7ff !important;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-            .sidebar-profile .avatar {
-                width: 40px;
-                height: 40px;
-                background: #fff;
-                color: #2563eb;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                font-size: 1.2rem;
-            }
+                .sidebar .nav-link.active,
+                .sidebar .nav-link:hover {
+                    font-weight: bold;
+                    background-color: #e2e6ea;
+                }
 
         .content-wrapper {
             margin-left: 230px;
@@ -99,124 +63,111 @@
         }
     </style>
 </head>
-<!-- ...phần head giữ nguyên... -->
 <body>
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebarMenu">
-        <div class="sidebar-scroll">
-            <h5 class="text-primary mb-4">📝 ProCV</h5>
-            <ul class="nav nav-pills flex-column mb-4">
-                <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">🏠 Tổng quan</a></li>
-                <li><a class="nav-link" asp-controller="UngViens" asp-action="Index">👤 Ứng viên</a></li>
-                <li><a class="nav-link" asp-controller="ViTriTuyenDungs" asp-action="Index">📌 Vị trí tuyển dụng</a></li>
-                <li><a class="nav-link" asp-controller="LichPhongVans" asp-action="Index">💬 Phỏng vấn</a></li>
-                <li><a class="nav-link" asp-controller="ThongKe" asp-action="Index">📊 Thống kê & báo cáo</a></li>
-                <li><a class="nav-link" asp-controller="NhanViens" asp-action="Index">🧑‍💼 Nhân viên</a></li>
-                <li><a class="nav-link" asp-controller="Settings" asp-action="Index">⚙️ Cài đặt</a></li>
-            </ul>
-            @if ((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "UngViens")
-            {
-                var trangThai = Context.Request.Query["trangThai"].ToString();
-                Func<string, bool> isActive = (tt) => string.Equals(trangThai, tt, StringComparison.OrdinalIgnoreCase);
+    <div class="sidebar d-flex flex-column p-3" id="sidebarMenu">
+        <h5 class="text-primary">📝 ProCV</h5>
+        @await Html.PartialAsync("_SidebarPartial")
+        @if ((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "UngViens")
+        {
+            var trangThai = Context.Request.Query["trangThai"].ToString();
+            Func<string, bool> isActive = (tt) => string.Equals(trangThai, tt, StringComparison.OrdinalIgnoreCase);
 
-                <div class="mb-3">
-                    <div class="fw-bold text-secondary mb-2" style="font-size:1.3em;">THỐNG KÊ NHANH</div>
-                    <ul class="list-unstyled">
-                        <li>
-                            <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(string.IsNullOrEmpty(trangThai) ? "active-stat" : "")"
-                               asp-controller="UngViens" asp-action="Index">
-                                <span><i class="bi bi-people-fill me-1"></i> Tổng ứng viên</span>
-                                <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.TongUngVien</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Mới") ? "active-stat" : "")"
-                               asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Mới">
-                                <span><i class="bi bi-star me-1"></i> Ứng viên mới</span>
-                                <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVMoi</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Phỏng vấn") ? "active-stat" : "")"
-                               asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Phỏng vấn">
-                                <span><i class="bi bi-calendar-check me-1"></i> Đang phỏng vấn</span>
-                                <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVPhongVan</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Đã duyệt") ? "active-stat" : "")"
-                               asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Đã duyệt">
-                                <span><i class="bi bi-check2-circle me-1"></i> Đã duyệt</span>
-                                <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVDaDuyet</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Đạt") ? "active-stat" : "")"
-                               asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Đạt">
-                                <span><i class="bi bi-trophy me-1"></i> Ứng viên đạt</span>
-                                <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVDat</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Trượt") ? "active-stat" : "")"
-                               asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Trượt">
-                                <span><i class="bi bi-x-circle me-1"></i> Ứng viên trượt</span>
-                                <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVTruot</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            }
-            else if ((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "ViTriTuyenDungs")
-            {
-                <!-- Thống kê nhanh cho trang Vị trí tuyển dụng (nếu muốn) -->
-                <div class="mb-3">
-                    <div class="fw-bold text-secondary mb-2">THỐNG KÊ VỊ TRÍ</div>
-                    <ul class="list-unstyled">
-                        <li>
-                            <span class="d-flex justify-content-between align-items-center text-dark py-1">
-                                <span><i class="bi bi-briefcase me-1"></i> Tổng vị trí</span>
-                                <span class="badge bg-secondary">@ViewBag.TongViTri</span>
-                            </span>
-                        </li>
-                        <!-- Thêm các thống kê khác nếu cần -->
-                    </ul>
-                </div>
-            }
-            <!-- Có thể thêm else if cho các controller khác nếu muốn -->
-            @if ((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "UngViens")
-            {
-                <div>
-                    <div class="fw-bold text-secondary mb-2">KỸ NĂNG PHỔ BIẾN</div>
-                    <span class="badge bg-primary">React</span>
-                    <span class="badge bg-success">Node.js</span>
-                    <span class="badge bg-purple">Python</span>
-                    <span class="badge bg-warning text-dark">JavaScript</span>
-                    <span class="badge bg-danger">UI/UX</span>
-                    <span class="badge bg-info text-dark">Marketing</span>
-                </div>
-            }
-        </div>
-        <div class="sidebar-profile">
-            <div class="avatar">
-                @((User.Identity?.Name ?? "NA").Split(' ').LastOrDefault()?.Substring(0, 1) ?? "N")
+            <div class="mb-3">
+                <div class="fw-bold text-secondary mb-2" style="font-size:1.3em;">THỐNG KÊ NHANH</div>
+                <ul class="list-unstyled">
+                    <li>
+                        <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(string.IsNullOrEmpty(trangThai) ? "active-stat" : "")"
+                           asp-controller="UngViens" asp-action="Index">
+                            <span><i class="bi bi-people-fill me-1"></i> Tổng ứng viên</span>
+                            <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.TongUngVien</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Mới") ? "active-stat" : "")"
+                           asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Mới">
+                            <span><i class="bi bi-star me-1"></i> Ứng viên mới</span>
+                            <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVMoi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Phỏng vấn") ? "active-stat" : "")"
+                           asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Phỏng vấn">
+                            <span><i class="bi bi-calendar-check me-1"></i> Đang phỏng vấn</span>
+                            <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVPhongVan</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Đã duyệt") ? "active-stat" : "")"
+                           asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Đã duyệt">
+                            <span><i class="bi bi-check2-circle me-1"></i> Đã duyệt</span>
+                            <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVDaDuyet</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Đạt") ? "active-stat" : "")"
+                           asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Đạt">
+                            <span><i class="bi bi-trophy me-1"></i> Ứng viên đạt</span>
+                            <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVDat</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="d-flex justify-content-between align-items-center text-decoration-none text-dark py-1 @(isActive("Trượt") ? "active-stat" : "")"
+                           asp-controller="UngViens" asp-action="Index" asp-route-trangThai="Trượt">
+                            <span><i class="bi bi-x-circle me-1"></i> Ứng viên trượt</span>
+                            <span class="badge bg-secondary fs-6 px-3 py-2" style="font-weight:600;">@ViewBag.UVTruot</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
+        }
+        else if ((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "ViTriTuyenDungs")
+        {
+            <!-- Thống kê nhanh cho trang Vị trí tuyển dụng (nếu muốn) -->
+            <div class="mb-3">
+                <div class="fw-bold text-secondary mb-2">THỐNG KÊ VỊ TRÍ</div>
+                <ul class="list-unstyled">
+                    <li>
+                        <span class="d-flex justify-content-between align-items-center text-dark py-1">
+                            <span><i class="bi bi-briefcase me-1"></i> Tổng vị trí</span>
+                            <span class="badge bg-secondary">@ViewBag.TongViTri</span>
+                        </span>
+                    </li>
+                    <!-- Thêm các thống kê khác nếu cần -->
+                </ul>
+            </div>
+        }
+        <!-- Có thể thêm else if cho các controller khác nếu muốn -->
+        @if ((ViewContext.RouteData.Values["controller"]?.ToString() ?? "") == "UngViens")
+        {
             <div>
-                <div class="fw-bold">@User.Identity?.Name ?? "Người dùng"</div>
-                <div style="font-size: 0.9em;">HR Manager</div>
+                <div class="fw-bold text-secondary mb-2">KỸ NĂNG PHỔ BIẾN</div>
+                <span class="badge bg-primary">React</span>
+                <span class="badge bg-success">Node.js</span>
+                <span class="badge bg-purple">Python</span>
+                <span class="badge bg-warning text-dark">JavaScript</span>
+                <span class="badge bg-danger">UI/UX</span>
+                <span class="badge bg-info text-dark">Marketing</span>
             </div>
-            <a href="/Settings" class="ms-auto text-white"><i class="bi bi-gear"></i></a>
-        </div>
-    </div>
-    <!-- ...phần còn lại giữ nguyên... -->
+        }
+    </div> 
+
     <!-- Topbar -->
     <header class="p-3 bg-white shadow-sm d-flex justify-content-between align-items-center" style="margin-left: 230px;">
         <span id="menuToggle" class="d-md-none"><i class="fas fa-bars"></i></span>
+
         <div class="d-flex align-items-center">
-            <span class="me-2 fw-bold">@User.Identity?.Name ?? "Người dùng"</span>
-            <img src="https://via.placeholder.com/32" class="rounded-circle" alt="avatar" />
+            @if (Context.Session.GetString("TenDangNhap") != null)
+            {
+                <span class="me-2 fw-bold">@Context.Session.GetString("HoTen")</span>
+                <img src="https://via.placeholder.com/32" class="rounded-circle me-2" alt="avatar" />
+                <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                    Đăng xuất
+                </button>
+            }
         </div>
     </header>
+
 
     <!-- Main Content -->
     <main class="content-wrapper p-4">
@@ -254,5 +205,48 @@
     </script>
 
     @RenderSection("Scripts", required: false)
+    <!-- Modal xác nhận đăng xuất -->@* Modal xác nhận đăng xuất *@
+    <div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutConfirmLabel">Xác nhận đăng xuất</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <form asp-controller="NguoiDungs" asp-action="Logout" method="post" class="m-0">
+                        <button type="submit" class="btn btn-danger">Đăng xuất</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">Xác nhận đăng xuất</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Không</button>
+                    <a href="/NguoiDungs/Logout" class="btn btn-danger">Có, đăng xuất</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
+<script>
+    console.log("VaiTro =", '@Context.Session.GetString("VaiTro")');
+    console.log("HoTen =", '@Context.Session.GetString("HoTen")');
+</script>

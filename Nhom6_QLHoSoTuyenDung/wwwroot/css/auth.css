@@ -1,0 +1,366 @@
+﻿/* ============================= */
+/* Global & Font                */
+/* ============================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Poppins',sans-serif;
+    background: linear-gradient(135deg,#D0F0EA,#70C1B3);
+    /* Cho phép cuộn nếu cao hơn viewport */
+    overflow: auto;
+}
+
+/* ============================= */
+/* Bubbles Animation            */
+/* ============================= */
+.bubbles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+    /* 3. Bubbles (crisp + blur – ĐÃ NÂNG CẤP) */
+    .bubbles .bubble {
+        position: absolute;
+        bottom: -7px; /* rời xa mép dưới hơn một chút */
+        background: rgba(255,255,255,0.35); /* sáng hơn */
+        border: 2px solid rgba(255,255,255,0.85);
+        border-radius: 50%;
+        /* ↓ Giảm blur – tăng nét, thêm glow & highlight */
+        filter: blur(4px);
+        box-shadow: 0 0 12px rgba(255,255,255,0.55), inset 0 0 6px rgba(255,255,255,0.8);
+        animation: rise 20s infinite ease-in;
+    }
+
+        /* Hiệu ứng highlight mềm trên mỗi bong bóng */
+        .bubbles .bubble::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            /* điểm sáng lệch về 30% cho cảm giác bóng */
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.0) 65%);
+            mix-blend-mode: screen; /* hoà trộn để tự “ăn” nền */
+            pointer-events: none;
+        }
+
+
+@keyframes rise {
+    0% {
+        transform: translateY(0) scale(0.4);
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 0.6;
+    }
+    /* sớm hiện rõ nét */
+    100% {
+        transform: translateY(-130vh) scale(1.6);
+        opacity: 0;
+    }
+}
+/* define sizes + delays */
+.bubble:nth-child(1) {
+    width: 30px;
+    height: 30px;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.bubble:nth-child(2) {
+    width: 50px;
+    height: 50px;
+    left: 30%;
+    animation-delay: 3s;
+}
+
+.bubble:nth-child(3) {
+    width: 25px;
+    height: 25px;
+    left: 50%;
+    animation-delay: 5s;
+}
+
+.bubble:nth-child(4) {
+    width: 70px;
+    height: 70px;
+    left: 70%;
+    animation-delay: 2s;
+}
+
+.bubble:nth-child(5) {
+    width: 40px;
+    height: 40px;
+    left: 85%;
+    animation-delay: 4s;
+}
+
+.bubble:nth-child(6) {
+    width: 20px;
+    height: 20px;
+    left: 20%;
+    animation-delay: 6s;
+}
+
+.bubble:nth-child(7) {
+    width: 60px;
+    height: 60px;
+    left: 40%;
+    animation-delay: 1s;
+}
+
+.bubble:nth-child(8) {
+    width: 35px;
+    height: 35px;
+    left: 60%;
+    animation-delay: 7s;
+}
+
+.bubble:nth-child(9) {
+    width: 55px;
+    height: 55px;
+    left: 80%;
+    animation-delay: 3.5s;
+}
+
+.bubble:nth-child(10) {
+    width: 45px;
+    height: 45px;
+    left: 90%;
+    animation-delay: 2.5s;
+}
+
+/* ============================= */
+/* Container styles             */
+/* ============================= */
+
+/* === Container === */
+.login-container {
+    position: relative;
+    width: clamp(90%,520px,95%);
+    margin: 60px auto 40px;
+    background: #fbfdfd;
+    border-radius: 18px;
+    padding: 40px 32px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.15);
+    animation: fadeInUp .8s ease both;
+}
+
+
+    .login-container.single-form {
+        max-width: 360px;
+    }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================= */
+/* Header                         */
+/* ============================= */
+.login-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+    .login-header .icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(45deg,#0288D1,#81D4FA);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        animation: pulse 2.5s infinite ease-in-out;
+    }
+
+        .login-header .icon-circle i {
+            color: #fff;
+            font-size: 1.5rem;
+        }
+
+    .login-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #212121;
+    }
+
+.subtitle {
+    margin-top: 4px;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+@keyframes pulse {
+    0%,100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* ============================= */
+/* Form elements                 */
+/* ============================= */
+.input-group {
+    position: relative;
+    margin-bottom: 18px;
+}
+
+    .input-group input {
+        width: 100%;
+        padding: 12px 14px 12px 12px;
+        border: 1px solid #B0BEC5;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: border-color .3s,box-shadow .3s;
+    }
+
+        .input-group input:focus {
+            border-color: #0288D1;
+            box-shadow: 0 0 4px rgba(2,136,209,0.4);
+            outline: none;
+        }
+
+    .input-group .icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #0288D1;
+    }
+
+.invalid-feedback {
+    display: block;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* ============================= */
+/* Buttons                        */
+/* ============================= */
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg,#04777A,#039EA6);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-position .4s,box-shadow .3s;
+}
+
+    .btn-login:hover {
+        background-position: right;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+.btn-outline-primary {
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    transition: background .3s,color .3s;
+}
+
+    .btn-outline-primary:disabled {
+        opacity: 0.6;
+        cursor: default;
+    }
+
+    .btn-outline-primary:hover {
+        background: #039EA6;
+        color: #fff;
+    }
+
+/* ============================= */
+/* Footer info                    */
+/* ============================= */
+.footer-info {
+    margin-top: 24px;
+    padding: 14px;
+    border-left: 4px solid #039EA6;
+    background: #E0F2F1;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #212121;
+}
+
+    .footer-info h4 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #039EA6;
+    }
+
+/* ============================= */
+/* UV-Link                        */
+/* ============================= */
+.uv-link a {
+    color: #0288D1;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color .3s;
+}
+
+    .uv-link a:hover {
+        color: #01579B;
+    }
+
+/* ============================= */
+/* Small screens                 */
+/* ============================= */
+@media(max-width:400px) {
+    .login-container {
+        padding: 24px 16px;
+    }
+}
+.btn-login.loading {
+    pointer-events: none;
+    opacity: .8
+}
+
+    .btn-login.loading:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        width: 22px;
+        height: 22px;
+        margin: auto;
+        border: 3px solid transparent;
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg)
+    }
+}

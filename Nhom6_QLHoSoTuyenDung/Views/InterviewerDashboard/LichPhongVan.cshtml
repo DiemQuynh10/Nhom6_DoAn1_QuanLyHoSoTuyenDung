@@ -1,0 +1,84 @@
+﻿@model IEnumerable<Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.LichPhongVanVM>
+@{
+    Layout = "~/Views/Shared/_LayoutInterviewer.cshtml";
+    var lichGanNhat = ViewBag.LichGanNhat as Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.LichPhongVanVM;
+}
+
+<div class="container mt-4">
+    <h3 class="fw-bold text-primary mb-4">📅 Lịch Phỏng Vấn</h3>
+
+    <!-- 🎯 Lịch Gần Nhất -->
+    @if (lichGanNhat != null)
+    {
+        <div class="card shadow-lg border-start border-danger border-5 mb-4 p-4 bg-light">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <span class="badge bg-danger me-2">🔥 Khẩn cấp - Tiếp theo</span>
+                    <span class="text-danger fw-bold">
+                        <i class="bi bi-alarm"></i>
+                        @((lichGanNhat.ThoiGian.Value - DateTime.Now).Minutes) phút nữa
+                    </span>
+                </div>
+                <div>
+                    <p>
+                        <i class="bi bi-geo-alt-fill me-1"></i> @lichGanNhat.TenPhong - @lichGanNhat.DiaDiem
+                    </p>
+                    <span class="ms-3"><i class="bi bi-clock"></i> 40 phút</span>
+                </div>
+            </div>
+
+            <h4 class="fw-bold text-dark mt-3">@lichGanNhat.HoTen</h4>
+            <h6 class="text-danger">@lichGanNhat.ViTri</h6>
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <p><strong>Email:</strong> @lichGanNhat.Email</p>
+                    <p><strong>Kinh nghiệm:</strong> @lichGanNhat.KinhNghiem</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>SĐT:</strong> @lichGanNhat.SoDienThoai</p>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-2">
+                <a asp-controller="DanhGiaPhongVans" asp-action="DanhGia" asp-route-id="@lichGanNhat.Id" class="btn btn-danger">
+                    🚀 BẮT ĐẦU PHỎNG VẤN NGAY
+                </a>
+
+                <a asp-action="XemCV" asp-route-id="@lichGanNhat.Id" class="btn btn-outline-secondary">
+                    📄 XEM CV
+                </a>
+                <a asp-action="GhiChu" asp-route-id="@lichGanNhat.Id" class="btn btn-outline-warning">
+                    📝 GHI CHÚ
+                </a>
+            </div>
+        </div>
+    }
+
+    <!-- 📋 Lịch hôm nay còn lại -->
+    <h5 class="fw-bold mb-3">📋 Lịch hôm nay còn lại</h5>
+    @foreach (var item in Model)
+    {
+        <div class="card mb-3 border-start border-4 border-secondary shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="fw-bold mb-0">@item.HoTen</h6>
+                        <small class="text-muted">@item.ViTri</small>
+                        <br />
+                        <small class="text-muted">@item.Email</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold">@item.ThoiGian?.ToString("HH:mm")</div>
+                        <div class="text-muted">40 phút</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <a asp-action="XemCV" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm">CV</a>
+                    <a asp-action="GhiChu" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm">Ghi chú</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

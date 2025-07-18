@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Nhom6_QLHoSoTuyenDung.Models;
+using Nhom6_QLHoSoTuyenDung.Models.Entities;
 
-    public class AppDbContext : DbContext
+public class AppDbContext : DbContext
     {
         public AppDbContext (DbContextOptions<AppDbContext> options)
             : base(options)
@@ -32,7 +32,7 @@ using Nhom6_QLHoSoTuyenDung.Models;
             .WithMany()
             .HasForeignKey(p => p.UngVienId)
             .OnDelete(DeleteBehavior.Restrict);
-    }
+    }  
 
     public DbSet<UngVien> UngViens { get; set; }
     public DbSet<DanhGiaPhongVan> DanhGiaPhongVans { get; set; }

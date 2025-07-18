@@ -1,0 +1,49 @@
+﻿@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
+@model TaoLichPhongVanVM
+
+<form id="formTaoLich" class="row g-3">
+    <input type="hidden" name="UngVienId" value="@Model.UngVienId" />
+    <input type="hidden" name="ViTriId" value="@Model.ViTriId" />
+
+    <div class="col-md-6">
+        <label class="form-label fw-bold">Ứng viên</label>
+        <input type="text" class="form-control bg-light" value="@Model.TenUngVien" disabled />
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-bold">Vị trí ứng tuyển</label>
+        <input type="text" class="form-control bg-light" value="@Model.TenViTri" disabled />
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-bold">Phòng phỏng vấn</label>
+        <select name="PhongPhongVanId" class="form-select" required>
+            <option value="">-- Chọn phòng --</option>
+            @foreach (var item in Model.PhongList)
+            {
+                <option value="@item.Value">@item.Text</option>
+            }
+        </select>
+    </div>
+    <div class="form-group mb-2">
+        <label class="form-label fw-bold">Người phỏng vấn</label>
+        <select asp-for="NguoiPhongVanIds" class="form-select" asp-items="Model.NguoiPhongVanOptions" multiple required></select>
+        <small class="text-muted">Giữ Ctrl (Windows) hoặc Command (Mac) để chọn nhiều người.</small>
+    </div>
+
+
+
+    <div class="col-md-6">
+        <label class="form-label fw-bold">Thời gian</label>
+        <input type="datetime-local" name="ThoiGian" class="form-control" required />
+    </div>
+
+    <div class="col-md-12">
+        <label class="form-label fw-bold">Ghi chú (nếu có)</label>
+        <textarea name="GhiChu" class="form-control" rows="2"></textarea>
+    </div>
+
+    <div class="col-12 text-end">
+        <button type="submit" class="btn btn-success">💾 Lưu lịch</button>
+    </div>
+</form>

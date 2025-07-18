@@ -1,8 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Html
-@model IEnumerable<Nhom6_QLHoSoTuyenDung.Models.UngVien>
+@using Nhom6_QLHoSoTuyenDung.Models.Entities
+@model IEnumerable<UngVien>
 
 @{
-    var lichMap = ViewBag.LichPhongVanMap as Dictionary<string, Nhom6_QLHoSoTuyenDung.Models.LichPhongVan>;
+    var lichMap = ViewBag.LichPhongVanMap as Dictionary<string, LichPhongVan>;
 }
 
 <div class="card p-3">
@@ -14,7 +15,7 @@
                 <th>Ứng viên</th>
                 <th>Vị trí ứng tuyển</th>
                 <th>Nguồn</th>
-                <th>Ngày nộp</th>
+                <th>Ngày sinh</th>
                 <th>Trạng thái</th>
                 <th>CV</th>
                 <th>Hành động</th>
@@ -78,9 +79,9 @@
                         }
                         else
                         {
-                            <!-- Nút tạo lịch -->
-                            <a href="/LichPhongVans/Create?ungVienId=@uv.MaUngVien"
-                               class="btn btn-sm btn-outline-secondary"
+                            // nút tạo lịch phỏng vấn
+                            <a class="btn btn-sm btn-outline-secondary"
+                               onclick="moFormTaoLich('@uv.MaUngVien')"
                                title="Tạo lịch phỏng vấn">
                                 <i class="bi bi-calendar-plus-fill"></i>
                             </a>

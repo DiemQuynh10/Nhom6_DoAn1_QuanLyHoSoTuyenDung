@@ -1,0 +1,322 @@
+﻿@using Nhom6_QLHoSoTuyenDung.Models.ViewModels
+@model DangNhapVM
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>CarritoGo – Authentication</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- CSS chung cho mọi form auth -->
+    <link href="~/css/auth.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body class="login-page">
+    <!-- Bubbles nền -->
+    <div class="bubbles" aria-hidden="true">
+        @for (int i = 0; i < 10; i++)
+        {
+            <div class="bubble"></div>
+        }
+    </div>
+
+    <div class="login-container single-form">
+
+        <!-- 1) Form Đăng nhập -->
+        <form id="formLogin" class="auth-form">
+            @Html.AntiForgeryToken()
+            <div class="login-header text-center mb-4">
+                <div class="icon-circle mb-3"><i class="fa-solid fa-lock fa-lg"></i></div>
+                <h2>Đăng nhập</h2>
+                <p class="subtitle">Truy cập hệ thống quản lý</p>
+            </div>
+            <div id="loginAlert"></div>
+            <div class="input-group mb-3">
+                <input name="TenDangNhap" class="form-control" placeholder="Username hoặc Email" />
+                <span class="icon"><i class="fa-solid fa-user"></i></span>
+            </div>
+            <div class="input-group mb-3">
+                <input name="MatKhau" type="password" class="form-control" placeholder="Mật khẩu" />
+                <span class="icon"><i class="fa-solid fa-lock"></i></span>
+            </div>
+            <button id="btnLogin" type="button" class="btn-login w-100 mb-2">Đăng nhập</button>
+            <p class="text-center">
+                <a href="#" id="linkForgot">Quên mật khẩu?</a>
+            </p>
+        </form>
+
+        <!-- 2) Form Quên mật khẩu -->
+        <form id="formForgot" class="auth-form d-none">
+            @Html.AntiForgeryToken()
+            <div class="login-header text-center mb-4">
+                <div class="icon-circle mb-3"><i class="fa-solid fa-envelope fa-lg"></i></div>
+                <h2>Quên mật khẩu</h2>
+                <p class="subtitle">Nhập tài khoản và email</p>
+            </div>
+            <div id="forgotAlert"></div>
+            <div class="input-group mb-3">
+                <input name="TenDangNhap" class="form-control" placeholder="Tên đăng nhập" />
+                <span class="icon"><i class="fa-solid fa-user"></i></span>
+            </div>
+            <div class="input-group mb-3">
+                <input name="Email" type="email" class="form-control" placeholder="Email" />
+                <span class="icon"><i class="fa-solid fa-envelope"></i></span>
+            </div>
+            <button id="btnSendOtp" type="button" class="btn-login w-100 mb-2">Gửi mã xác nhận</button>
+            <p class="text-center">
+                <a href="#" id="linkBackToLogin1">← Quay về đăng nhập</a>
+            </p>
+        </form>
+
+        <!-- 3) Form Xác nhận OTP -->
+        <form id="formOtp" class="auth-form d-none">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="TenDangNhap" />
+            <div class="login-header text-center mb-4">
+                <div class="icon-circle mb-3"><i class="fa-solid fa-key fa-lg"></i></div>
+                <h2>Xác nhận mã</h2>
+                <p class="subtitle">
+                    Mã sẽ hết hạn sau <span id="countdown">02:00</span>
+                </p>
+            </div>
+            <div id="otpAlert"></div>
+            <div class="input-group mb-3">
+                <input name="MaXacNhan" type="text" maxlength="6" inputmode="numeric"
+                       class="form-control" placeholder="Nhập mã xác nhận" />
+                <span class="icon"><i class="fa-solid fa-envelope-open-text"></i></span>
+                <div class="invalid-feedback otp-error"></div>
+            </div>
+            <button id="btnVerify" type="button" class="btn-login w-100 mb-2">Xác nhận</button>
+            <button id="btnResend" type="button" class="btn btn-outline-primary w-100" disabled>
+                Yêu cầu gửi lại mã
+            </button>
+            <p class="text-center mt-3">
+                <a href="#" id="linkBackToLogin2">← Quay về đăng nhập</a>
+            </p>
+        </form>
+
+        <!-- 4) Form Đặt lại mật khẩu -->
+        <form id="formReset" class="auth-form d-none">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="TenDangNhap" />
+            <div class="login-header text-center mb-4">
+                <div class="icon-circle mb-3"><i class="fa-solid fa-lock-open"></i></div>
+                <h2>Đặt lại mật khẩu</h2>
+            </div>
+            <div id="resetAlert"></div>
+            <div class="input-group password mb-3">
+                <input name="MatKhauMoi" type="password" class="form-control" placeholder="Mật khẩu mới" />
+                <span class="icon"><i class="fa-solid fa-lock"></i></span>
+                <button type="button" class="toggle-pass"><i class="fa-solid fa-eye"></i></button>
+                <div class="invalid-feedback reset-error"></div>
+            </div>
+            <div class="input-group password mb-4">
+                <input name="XacNhanMkMoi" type="password" class="form-control" placeholder="Nhập lại mật khẩu" />
+                <span class="icon"><i class="fa-solid fa-lock"></i></span>
+                <button type="button" class="toggle-pass"><i class="fa-solid fa-eye"></i></button>
+                <div class="invalid-feedback reset-error"></div>
+            </div>
+            <button id="btnReset" type="button" class="btn-login w-100 mb-2">Đặt lại mật khẩu</button>
+            <p class="text-center">
+                <a href="#" id="linkBackToLogin3">← Quay về đăng nhập</a>
+            </p>
+        </form>
+
+        <!-- Thông tin chung -->
+        <div class="footer-info mt-4 text-center">
+            <h4><i class="fa-solid fa-shield-halved me-2"></i>Bảo mật & Quyền riêng tư</h4>
+            <p>
+                Mã xác nhận được mã hóa, có hiệu lực 2 phút.<br />
+                CarritoGo cam kết bảo vệ dữ liệu cá nhân &amp; thông tin công ty.
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        // Show/hide từng form
+        function showForm(id){
+          document.querySelectorAll('.auth-form')
+                  .forEach(f=>f.classList.add('d-none'));
+          document.getElementById(id).classList.remove('d-none');
+        }
+        document.getElementById('linkForgot').onclick       = ()=> showForm('formForgot');
+        document.getElementById('linkBackToLogin1').onclick = ()=> showForm('formLogin');
+        document.getElementById('linkBackToLogin2').onclick = ()=> showForm('formLogin');
+        document.getElementById('linkBackToLogin3').onclick = ()=> showForm('formLogin');
+
+        // Helpers
+        function clear(id){ document.getElementById(id).innerHTML = ''; }
+
+        // 1) Login AJAX
+        document.getElementById('btnLogin').onclick = async ()=>{
+          clear('loginAlert');
+          let form = document.getElementById('formLogin');
+          let data = {
+            TenDangNhap: form.TenDangNhap.value,
+            MatKhau:     form.MatKhau.value
+          };
+          let token = form.__RequestVerificationToken.value;
+          let res = await fetch('@Url.Action("LoginAjax", "NguoiDungs")', {
+            method:'POST',
+            headers:{
+              'Content-Type':'application/json',
+              'RequestVerificationToken':token
+            },
+            body: JSON.stringify(data)
+          });
+          let json = await res.json();
+          if (json.success){
+            window.location = json.redirectUrl;
+          } else {
+            document.getElementById('loginAlert').innerHTML =
+              `<div class="alert alert-danger">${json.error}</div>`;
+          }
+        };
+
+        // 2) Forgot AJAX
+        document.getElementById('btnSendOtp').onclick = async ()=>{
+          clear('forgotAlert');
+          let form = document.getElementById('formForgot');
+          let data = {
+            TenDangNhap: form.TenDangNhap.value,
+            Email:       form.Email.value
+          };
+          let token = form.__RequestVerificationToken.value;
+          let res = await fetch('@Url.Action("ForgotAjax", "NguoiDungs")', {
+            method:'POST',
+            headers:{
+              'Content-Type':'application/json',
+              'RequestVerificationToken':token
+            },
+            body: JSON.stringify(data)
+          });
+          let json = await res.json();
+          if (json.success){
+            showForm('formOtp');
+            document.querySelector('#formOtp input[name=TenDangNhap]').value = data.TenDangNhap;
+            startOtpCountdown(120);
+          } else {
+            document.getElementById('forgotAlert').innerHTML =
+              `<div class="alert alert-danger">${json.error}</div>`;
+          }
+        };
+
+        // OTP countdown
+        let otpTimer;
+        function startOtpCountdown(sec){
+          clearTimeout(otpTimer);
+          const el  = document.getElementById('countdown');
+          const btn = document.getElementById('btnResend');
+          btn.disabled = true;
+          (function tick(){
+            if (sec>0){
+              el.textContent = `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+              sec--;
+              otpTimer = setTimeout(tick,1000);
+            } else {
+              el.textContent = 'Hết hạn';
+              btn.disabled = false;
+            }
+          })();
+        }
+
+        // 3) Verify OTP AJAX
+        document.getElementById('btnVerify').onclick = async ()=>{
+          clear('otpAlert');
+          let form = document.getElementById('formOtp');
+          let data = {
+            TenDangNhap: form.TenDangNhap.value,
+            MaXacNhan:   form.MaXacNhan.value
+          };
+          let token = form.__RequestVerificationToken.value;
+          let res = await fetch('@Url.Action("VerifyOtpAjax", "NguoiDungs")', {
+            method:'POST',
+            headers:{
+              'Content-Type':'application/json',
+              'RequestVerificationToken':token
+            },
+            body: JSON.stringify(data)
+          });
+          let json = await res.json();
+          if (json.success){
+            showForm('formReset');
+            document.querySelector('#formReset input[name=TenDangNhap]').value = data.TenDangNhap;
+          } else {
+            let div = document.querySelector('.otp-error');
+            div.textContent = json.error;
+            form.MaXacNhan.value = '';
+            form.MaXacNhan.focus();
+          }
+        };
+
+        // 4) Resend OTP AJAX
+        document.getElementById('btnResend').onclick = async ()=>{
+          clear('otpAlert');
+          let token = document.querySelector('#formOtp input[name="__RequestVerificationToken"]').value;
+          let res   = await fetch('@Url.Action("ResendOtpAjax", "NguoiDungs")', {
+            method:'POST', headers:{ 'RequestVerificationToken':token }
+          });
+          let json = await res.json();
+          document.getElementById('otpAlert').innerHTML =
+            `<div class="alert alert-${json.success?'success':'danger'}">${
+               json.success?'Đã gửi lại mã xác nhận.':json.error
+            }</div>`;
+          if (json.success){
+            startOtpCountdown(120);
+          }
+        };
+
+        // 5) Reset password AJAX
+        document.getElementById('btnReset').onclick = async ()=>{
+          clear('resetAlert');
+          let form = document.getElementById('formReset');
+          let data = {
+            TenDangNhap:   form.TenDangNhap.value,
+            MatKhauMoi:    form.MatKhauMoi.value,
+            XacNhanMkMoi:  form.XacNhanMkMoi.value
+          };
+          let token = form.__RequestVerificationToken.value;
+          let res = await fetch('@Url.Action("ResetPasswordAjax", "NguoiDungs")', {
+            method:'POST',
+            headers:{
+              'Content-Type':'application/json',
+              'RequestVerificationToken':token
+            },
+            body: JSON.stringify(data)
+          });
+          let json = await res.json();
+          if (json.success){
+            document.getElementById('resetAlert').innerHTML =
+              '<div class="alert alert-success">Đổi mật khẩu thành công!</div>';
+            setTimeout(()=> showForm('formLogin'), 1500);
+          } else {
+            document.querySelectorAll('.reset-error').forEach(div=>{
+              div.textContent = json.error;
+            });
+          }
+        };
+
+        // Toggle password visibility
+        document.querySelectorAll('.toggle-pass').forEach(btn=>{
+          btn.onclick = ()=>{
+            const inp  = btn.closest('.password').querySelector('input');
+            const icon = btn.querySelector('i');
+            if (inp.type==='password'){
+              inp.type='text'; icon.classList.replace('fa-eye','fa-eye-slash');
+            } else {
+              inp.type='password'; icon.classList.replace('fa-eye-slash','fa-eye');
+            }
+          };
+        });
+    </script>
+</body>
+</html>

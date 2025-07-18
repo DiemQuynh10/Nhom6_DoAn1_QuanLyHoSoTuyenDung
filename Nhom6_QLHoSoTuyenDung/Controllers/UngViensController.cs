@@ -1,20 +1,25 @@
-﻿// ================== Controller: UngViensController.cs ==================
-using ClosedXML.Excel;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Nhom6_QLHoSoTuyenDung.Models;
-using Spire.Doc;
+using Nhom6_QLHoSoTuyenDung.Models.Entities;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.UngVien;
+using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 
 namespace Nhom6_QLHoSoTuyenDung.Controllers
 {
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.HR}")]
     public class UngViensController : Controller
     {
+        private readonly IUngVienService _ungVienService;
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
 
-        public UngViensController(AppDbContext context, IWebHostEnvironment env)
+        public UngViensController(IUngVienService ungVienService, AppDbContext context, IWebHostEnvironment env)
         {
+            _ungVienService = ungVienService;
             _context = context;
             _env = env;
         }
@@ -23,66 +28,51 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         {
             ViewBag.ViTriList = new SelectList(await _context.ViTriTuyenDungs.ToListAsync(), "MaViTri", "TenViTri");
             ViewBag.GioiTinhList = new SelectList(
-    Enum.GetValues(typeof(GioiTinhEnum))
-        .Cast<GioiTinhEnum>()
-        .Select(gt => new
-        {
-            Value = gt,
-            Text = gt.GetDisplayName()
-        }),
-    "Value", "Text");
-        }
-        public async Task<IActionResult> Details(string id)
-        {
-            if (id == null)
-                return NotFound();
-
-            var ungVien = await _context.UngViens
-                .Include(x => x.ViTriUngTuyen)
-                .FirstOrDefaultAsync(x => x.MaUngVien == id);
-
-            if (ungVien == null)
-                return NotFound();
-
-            return PartialView("_UngVienDetailsPartial", ungVien);
-        }
-        private IQueryable<UngVien> ApplyFilter(IQueryable<UngVien> query, UngVienFilterVM filter)
-        {
-            if (!string.IsNullOrEmpty(filter.Keyword))
-                query = query.Where(x => x.HoTen.Contains(filter.Keyword));
-            if (!string.IsNullOrEmpty(filter.GioiTinh))
-                query = query.Where(x => x.GioiTinh.ToString() == filter.GioiTinh);
-            if (!string.IsNullOrEmpty(filter.ViTriId))
-                query = query.Where(x => x.ViTriUngTuyenId == filter.ViTriId);
-            if (!string.IsNullOrEmpty(filter.TrangThai))
-                query = query.Where(x => x.TrangThai != null && x.TrangThai.Contains(filter.TrangThai));
-            if (filter.FromDate.HasValue)
-                query = query.Where(x => x.NgayNop >= filter.FromDate);
-            if (filter.ToDate.HasValue)
-                query = query.Where(x => x.NgayNop <= filter.ToDate);
-            return query;
+                Enum.GetValues(typeof(GioiTinhEnum))
+                    .Cast<GioiTinhEnum>()
+                    .Select(gt => new
+                    {
+                        Value = gt,
+                        Text = gt.GetDisplayName()
+                    }),
+                "Value", "Text");
         }
 
-        public async Task<IActionResult> Index(UngVienFilterVM filter, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(UngVienBoLocDonGianVM filter, int page = 1, int pageSize = 10)
         {
+            if (HttpContext.Session.GetString("VaiTro") == "interviewer")
+                return RedirectToAction("Index", "LichPhongVan");
+
             await LoadDropdownsAsync();
-            var query = _context.UngViens.Include(x => x.ViTriUngTuyen).AsQueryable();
-            query = ApplyFilter(query, filter);
-            var allUngViens = await query.ToListAsync();
 
-            ViewBag.TongUngVien = allUngViens.Count;
-            ViewBag.MoiTuanNay = allUngViens.Count(x => x.NgayNop != null && x.NgayNop.Value >= DateTime.Now.AddDays(-7));
-            ViewBag.DaPhongVan = allUngViens.Count(x => x.TrangThai != null && x.TrangThai.Contains("Phỏng vấn"));
-            ViewBag.DaTuyen = allUngViens.Count(x => x.TrangThai != null && x.TrangThai.Contains("Đã tuyển"));
-            int daTuyen = ViewBag.DaTuyen;
-            ViewBag.TyLeChuyenDoi = allUngViens.Count == 0 ? 0 : Math.Round((double)daTuyen * 100 / allUngViens.Count, 2);
+            var allUngViens = await _ungVienService.GetAllAsync(filter);
+            var stats = await _ungVienService.GetDashboardStatsAsync(allUngViens);
 
-            ViewBag.NguonLabels = allUngViens.Where(x => !string.IsNullOrEmpty(x.NguonUngTuyen)).GroupBy(x => x.NguonUngTuyen).Select(g => g.Key).ToList();
-            ViewBag.NguonValues = allUngViens.Where(x => !string.IsNullOrEmpty(x.NguonUngTuyen)).GroupBy(x => x.NguonUngTuyen).Select(g => g.Count()).ToList();
-            ViewBag.TrangThaiLabels = allUngViens.Where(x => !string.IsNullOrEmpty(x.TrangThai)).GroupBy(x => x.TrangThai).Select(g => g.Key).ToList();
-            ViewBag.TrangThaiValues = allUngViens.Where(x => !string.IsNullOrEmpty(x.TrangThai)).GroupBy(x => x.TrangThai).Select(g => g.Count()).ToList();
-            ViewBag.ViTriLabels = allUngViens.Where(x => x.ViTriUngTuyen != null).GroupBy(x => x.ViTriUngTuyen.TenViTri).Select(g => g.Key).ToList();
-            ViewBag.ViTriValues = allUngViens.Where(x => x.ViTriUngTuyen != null).GroupBy(x => x.ViTriUngTuyen.TenViTri).Select(g => g.Count()).ToList();
+            ViewBag.TongUngVien = stats["TongUngVien"];
+            ViewBag.MoiTuanNay = stats["MoiTuanNay"];
+            ViewBag.DaPhongVan = stats["DaPhongVan"];
+            ViewBag.DaTuyen = stats["DaTuyen"];
+            ViewBag.TyLeChuyenDoi = stats["TyLeChuyenDoi"];
+            ViewBag.NguonLabels = stats["NguonLabels"];
+            ViewBag.NguonValues = stats["NguonValues"];
+            ViewBag.TrangThaiLabels = stats["TrangThaiLabels"];
+            ViewBag.TrangThaiValues = stats["TrangThaiValues"];
+            ViewBag.ViTriLabels = stats["ViTriLabels"];
+            ViewBag.ViTriValues = stats["ViTriValues"];
+
+            var filterViewModel = new BoLocViewModel
+            {
+                Keyword = filter.Keyword,
+                TrangThai = filter.TrangThai,
+                GioiTinh = filter.GioiTinh,
+                ViTriId = filter.ViTriId,
+                FromDate = filter.FromDate?.ToString("yyyy-MM-dd"),
+                ToDate = filter.ToDate?.ToString("yyyy-MM-dd"),
+                ViTriList = ((SelectList)ViewBag.ViTriList).ToList(),
+                GioiTinhList = ((SelectList)ViewBag.GioiTinhList).ToList(),
+                ResetUrl = "/UngViens"
+            };
+            ViewBag.FilterViewModel = filterViewModel;
 
             var totalItems = allUngViens.Count;
             var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
@@ -92,9 +82,38 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             ViewBag.PageSize = pageSize;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = totalItems;
+
             ViewBag.LichPhongVanMap = await _context.LichPhongVans.GroupBy(l => l.UngVienId).ToDictionaryAsync(g => g.Key, g => g.First());
 
             return View(pagedUngViens);
+        }
+
+        public async Task<IActionResult> Details(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return NotFound();
+            var ungVien = await _ungVienService.GetByIdAsync(id);
+            if (ungVien == null) return NotFound();
+            return PartialView("_UngVienDetailsPartial", ungVien);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(UngVien model, IFormFile CvFile)
+        {
+            if (!ModelState.IsValid || CvFile == null)
+            {
+                TempData["Error"] = "Vui lòng nhập đầy đủ thông tin và chọn CV.";
+                return RedirectToAction("Index");
+            }
+
+            var result = await _ungVienService.AddAsync(model, CvFile, _env);
+            if (result == -1)
+            {
+                TempData["ErrorMessage"] = "Ứng viên đã tồn tại.";
+                return RedirectToAction("Index");
+            }
+
+            TempData["SuccessMessage"] = "Thêm ứng viên thành công!";
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
@@ -108,96 +127,15 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             try
             {
-                var viTriDict = _context.ViTriTuyenDungs
-                    .ToList();
-
-                int importedCount = 0;
-
-                using (var stream = new MemoryStream())
-                {
-                    await excelFile.CopyToAsync(stream);
-                    using (var workbook = new XLWorkbook(stream))
-                    {
-                        var worksheet = workbook.Worksheet(1); // sheet đầu tiên
-                        var rows = worksheet.RowsUsed().Skip(1); // bỏ tiêu đề
-
-                        foreach (var row in rows)
-                        {
-                            try
-                            {
-                                var viTriTen = row.Cell(6).GetString().Trim();
-                                var viTri = viTriDict
-                                    .FirstOrDefault(v => v.TenViTri.Trim().Equals(viTriTen, StringComparison.OrdinalIgnoreCase));
-                                if (viTri == null)
-                                {
-                                    Console.WriteLine($"❌ Không tìm thấy vị trí: {viTriTen}");
-                                    continue;
-                                }
-
-                                var ungVien = new UngVien
-                                {
-                                    MaUngVien = Guid.NewGuid().ToString(),
-                                    HoTen = row.Cell(1).GetString().Trim(),
-                                    GioiTinh = EnumExtensions.GetEnumFromDisplayName<GioiTinhEnum>(row.Cell(2).GetString())
-                                        .GetValueOrDefault(GioiTinhEnum.Khac),
-                                    NgaySinh = DateTime.TryParse(row.Cell(3).GetString(), out var ns) ? ns : null,
-                                    SoDienThoai = row.Cell(4).GetString().Trim(),
-                                    Email = row.Cell(5).GetString().Trim(),
-                                    ViTriUngTuyenId = viTri.MaViTri,
-                                    KinhNghiem = row.Cell(7).GetString().Trim(),
-                                    ThanhTich = row.Cell(8).GetString().Trim(),
-                                    MoTa = row.Cell(9).GetString().Trim(),
-                                    TrangThai = row.Cell(10).GetString().Trim(),
-                                    NgayNop = DateTime.TryParse(row.Cell(11).GetString(), out var nn) ? nn : null,
-                                    NguonUngTuyen = row.Cell(12).GetString().Trim()
-                                };
-
-                                _context.UngViens.Add(ungVien);
-                                importedCount++;
-                            }
-                            catch (Exception exRow)
-                            {
-                                Console.WriteLine($"❌ Lỗi đọc dòng Excel: {exRow.Message}");
-                                continue;
-                            }
-                        }
-
-                        try
-                        {
-                            await _context.SaveChangesAsync();
-                        }
-                        catch (Exception ex)
-                        {
-                            var fullMessage = ex.InnerException?.Message ?? ex.Message;
-                            TempData["ErrorMessage"] = $"❌ Lỗi khi lưu vào DB: {fullMessage}";
-                        }
-                    }
-                }
-
-                TempData["SuccessMessage"] = $"✅ Đã nhập {importedCount} ứng viên.";
+                var count = await _ungVienService.ImportFromExcelAsync(excelFile);
+                TempData["SuccessMessage"] = $"✅ Đã nhập {count} ứng viên.";
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"❌ Lỗi tổng quát: {ex.Message}";
+                TempData["ErrorMessage"] = $"❌ Lỗi khi xử lý file: {ex.Message}";
             }
 
             return RedirectToAction("Index");
-        }
-
-
-        private GioiTinhEnum ParseGioiTinh(string value)
-        {
-            return EnumExtensions.GetEnumFromDisplayName<GioiTinhEnum>(value) ?? GioiTinhEnum.Khac;
-        }
-
-        public class UngVienFilterVM
-        {
-            public string? Keyword { get; set; }
-            public string? GioiTinh { get; set; }
-            public string? ViTriId { get; set; }
-            public string? TrangThai { get; set; }
-            public DateTime? FromDate { get; set; }
-            public DateTime? ToDate { get; set; }
         }
     }
 }

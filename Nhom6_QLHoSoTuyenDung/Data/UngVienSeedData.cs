@@ -1,4 +1,4 @@
-﻿using Nhom6_QLHoSoTuyenDung.Models;
+﻿using Nhom6_QLHoSoTuyenDung.Models.Entities;
 using System.Text.Json;
 
 namespace Nhom6_QLHoSoTuyenDung.Data
