@@ -49,7 +49,7 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
         public async Task<int> AddAsync(UngVien model, IFormFile CvFile, IWebHostEnvironment env)
         {
             if (string.IsNullOrEmpty(model.TrangThai))
-                model.TrangThai = "Mới";
+                model.TrangThai = TrangThaiUngVienEnum.Moi.ToString();
 
             // Kiểm tra trùng
             bool isDuplicate = _context.UngViens.Any(u =>
@@ -59,6 +59,10 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
             );
             if (isDuplicate)
                 return -1; // báo lỗi trùng
+            
+            string folder = Path.Combine(env.WebRootPath, "cv");
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
 
             // Lưu file
             string fileName = Guid.NewGuid() + Path.GetExtension(CvFile.FileName);
@@ -133,21 +137,47 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
             {
                 ["TongUngVien"] = list.Count,
                 ["MoiTuanNay"] = list.Count(x => x.NgayNop != null && x.NgayNop.Value >= DateTime.Now.AddDays(-7)),
-                ["DaPhongVan"] = list.Count(x => x.TrangThai != null && x.TrangThai.Contains("Phỏng vấn")),
-                ["DaTuyen"] = list.Count(x => x.TrangThai != null && x.TrangThai.Contains("Đã tuyển"))
+                ["DaTuyen"] = list.Count(x => x.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString()),
+                ["TuChoi"] = list.Count(x => x.TrangThai == TrangThaiUngVienEnum.TuChoi.ToString())
             };
 
             int daTuyen = (int)stats["DaTuyen"];
             stats["TyLeChuyenDoi"] = list.Count == 0 ? 0 : Math.Round((double)daTuyen * 100 / list.Count, 2);
 
-            stats["NguonLabels"] = list.Where(x => !string.IsNullOrEmpty(x.NguonUngTuyen)).GroupBy(x => x.NguonUngTuyen).Select(g => g.Key).ToList();
-            stats["NguonValues"] = list.Where(x => !string.IsNullOrEmpty(x.NguonUngTuyen)).GroupBy(x => x.NguonUngTuyen).Select(g => g.Count()).ToList();
-            stats["TrangThaiLabels"] = list.Where(x => !string.IsNullOrEmpty(x.TrangThai)).GroupBy(x => x.TrangThai).Select(g => g.Key).ToList();
-            stats["TrangThaiValues"] = list.Where(x => !string.IsNullOrEmpty(x.TrangThai)).GroupBy(x => x.TrangThai).Select(g => g.Count()).ToList();
-            stats["ViTriLabels"] = list.Where(x => x.ViTriUngTuyen != null).GroupBy(x => x.ViTriUngTuyen.TenViTri).Select(g => g.Key).ToList();
-            stats["ViTriValues"] = list.Where(x => x.ViTriUngTuyen != null).GroupBy(x => x.ViTriUngTuyen.TenViTri).Select(g => g.Count()).ToList();
+            stats["NguonLabels"] = list
+                .Where(x => !string.IsNullOrEmpty(x.NguonUngTuyen))
+                .GroupBy(x => x.NguonUngTuyen)
+                .Select(g => g.Key).ToList();
+
+            stats["NguonValues"] = list
+                .Where(x => !string.IsNullOrEmpty(x.NguonUngTuyen))
+                .GroupBy(x => x.NguonUngTuyen)
+                .Select(g => g.Count()).ToList();
+
+            stats["TrangThaiLabels"] = list
+                .Where(x => !string.IsNullOrEmpty(x.TrangThai))
+                .GroupBy(x => x.TrangThai)
+                .Select(g => g.Key.ToEnum<TrangThaiUngVienEnum>().GetDisplayName())
+                .ToList();
+
+            stats["TrangThaiValues"] = list
+                .Where(x => !string.IsNullOrEmpty(x.TrangThai))
+                .GroupBy(x => x.TrangThai)
+                .Select(g => g.Count()).ToList();
+
+            stats["ViTriLabels"] = list
+                .Where(x => x.ViTriUngTuyen != null)
+                .GroupBy(x => x.ViTriUngTuyen.TenViTri)
+                .Select(g => g.Key).ToList();
+
+            stats["ViTriValues"] = list
+                .Where(x => x.ViTriUngTuyen != null)
+                .GroupBy(x => x.ViTriUngTuyen.TenViTri)
+                .Select(g => g.Count()).ToList();
 
             return Task.FromResult(stats);
         }
+
+
     }
 }

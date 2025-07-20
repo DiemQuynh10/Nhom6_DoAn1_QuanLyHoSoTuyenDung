@@ -32,5 +32,10 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Enums
 
             return null;
         }
+        public static T ToEnum<T>(this string value) where T : struct, Enum
+        {
+            return Enum.TryParse<T>(value, out var result) ? result : default;
+        }
+
     }
 }

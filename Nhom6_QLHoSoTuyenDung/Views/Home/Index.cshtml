@@ -3,6 +3,7 @@
 
 @{
     ViewData["Title"] = "Tổng quan";
+    ViewData["PageTitle"] = "Tổng Quan";
     var trangThaiLabels = JsonSerializer.Serialize(Model.TrangThaiLabels);
     var trangThaiValues = JsonSerializer.Serialize(Model.TrangThaiValues);
     var nopHoSo = JsonSerializer.Serialize(Model.NopHoSoData);
@@ -17,6 +18,7 @@
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="~/js/chart-colors.js"></script>
 
 <style>
     body {
@@ -97,14 +99,12 @@
         vertical-align: middle;
     }
 
-    /* Scroll area dùng chung cho ứng viên mới & lịch phỏng vấn */
     .scroll-area {
         max-height: 300px;
         overflow-y: auto;
-        padding-right: 8px; /* để tránh bị che bởi thanh cuộn */
+        padding-right: 8px;
     }
 
-        /* Scrollbar tùy chỉnh */
         .scroll-area::-webkit-scrollbar {
             width: 6px;
         }
@@ -117,7 +117,6 @@
         .scroll-area::-webkit-scrollbar-track {
             background-color: transparent;
         }
-
 </style>
 
 <div class="container py-4">
@@ -298,7 +297,6 @@
     </div>
 </div>
 
-
 <script>
     const trangThaiLabels = @Html.Raw(trangThaiLabels);
     const trangThaiValues = @Html.Raw(trangThaiValues);
@@ -313,7 +311,7 @@
             labels: trangThaiLabels,
             datasets: [{
                 data: trangThaiValues,
-                backgroundColor: ['#3b82f6', '#a855f7', '#f59e0b', '#14b8a6', '#6366f1', '#ef4444', '#10b981']
+                backgroundColor: ChartColors.barColors
             }]
         },
         options: {
@@ -327,8 +325,8 @@
         data: {
             labels: ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"],
             datasets: [
-                { label: 'Nộp hồ sơ', data: nopHoSoData, borderColor: '#60a5fa', fill: false },
-                { label: 'Phỏng vấn', data: phongVanData, borderColor: '#a78bfa', fill: false }
+                { label: 'Nộp hồ sơ', data: nopHoSoData, borderColor: ChartColors.linePrimary, fill: false },
+                { label: 'Phỏng vấn', data: phongVanData, borderColor: ChartColors.lineSecondary, fill: false }
             ]
         }
     });
@@ -342,7 +340,7 @@
                     labels: nguonLabels,
                     datasets: [{
                         data: nguonData,
-                        backgroundColor: ['#3b82f6', '#a855f7', '#f59e0b', '#10b981', '#6366f1']
+                        backgroundColor: ChartColors.pieColors
                     }]
                 }
             });

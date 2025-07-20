@@ -1,49 +1,46 @@
-﻿@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
-@model TaoLichPhongVanVM
+﻿@model TaoLichPhongVanVM
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
 
-<form id="formTaoLich" class="row g-3">
-    <input type="hidden" name="UngVienId" value="@Model.UngVienId" />
-    <input type="hidden" name="ViTriId" value="@Model.ViTriId" />
+<form id="formTaoLich" method="post" asp-controller="LichPhongVans" asp-action="CreateLichFromPopup">
+    <input type="hidden" asp-for="UngVienId" />
+    <input type="hidden" asp-for="ViTriId" />
 
-    <div class="col-md-6">
+    <div class="mb-3">
         <label class="form-label fw-bold">Ứng viên</label>
-        <input type="text" class="form-control bg-light" value="@Model.TenUngVien" disabled />
+        <input class="form-control" value="@Model.TenUngVien" readonly />
     </div>
 
-    <div class="col-md-6">
+    <div class="mb-3">
         <label class="form-label fw-bold">Vị trí ứng tuyển</label>
-        <input type="text" class="form-control bg-light" value="@Model.TenViTri" disabled />
+        <input class="form-control" value="@Model.TenViTri" readonly />
     </div>
 
-    <div class="col-md-6">
-        <label class="form-label fw-bold">Phòng phỏng vấn</label>
-        <select name="PhongPhongVanId" class="form-select" required>
+    <div class="mb-3">
+        <label asp-for="PhongPhongVanId" class="form-label fw-bold">Phòng phỏng vấn</label>
+        <select asp-for="PhongPhongVanId" asp-items="Model.PhongList" class="form-select" required>
             <option value="">-- Chọn phòng --</option>
-            @foreach (var item in Model.PhongList)
-            {
-                <option value="@item.Value">@item.Text</option>
-            }
         </select>
     </div>
-    <div class="form-group mb-2">
-        <label class="form-label fw-bold">Người phỏng vấn</label>
-        <select asp-for="NguoiPhongVanIds" class="form-select" asp-items="Model.NguoiPhongVanOptions" multiple required></select>
-        <small class="text-muted">Giữ Ctrl (Windows) hoặc Command (Mac) để chọn nhiều người.</small>
+
+    <div class="mb-3">
+        <label asp-for="ThoiGian" class="form-label fw-bold">Thời gian</label>
+        <input asp-for="ThoiGian" class="form-control" type="datetime-local" required />
     </div>
 
-
-
-    <div class="col-md-6">
-        <label class="form-label fw-bold">Thời gian</label>
-        <input type="datetime-local" name="ThoiGian" class="form-control" required />
+    <div class="mb-3">
+        <label asp-for="NguoiPhongVanIds" class="form-label fw-bold">Người phỏng vấn</label>
+        <select asp-for="NguoiPhongVanIds" asp-items="Model.NguoiPhongVanOptions" class="form-select" multiple required>
+        </select>
+        <small class="text-muted">Giữ Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều người</small>
     </div>
 
-    <div class="col-md-12">
-        <label class="form-label fw-bold">Ghi chú (nếu có)</label>
-        <textarea name="GhiChu" class="form-control" rows="2"></textarea>
+    <div class="mb-3">
+        <label asp-for="GhiChu" class="form-label fw-bold">Ghi chú (nếu có)</label>
+        <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>
     </div>
 
-    <div class="col-12 text-end">
-        <button type="submit" class="btn btn-success">💾 Lưu lịch</button>
+    <div class="d-flex justify-content-end mt-3">
+        <button type="submit" class="btn btn-primary">Lưu lịch</button>
     </div>
 </form>

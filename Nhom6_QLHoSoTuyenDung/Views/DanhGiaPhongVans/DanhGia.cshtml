@@ -1,5 +1,6 @@
-﻿@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
-@using Nhom6_QLHoSoTuyenDung.Models.Enums
+﻿@using Nhom6_QLHoSoTuyenDung.Models.Enums
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
 @model DanhGiaPhongVanVM
 
 @{
@@ -8,9 +9,13 @@
     Enum.TryParse(ViewBag.TrangThai?.ToString(), out TrangThaiPhongVanEnum trangThai);
     float? diemTrungBinh = ViewBag.DiemTrungBinh as float?;
     bool daDanhGia = ViewBag.DaDanhGia != null && (bool)ViewBag.DaDanhGia;
+
+    bool daHoanThanh = trangThai == TrangThaiPhongVanEnum.HoanThanh;
+
     string mauDiem = diemTrungBinh >= 8 ? "bg-success" : diemTrungBinh >= 6 ? "bg-primary" :
                      diemTrungBinh >= 4 ? "bg-warning" : "bg-danger";
 }
+
 
 @if (TempData["Success"] != null)
 {
@@ -21,13 +26,15 @@
 }
 
 <div class="container mt-4">
-    <a asp-controller="InterviewerDashboard" asp-action="LichPhongVan" class="btn btn-link text-decoration-none mb-3">
-        <i class="bi bi-arrow-left-circle me-1"></i> Quay lại danh sách lịch phỏng vấn
-    </a>
-
-    <h4 class="mb-3 fw-bold text-primary">
-        <i class="bi bi-star-fill me-1"></i> Đánh giá Ứng viên
-    </h4>
+    <div class="d-flex align-items-center mb-3">
+        <a asp-controller="InterviewerDashboard" asp-action="@ViewBag.ReturnUrl"
+           class="btn btn-sm btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+        <h4 class="mb-0 fw-bold text-primary">
+            <i class="bi bi-star-fill me-1"></i> Đánh giá Ứng viên
+        </h4>
+    </div>
 
     @if (ViewBag.TrangThai != null)
     {
@@ -111,18 +118,18 @@
                 @(daDanhGia ? "Sửa đánh giá chi tiết" : "Đánh giá chi tiết")
             </a>
 
-            <a href="@Model.LinkCV" class="btn btn-outline-secondary" target="_blank">
+            <button class="btn btn-outline-secondary" onclick="xemCV('@Model.UngVienId')">
                 <i class="bi bi-file-earmark"></i> Tài liệu CV
-            </a>
+            </button>
 
-            @if (daDanhGia)
+
+            @if (daDanhGia && diemTrungBinh >= 1)
             {
                 <a asp-action="InDanhGia" asp-route-id="@Model.LichPhongVanId" class="btn btn-outline-dark">
                     🖨️ In báo cáo đánh giá
                 </a>
             }
         </div>
-
         @if (!string.IsNullOrEmpty(ViewBag.NhanXet as string))
         {
             <div class="mt-4">
@@ -132,12 +139,18 @@
         }
     </div>
 
-    @if (trangThai != TrangThaiPhongVanEnum.HoanThanh && trangThai != TrangThaiPhongVanEnum.Huy)
+    @if (!daHoanThanh)
+    {
+        <div class="alert alert-warning mt-3">
+            ⚠️ Vui lòng hoàn thành phần <strong>“Đánh giá chi tiết”</strong> trước khi cập nhật trạng thái ứng viên.
+        </div>
+
+    }
+    @if (daHoanThanh)
     {
         <div class="text-muted small mb-2">
             Hãy chọn hành động tiếp theo để cập nhật trạng thái cho ứng viên:
         </div>
-
         <form asp-action="CapNhatTrangThai" method="post" class="mt-1">
             @Html.AntiForgeryToken()
             <input type="hidden" name="id" value="@Model.LichPhongVanId" />
@@ -151,6 +164,7 @@
             </div>
         </form>
     }
+
 </div>
 
 @section Scripts {

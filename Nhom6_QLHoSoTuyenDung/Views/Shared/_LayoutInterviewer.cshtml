@@ -22,7 +22,7 @@
         <button class="btn-icon d-lg-none" id="btnToggle"><i class="bi bi-list"></i></button>
         <div class="fw-bold text-primary">Dashboard Người Phỏng Vấn</div>
     </header>
-
+    @await Html.PartialAsync("_TopbarPartial")
     <main class="iv-wrapper p-3">
         @RenderBody()
     </main>
@@ -37,3 +37,6 @@
     </script>
 </body>
 </html>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@await Html.PartialAsync("_CvModalPartial")

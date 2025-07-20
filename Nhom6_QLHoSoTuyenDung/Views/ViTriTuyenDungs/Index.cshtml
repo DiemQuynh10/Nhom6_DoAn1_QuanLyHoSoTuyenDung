@@ -5,12 +5,12 @@
 @using Nhom6_QLHoSoTuyenDung.Models.Helpers
 @using Nhom6_QLHoSoTuyenDung.Models.Helpers
 @using Nhom6_QLHoSoTuyenDung.Models.ViewModels.ViTriTuyenDungVM
-Models.ViewModels
 @using Nhom6_QLHoSoTuyenDung.Models.Enums
 @using Nhom6_QLHoSoTuyenDung.Models.ViewModels
 
 @{
     ViewData["Title"] = "Vị trí tuyển dụng";
+    ViewData["PageTitle"] = "Quản lý vị trí tuyển dụng";
 }
 <style>
     .vi-tri-scroll, .hoat-dong-scroll {
@@ -33,7 +33,6 @@ Models.ViewModels
 
 
 <div class="container-fluid px-4 mt-4">
-    <h2 class="mb-4 fw-bold">Vị trí tuyển dụng</h2>
     <!-- Nút thêm + modal -->
     <div class="d-flex justify-content-end mb-3 gap-2">
         <button class="btn btn-outline-secondary" disabled><i class="bi bi-download me-1"></i> Xuất báo cáo</button>
@@ -139,7 +138,8 @@ Models.ViewModels
                             <th>Trạng thái</th>
                             <th>Ngày tạo</th>
                             <th>Số lượng cần tuyển</th>
-                            <th>Ứng viên</th>
+                            <th>Đã tuyển</th>
+                            <th>Sửa</th> <!-- Thêm cột Sửa -->
                         </tr>
                     </thead>
                     <tbody>
@@ -148,14 +148,30 @@ Models.ViewModels
                             <tr>
                                 <td>@item.TenViTri</td>
                                 <td>@item.PhongBan?.TenPhong</td>
-                                <td>@item.TrangThai</td>
+                                <td>
+                                    <span class="badge
+                        @(item.TrangThai == "Đang tuyển" ? "bg-success" :
+                          item.TrangThai == "Tạm dừng" ? "bg-warning text-dark" : "bg-secondary")"
+                                          id="badge-@item.MaViTri">
+                                        @item.TrangThai
+                                    </span>
+                                </td>
                                 <td>@item.NgayTao?.ToString("dd/MM/yyyy")</td>
                                 <td>@item.SoLuongCanTuyen</td>
-                                <td>@(item.UngViens?.Count ?? 0)</td>
+                                <td>
+                                    @(item.UngViens?.Count(uv => uv.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString()) ?? 0)
+                                </td>
+
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="moModalSuaViTri('@item.MaViTri')">
+                                        <i class="bi bi-pencil"></i> Sửa
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
+
             }
             else
             {
@@ -262,24 +278,20 @@ Models.ViewModels
                     <a href="/ViTriTuyenDungs/HoatDongGanDay" class="text-decoration-none">Xem tất cả →</a>
                 </div>
 
-                @foreach (var item in Model.DanhSachViTri.Where(v => v.TrangThai == "Đang tuyển" || v.TrangThai == "Tạm dừng"))
+                @foreach (var item in Model.DanhSachViTri.Where(v => v.TrangThai == "Đang tuyển"))
                 {
                     var tongHoSo = item.UngViens?.Count() ?? 0;
-                    var daPhongVan = item.LichPhongVans?.Count() ?? 0;
-                    var daDeXuat = item.UngViens?.Count(uv => uv.TrangThai == TrangThaiUngVienEnum.DeXuat.ToString()) ?? 0;
-                    var tongXuLy = daPhongVan + daDeXuat;
-                    var tiLe = (tongHoSo == 0) ? 0 : (int)((double)tongXuLy / tongHoSo * 100);
+                    var daDeXuat = item.UngViens?.Count(uv => uv.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString()) ?? 0;
                     <div class="border rounded p-3 mb-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <strong>@item.TenViTri</strong>
                                 <span class="badge bg-@((item.TrangThai == "Đang tuyển") ? "success" : "warning text-dark") ms-2">@item.TrangThai.ToUpper()</span>
-                                <div class="text-muted small">@item.MaViTri • @item.PhongBan?.TenPhong</div>
+                                <div class="text-muted small">@item.PhongBan?.TenPhong</div>
                             </div>
                             <div class="text-end small text-muted">
-                                <div>@daPhongVan phỏng vấn</div>
                                 <div>@tongHoSo hồ sơ</div>
-                                <div>@daDeXuat đề xuất</div>
+                                <div>@daDeXuat tiếp nhận</div>
                                 <div>
                                     @{
                                         var trangThai = item.TrangThai;
@@ -295,10 +307,6 @@ Models.ViewModels
                                 </div>
                             </div>
                         </div>
-                        <div class="progress mt-2" style="height: 8px;">
-                            <div class="progress-bar bg-primary" style="width:@($"{tiLe}%")"></div>
-                        </div>
-                        <small class="text-muted">@tiLe% hồ sơ đã xử lý</small>
                     </div>
                 }
             </div>
@@ -354,8 +362,10 @@ Models.ViewModels
     
 
 </div>
-
+<partial name="EditPopup" />
 @section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         function miniChart(canvasId, data, color) {
@@ -449,5 +459,50 @@ Models.ViewModels
             }
         });
     </script>
+  
+    <script>
+                     function moModalSuaViTri(maViTri) {
+            fetch(`/ViTriTuyenDungs/GetViTriById?id=${maViTri}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data) return;
+
+                    const soLuongHienTai = parseInt(data.soLuongCanTuyen);
+                    const daTuyen = parseInt(data.soLuongTrungTuyen || 0);
+                    const trangThaiHienTai = data.trangThai;
+
+                    document.getElementById('edit-MaViTri').value = data.maViTri;
+                    document.getElementById('edit-TenViTri').value = data.tenViTri;
+                    document.getElementById('edit-PhongBanId').value = data.phongBanId;
+                    document.getElementById('edit-SoLuongCanTuyen').value = soLuongHienTai;
+                    document.getElementById('edit-TrangThai').value = trangThaiHienTai;
+                    document.getElementById('edit-KyNang').value = data.kyNang;
+
+                    const selectTrangThai = document.getElementById('edit-TrangThai');
+
+                    // ❗ Nếu trạng thái hiện tại KHÔNG phải "Đang tuyển" VÀ số lượng đã tuyển >= số cần tuyển
+                    if (trangThaiHienTai !== "Đang tuyển" && daTuyen >= soLuongHienTai) {
+                        // Disable chọn lại "Đang tuyển"
+                        for (let option of selectTrangThai.options) {
+                            if (option.value === "Đang tuyển") {
+                                option.disabled = true;
+                            }
+                        }
+
+                        alert("⚠️ Vị trí này đã đủ số lượng ứng viên trúng tuyển.\nBạn cần tăng 'Số lượng cần tuyển' nếu muốn chuyển về 'Đang tuyển'.");
+                    } else {
+                        // Cho phép chọn lại nếu chưa đủ
+                        for (let option of selectTrangThai.options) {
+                            option.disabled = false;
+                        }
+                    }
+
+                    new bootstrap.Modal(document.getElementById('modalSuaViTri')).show();
+                });
+        }
+
+
+    </script>
+
 
 }

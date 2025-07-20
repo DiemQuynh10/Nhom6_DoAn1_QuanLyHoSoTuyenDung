@@ -8,7 +8,17 @@
     <p class="text-success mb-1">@Model.SoThanhCong Thành công</p>
     <p class="text-danger mb-1">@Model.SoKhongPhuHop Không phù hợp</p>
     <div class="text-muted">Xếp hạng trong team</div>
+    @{
+        var percent = Model.TyLeThanhCong;
+        var progressColor = percent >= 80 ? "bg-success"
+        : percent >= 60 ? "bg-primary"
+        : percent >= 40 ? "bg-warning"
+        : "bg-danger";
+    }
     <div class="progress mt-1" style="height: 8px;">
-        <div class="progress-bar bg-secondary" role="progressbar" style="width: 30%;"></div>
+        <div class="progress-bar @progressColor" role="progressbar"
+             style="width: @percent%;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100">
+        </div>
     </div>
+
 </div>

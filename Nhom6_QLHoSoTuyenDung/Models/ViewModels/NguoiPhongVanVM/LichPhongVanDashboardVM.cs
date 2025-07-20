@@ -1,7 +1,6 @@
 ﻿using Nhom6_QLHoSoTuyenDung.Models.Entities;
-using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM;
 
-namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
+namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
 {
     public class LichPhongVanDashboardVM
     {

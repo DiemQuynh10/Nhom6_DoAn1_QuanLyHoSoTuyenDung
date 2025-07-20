@@ -1,0 +1,45 @@
+﻿<!-- Views/Shared/_CvModalPartial.cshtml -->
+<div class="modal fade" id="cvModal" tabindex="-1" aria-labelledby="cvModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📄 Xem CV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="cvIframe" src="" width="100%" height="600px" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function xemCV(ungVienId) {
+        fetch(`/InterviewerDashboard/XemCV?ungVienId=${ungVienId}`, {
+            method: 'GET'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Không tìm thấy CV");
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // ✅ Gán blob vào iframe thay vì mở tab mới
+            const blobUrl = URL.createObjectURL(blob);
+            document.getElementById("cvIframe").src = blobUrl;
+
+            // ✅ Hiển thị modal
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cvModal'));
+            modal.show();
+        })
+        .catch(err => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Không thể xem CV',
+                text: 'Ứng viên có thể chưa nộp CV hoặc file đã bị xóa.',
+                confirmButtonText: 'Đóng'
+            });
+        });
+    }
+</script>

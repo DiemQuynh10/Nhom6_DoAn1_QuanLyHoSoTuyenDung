@@ -33,44 +33,5 @@
         </nav>
     </div>
 
-    @* 2. Phần tài khoản cố định bên dưới *@
-    <div class="mt-auto pt-3 border-top px-2">
-        <div class="d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center">
-                <i class="fa-solid fa-user-circle fs-4 me-2 text-secondary"></i>
-                <span>@hoTen</span>
-            </div>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-light p-1" type="button"
-                        data-bs-toggle="dropdown" aria-expanded="false"
-                        title="Các thao tác tài khoản">
-                    <i class="fa-solid fa-ellipsis-vertical"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end mt-1">
-                    <li>
-                        <a class="dropdown-item" asp-controller="Settings" asp-action="Index">
-                            ⚙️ Cài đặt
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" asp-controller="NguoiDungs" asp-action="Profile">
-                            👤 Thông tin cá nhân
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" asp-controller="NguoiDungs" asp-action="ChangePassword">
-                            🔑 Đổi mật khẩu
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li>
-                        <button type="button" class="dropdown-item text-danger"
-                                data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
-                            🚪 Đăng xuất
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+
 </div>

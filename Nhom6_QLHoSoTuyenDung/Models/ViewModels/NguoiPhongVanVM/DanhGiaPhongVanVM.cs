@@ -4,7 +4,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
+namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
 {
     public class DanhGiaPhongVanVM
     {
@@ -13,6 +13,7 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
         public string LichPhongVanId { get; set; }
 
         // Thông tin hiển thị trong View (không cần validate)
+        public string UngVienId { get; set; }
         public string TenUngVien { get; set; } = string.Empty;
         public string TenViTri { get; set; } = string.Empty;
         public string TenPhong { get; set; } = string.Empty;

@@ -1,92 +1,202 @@
-﻿@model LichPhongVanDashboardVM
+﻿@model PhongVanDashboardVM
 @using System.Text.Json
 @using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
-@{
-    ViewData["Title"] = "Lịch phỏng vấn";
 
+@{
+    ViewData["Title"] = "Phỏng vấn";
+    ViewData["PageTitle"] = "Quản lý phỏng vấn";
     var viTriLabels = JsonSerializer.Serialize(Model.ViTriLabels);
     var viTriCounts = JsonSerializer.Serialize(Model.ViTriCounts);
-    bool isHR = User.IsInRole("HR");
+}
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+    <style>
+        .card-box {
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+            .card-box i {
+                font-size: 2rem;
+            }
+
+        .scrollable-table {
+            max-height: 360px;
+            overflow-y: auto;
+        }
+    </style>
 }
 
 <div class="container-fluid px-4 mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Quản lý lịch phỏng vấn</h2>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTaoLich">
-            <i class="bi bi-calendar-plus me-1"></i> Tạo lịch mới
+    <p class="text-muted mb-4">Tổng quan các buổi phỏng vấn trong hệ thống</p>
+
+    <!-- Nút lên lịch -->
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taoLichModal">
+            + Lên lịch phỏng vấn mới
         </button>
     </div>
 
-    <!-- Thống kê -->
-    <div class="row g-4 mb-4">
+    <!--Thống Kê nhanh-->
+    <div class="row mt-4 mb-4">
+        <!-- Tổng lịch -->
         <div class="col-md-4">
-            <div class="card border-start border-primary border-4 shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Tổng lịch phỏng vấn</h6>
-                    <h3 class="fw-bold">@Model.TongSoLich</h3>
+            <div class="card stat-glass text-center p-4">
+                <div class="card-top-bar"></div>
+                <div class="text-primary mb-3">
+                    <div class="icon-box bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center">
+                        <i class="bi bi-calendar-check fs-4"></i>
+                    </div>
                 </div>
+                <h3 class="fw-bold">@Model.TongSoLich</h3>
+                <p class="text-muted m-0">Tổng lịch phỏng vấn</p>
             </div>
         </div>
+
+        <!-- Đã hoàn thành -->
         <div class="col-md-4">
-            <div class="card border-start border-success border-4 shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Đã phỏng vấn</h6>
-                    <h3 class="fw-bold">@Model.DaPhongVan</h3>
+            <div class="card stat-glass text-center p-4">
+                <div class="card-top-bar"></div>
+                <div class="text-success mb-3">
+                    <div class="icon-box bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center">
+                        <i class="bi bi-check-circle fs-4"></i>
+                    </div>
                 </div>
+                <h3 class="fw-bold">@Model.DaPhongVan</h3>
+                <p class="text-muted m-0">Đã hoàn thành</p>
             </div>
         </div>
+
+        <!-- Chưa thực hiện -->
         <div class="col-md-4">
-            <div class="card border-start border-warning border-4 shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Chưa phỏng vấn</h6>
-                    <h3 class="fw-bold">@Model.ChuaPhongVan</h3>
+            <div class="card stat-glass text-center p-4">
+                <div class="card-top-bar"></div>
+                <div class="text-warning mb-3">
+                    <div class="icon-box bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center">
+                        <i class="bi bi-clock-history fs-4"></i>
+                    </div>
                 </div>
+                <h3 class="fw-bold">@Model.ChuaPhongVan</h3>
+                <p class="text-muted m-0">Chưa thực hiện</p>
             </div>
         </div>
     </div>
 
-    <!-- Biểu đồ vị trí -->
-    <div class="mb-5">
-        <canvas id="chartViTri" height="100"></canvas>
-    </div>
 
+<div class="container-fluid px-4 mt-4">
+    <div class="row g-3">
+        <!-- Trạng thái phỏng vấn -->
+        <div class="col-md-4">
+            <div class="card-chart h-100 p-3 shadow-sm rounded-4">
+                <h5 class="fw-bold">Trạng thái phỏng vấn</h5>
+                <p class="text-muted">Phân bố theo trạng thái</p>
+                <canvas id="donutChart" style="height: 280px; max-width: 100%;"></canvas>
+            </div>
+        </div>
+
+        <!-- Vị trí tuyển dụng -->
+        <div class="col-md-4">
+            <div class="card-chart h-100 p-3 shadow-sm rounded-4">
+                <h5 class="fw-bold">Vị trí tuyển dụng</h5>
+                <p class="text-muted">Số lượng phòng vấn theo vị trí</p>
+                <canvas id="barChart" style="height: 280px; max-width: 100%;"></canvas>
+            </div>
+        </div>
+
+        <!-- Lịch phỏng vấn sắp tới -->
+        <div class="col-md-4">
+            <div class="pastel p-3 shadow-sm rounded-3 bg-white">
+                <h6 class="fw-bold mb-3">Lịch phỏng vấn sắp tới</h6>
+                <div class="scroll-area" style="max-height: 400px; overflow-y: auto;">
+                    @if (Model.LichPhongVanSapToi != null && Model.LichPhongVanSapToi.Any())
+                    {
+                        foreach (var l in Model.LichPhongVanSapToi)
+                        {
+                            DateTime parsedDate;
+                            var ngay = DateTime.TryParseExact(l.Ngay, "dd/MM", null, System.Globalization.DateTimeStyles.None, out parsedDate)
+                            ? parsedDate : DateTime.MinValue;
+                            var isToday = ngay.Date == DateTime.Today;
+                            var isTomorrow = ngay.Date == DateTime.Today.AddDays(1);
+                            <div class="interview-card bg-light rounded-3 p-3 mb-3 position-relative @(isToday ? "border border-primary" : "")">
+                                @if (isToday)
+                                {
+                                    <span class="badge bg-dark position-absolute top-0 end-0 m-2">Hôm nay</span>
+                                }
+                                else if (isTomorrow)
+                                {
+                                    <span class="badge bg-secondary position-absolute top-0 end-0 m-2">Ngày mai</span>
+                                }
+                                <div class="fw-bold">@l.HoTen</div>
+                                <div class="text-muted">@l.ViTri</div>
+                                <div class="small text-secondary">
+                                    <i class="bi bi-clock me-1"></i>@l.Gio - @l.Ngay
+                                </div>
+                                <button class="btn btn-sm btn-primary w-100 mt-2">Tham gia</button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-muted">Không có lịch phỏng vấn sắp tới.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+  
+    
     <!-- Danh sách lịch -->
-    <div class="card">
-        <div class="card-body">
-            <h5 class="fw-bold mb-3">Danh sách lịch phỏng vấn</h5>
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
+    <div class="card p-3 card-interview-list">
+        <h5 class="fw-bold mb-3">Danh sách lịch phỏng vấn</h5>
+        <div class="scrollable-table">
+            <table class="table table-bordered table-striped table-sm align-middle">
+                <thead class="table-light sticky-top">
                     <tr>
                         <th>Ứng viên</th>
                         <th>Vị trí</th>
-                        <th>Thời gian</th>
                         <th>Phòng</th>
+                        <th>Thời gian</th>
                         <th>Trạng thái</th>
-                        <th>Hành động</th>
+                        <th>Ghi chú</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var lich in Model.DanhSachLich)
+                    @foreach (var item in Model.DanhSachLich.OrderByDescending(x => x.ThoiGian))
                     {
                         <tr>
-                            <td>@lich.UngVien?.HoTen</td>
-                            <td>@lich.ViTriTuyenDung?.TenViTri</td>
-                            <td>@lich.ThoiGian?.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>@lich.PhongPhongVan?.TenPhong</td>
+                            <td>@item.UngVien?.HoTen</td>
+                            <td>@item.ViTriTuyenDung?.TenViTri</td>
+                            <td>@item.PhongPhongVan?.TenPhong</td>
+                            <td>@item.ThoiGian?.ToString("dd/MM/yyyy HH:mm")</td>
                             <td>
-                                <span class="badge bg-@(lich.TrangThai == "Hoàn thành" ? "success" : "secondary")">
-                                    @lich.TrangThai
-                                </span>
-                            </td>
-                            <td>
-                                <a href="@Url.Action("ByUngVien", "LichPhongVans", new { id = lich.UngVienId })"
-                                   class="btn btn-sm btn-outline-info me-2">Chi tiết</a>
-                                @if (isHR)
-                                {
-                                    <a href="@Url.Action("DanhGia", "DanhGiaPhongVan", new { lichId = lich.Id })"
-                                       class="btn btn-sm btn-outline-primary">Đánh giá</a>
+                                @{
+                                    var trangThai = item.TrangThai;
                                 }
+
+                                @if (trangThai == TrangThaiPhongVanEnum.HoanThanh.ToString())
+                                {
+                                    <span class="badge bg-success">Hoàn thành</span>
+                                }
+                                else if (trangThai == TrangThaiPhongVanEnum.Huy.ToString())
+                                {
+                                    <span class="badge bg-danger">Hủy</span>
+                                }
+                                else if (trangThai == TrangThaiPhongVanEnum.DaLenLich.ToString())
+                                {
+                                    <span class="badge bg-info text-dark">Đã lên lịch</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@trangThai</span>
+                                }
+
                             </td>
+                            <td>@item.GhiChu</td>
                         </tr>
                     }
                 </tbody>
@@ -96,44 +206,231 @@
 </div>
 
 <!-- Modal tạo lịch -->
-<div class="modal fade" id="modalTaoLich" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="taoLichModal" tabindex="-1" aria-labelledby="taoLichLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Tạo lịch phỏng vấn</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div id="formTaoLichContainer">
-                    <p class="text-muted">Vui lòng chọn ứng viên để tạo lịch.</p>
-                    <!-- Có thể thêm form động tại đây -->
+                <!-- Chọn ứng viên -->
+                <div class="mb-3">
+                    <label for="ungVienSelect" class="form-label fw-bold">Chọn ứng viên</label>
+                    <select id="ungVienSelect" class="form-select">
+                        <option disabled selected>-- Chọn ứng viên cần lên lịch --</option>
+                        @foreach (var uv in (List<UngVien>)ViewBag.UngViensChuaCoLich)
+                        {
+                            <option value="@uv.MaUngVien">@uv.HoTen - @uv.Email</option>
+                        }
+                    </select>
+
+                </div>
+
+                <!-- Form tạo lịch sẽ được load vào đây -->
+                <div id="formLichBody" class="mt-3 text-muted">
+                    <p>Vui lòng chọn ứng viên để hiển thị biểu mẫu tạo lịch.</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+   
+    <canvas id="donutChart" height="200"></canvas>
+
     <script>
-        const ctx = document.getElementById('chartViTri').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
+        //Biểu đồ trạng thái phỏng vấn
+        const trangThaiLabels = @Html.Raw(JsonSerializer.Serialize(Model.TrangThaiLabels));
+        const trangThaiValues = @Html.Raw(JsonSerializer.Serialize(Model.TrangThaiValues));
+
+        new Chart(document.getElementById('donutChart'), {
+            type: 'doughnut',
             data: {
-                labels: @Html.Raw(viTriLabels),
+                labels: trangThaiLabels,  // ['Hoàn thành', 'Đã lên lịch', 'Chờ xác nhận', 'Đã huỷ']
                 datasets: [{
-                    label: 'Số lịch theo vị trí',
-                    data: @Html.Raw(viTriCounts),
-                    backgroundColor: '#3b82f6'
+                    data: trangThaiValues, 
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                    borderWidth: 0
                 }]
             },
             options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true }
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15
+                        }
+                    }
                 }
             }
         });
     </script>
+
+    <canvas id="barChart" height="200"></canvas>
+
+    <script>
+        //Biểu đồ vị trí tuyển dụng
+        const viTriLabels = @Html.Raw(JsonSerializer.Serialize(Model.ViTriLabels));
+        const viTriCounts = @Html.Raw(JsonSerializer.Serialize(Model.ViTriCounts));
+
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: viTriLabels, // ['Frontend Developer', 'Backend Developer', ...]
+                datasets: [{
+                    data: viTriCounts, // [45, 38, 28, 22, 18]
+                    backgroundColor: ['#3b82f6', '#10b981', '#a855f7', '#f59e0b', '#6366f1'],
+                    borderRadius: 10,
+                    barThickness: 16
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+    <script>
+
+        // -------------------------
+        // 2. Load biểu mẫu khi chọn ứng viên
+        // -------------------------
+        document.getElementById('ungVienSelect').addEventListener('change', function () {
+            const id = this.value;
+            const body = document.getElementById('formLichBody');
+            body.innerHTML = "<p>Đang tải biểu mẫu...</p>";
+
+            fetch(`/LichPhongVans/TaoLichPopup?ungVienId=${encodeURIComponent(id)}`)
+                .then(res => res.text())
+                .then(html => {
+                    body.innerHTML = html;
+                })
+                .catch(err => {
+                    body.innerHTML = "<p class='text-danger'>Không thể tải biểu mẫu. Vui lòng thử lại.</p>";
+                });
+        });
+
+        // -------------------------
+        // 3. Gửi form tạo lịch (AJAX)
+        // -------------------------
+        document.addEventListener('submit', async function (e) {
+            if (e.target && e.target.id === 'formTaoLich') {
+                e.preventDefault();
+                const form = e.target;
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch('/LichPhongVans/CreateLichFromPopup', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('taoLichModal'));
+                        modal.hide();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: '<span class="fw-bold text-success"><i class="bi bi-patch-check-fill me-1"></i> Thành công</span>',
+                            text: result.message,
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-primary'
+                            },
+                            buttonsStyling: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi tạo lịch',
+                            text: result.message,
+                            confirmButtonText: 'Thử lại',
+                            customClass: {
+                                confirmButton: 'btn btn-danger'
+                            },
+                            buttonsStyling: false
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Kết nối thất bại',
+                        text: 'Không thể gửi dữ liệu đến máy chủ. Vui lòng thử lại.',
+                        confirmButtonText: 'Đóng',
+                        customClass: {
+                            confirmButton: 'btn btn-secondary'
+                        },
+                        buttonsStyling: false
+                    });
+                }
+            }
+        });
+    </script>
+    <style>
+        .stat-glass {
+            position: relative;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+            .stat-glass:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+            }
+
+        .card-top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 6px;
+            width: 100%;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+            background: linear-gradient(to right, #3b82f6, #a855f7, #0ea5e9);
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            font-size: 1.25rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        canvas {
+            max-height: 280px;
+            margin: 0 auto;
+        }
+
+        .card-chart {
+            min-height: 380px;
+        }
+
+        .card-interview-list {
+            margin-top: 30px; 
+        }
+
+    </style>
+
 }
+

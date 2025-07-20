@@ -95,12 +95,18 @@
                                         <i class="bi bi-clock"></i> 60 phút
                                     </div>
                                     <div class="mt-2 d-flex gap-1 justify-content-end">
-                                        <a asp-controller="DanhGiaPhongVans" asp-action="DanhGia" asp-route-id="@lichTiepTheo.Id" class="btn btn-primary btn-sm">
-                                            🚀 Bắt đầu phỏng vấn
-                                        </a>
-                                        <a class="btn btn-outline-secondary btn-sm" href="/UngVien/CV/@lichTiepTheo.Id">
-                                            <i class="bi bi-file-earmark-text"></i> Xem CV
-                                        </a>
+
+                                        @if (@lichTiepTheo.HienThiNutBatDau)
+                                        {
+                                            <a asp-controller="DanhGiaPhongVans" asp-action="DanhGia" asp-route-id="@lichTiepTheo.Id" class="btn btn-primary btn-sm">
+                                                🚀 Bắt đầu phỏng vấn
+                                            </a>
+                                        }
+
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                                onclick="xemCV('@lichTiepTheo.UngVienId')">
+                                            📄 Xem CV
+                                        </button>
                                         <a class="btn btn-outline-secondary btn-sm" href="/GhiChu/@lichTiepTheo.Id">
                                             <i class="bi bi-chat-text"></i> Ghi chú
                                         </a>
@@ -216,4 +222,5 @@
                 }
             });
         </script>
+
     }

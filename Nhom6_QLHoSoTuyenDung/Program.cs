@@ -52,7 +52,7 @@ namespace Nhom6_QLHoSoTuyenDung
                 UngVienSeedData.Seed(context);
                 LichPhongVanSeedData.Seed(context);
                 NhanVienThamGiaPhongVanSeedData.Seed(context);
-                DanhGiaPhongVanSeedData.Seed(context); 
+                DanhGiaPhongVanSeedData.Seed(context);
                 HoSoLuuTruSeedData.Seed(context);
             }
 
@@ -62,8 +62,7 @@ namespace Nhom6_QLHoSoTuyenDung
                 app.UseExceptionHandler("/Home/Error");
             }
             app.UseRouting();
-            app.UseCookiePolicy(); // ✅ Thêm dòng này
-
+            app.UseCookiePolicy(); 
             app.UseSession();
             app.UseAuthentication(); // nếu dùng Identity
             app.UseAuthorization();

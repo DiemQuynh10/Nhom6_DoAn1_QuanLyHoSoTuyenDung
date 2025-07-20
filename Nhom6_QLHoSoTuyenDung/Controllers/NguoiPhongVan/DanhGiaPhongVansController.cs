@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Data;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
 using Nhom6_QLHoSoTuyenDung.Models.Enums;
-using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM;
 using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 
 namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
@@ -25,8 +25,9 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
         }
 
         [HttpGet]
-        public async Task<IActionResult> DanhGia(string id)
+        public async Task<IActionResult> DanhGia(string id, string? returnUrl)
         {
+            ViewBag.ReturnUrl = returnUrl ?? "LichPhongVan";
             var vm = await _service.GetFormAsync(id);
             if (vm == null) return NotFound();
 
@@ -107,6 +108,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
                 danhGia.TinhThanHocHoi = vm.TinhThanHocHoi;
                 danhGia.NhanXet = vm.NhanXet;
                 danhGia.DiemDanhGia = diemTrungBinh;
+                danhGia.DeXuat = vm.DeXuat;
             }
             else
             {
@@ -140,14 +142,31 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
             var lich = await _context.LichPhongVans.FindAsync(id);
             if (lich == null) return NotFound();
 
-            if (deXuat == "TiepNhan")
-                lich.TrangThai = TrangThaiPhongVanEnum.HoanThanh.ToString();
-            else if (deXuat == "TuChoi")
-                lich.TrangThai = TrangThaiPhongVanEnum.Huy.ToString();
+            // ❗ Chỉ cho phép tiếp nhận / từ chối nếu đã hoàn thành phỏng vấn
+            if (lich.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString())
+            {
+                TempData["Error"] = "❌ Chỉ được tiếp nhận hoặc từ chối sau khi đã phỏng vấn xong.";
+                return RedirectToAction(nameof(DanhGia), new { id });
+            }
+
+            // 🔎 Lấy ứng viên liên quan
+            var ungVien = await _context.UngViens.FindAsync(lich.UngVienId);
+
+            if (deXuat?.ToLower() == "tiepnhan")
+            {
+                if (ungVien != null)
+                    ungVien.TrangThai = TrangThaiUngVienEnum.DaTuyen.ToString();
+            }
+            else if (deXuat?.ToLower() == "tuchoi")
+            {
+                if (ungVien != null)
+                    ungVien.TrangThai = TrangThaiUngVienEnum.TuChoi.ToString();
+            }
 
             await _context.SaveChangesAsync();
-            TempData["Success"] = "✅ Cập nhật trạng thái thành công!";
+            TempData["Success"] = "✅ Cập nhật trạng thái ứng viên thành công!";
             return RedirectToAction(nameof(DanhGia), new { id });
         }
+
     }
 }

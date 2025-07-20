@@ -75,8 +75,8 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             var dest = role switch
             {
-                "admin" => ("UngViens", "Index"),
-                "hr" => ("UngViens", "Index"),
+                "admin" => ("Home", "Index"),
+                "hr" => ("Home", "Index"),
                 "interviewer" => ("InterviewerDashboard", "Index"),
                 _ => ("NguoiDungs", "DangNhap")
             };
@@ -179,10 +179,22 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         }
 
         // --- Logout ---
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            _svc.DangXuat(HttpContext);
+            // 1. Đăng xuất khỏi hệ thống (xoá cookie đăng nhập)
+            await HttpContext.SignOutAsync();
+
+            // 2. Xoá toàn bộ session
+            HttpContext.Session.Clear();
+
+            // 3. Xoá cache
+            HttpContext.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            HttpContext.Response.Headers["Pragma"] = "no-cache";
+            HttpContext.Response.Headers["Expires"] = "0";
+
             return RedirectToAction("DangNhap");
         }
+
+
     }
 }

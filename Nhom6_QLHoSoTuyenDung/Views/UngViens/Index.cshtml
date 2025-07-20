@@ -8,6 +8,7 @@
 
 @{
     ViewData["Title"] = "Quản lý Ứng viên";
+    ViewData["PageTitle"] = "Quản lý Ứng viên";
     var nguonLabels = ViewBag.NguonLabels as List<string> ?? new List<string>();
     var nguonValues = ViewBag.NguonValues as List<int> ?? new List<int>();
     var trangThaiLabels = ViewBag.TrangThaiLabels as List<string> ?? new List<string>();
@@ -34,7 +35,6 @@
     <!-- TIÊU ĐỀ & NÚT CHỨC NĂNG – sticky -->
     @await Html.PartialAsync("_ControlBarPartial", new ThanhDieuKhienVM
 {
-    Title = "Quản lý Ứng viên",
     Icon = "bi bi-people-fill",
     CreateTargetId = "#addUngVienModal",
     ImportTargetId = "#importExcelModal",
@@ -175,6 +175,11 @@
                 <h5 class="modal-title">Thêm Ứng viên</h5>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <form asp-action="CapNhatLinkCVHangLoat" method="post" class="d-inline">
+                <button type="submit" class="btn btn-warning btn-sm">
+                    🔄 Cập nhật Link CV hàng loạt
+                </button>
+            </form>
             <div class="modal-body">
                 @await Html.PartialAsync("_CreateFormPartial", new Nhom6_QLHoSoTuyenDung.Models.Entities.UngVien())
             </div>

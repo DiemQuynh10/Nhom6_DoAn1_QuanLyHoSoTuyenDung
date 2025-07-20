@@ -1,12 +1,20 @@
 ﻿@using Nhom6_QLHoSoTuyenDung.Models.Helpers
-@model IEnumerable<Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.LichPhongVanVM>
+@model Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.LichPhongVanPageVM
 @{
     Layout = "~/Views/Shared/_LayoutInterviewer.cshtml";
-    var lichGanNhat = ViewBag.LichGanNhat as Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.LichPhongVanVM;
+    var lichGanNhat = Model.LichGanNhat;
 }
 
 <div class="container mt-4">
     <h3 class="fw-bold text-primary mb-4">📅 Lịch Phỏng Vấn</h3>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
 
     <!-- 🎯 Lịch Gần Nhất -->
     @if (lichGanNhat != null && lichGanNhat.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString() && lichGanNhat.TrangThai != TrangThaiPhongVanEnum.Huy.ToString())
@@ -14,7 +22,14 @@
         <div class="card shadow-lg border-start border-danger border-5 mb-4 p-4 bg-light">
             <div class="d-flex justify-content-between">
                 <div>
-                    <span class="badge bg-danger me-2">🔥 Khẩn cấp - Tiếp theo</span>
+                    @if (lichGanNhat.IsTreHen)
+                    {
+                        <span class="badge bg-warning text-dark me-2">⚠️ Trễ hạn</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger me-2">🔥 Khẩn cấp - Tiếp theo</span>
+                    }
                     <span class="text-danger fw-bold">
                         <i class="bi bi-alarm"></i> @ThoiGianHelper.TinhThoiGianConLai(lichGanNhat.ThoiGian)
                     </span>
@@ -41,45 +56,163 @@
             </div>
 
             <div class="d-flex gap-2 mt-2">
-                <a asp-controller="DanhGiaPhongVans" asp-action="DanhGia" asp-route-id="@lichGanNhat.Id" class="btn btn-danger">
+                <a asp-controller="DanhGiaPhongVans"
+                   asp-action="DanhGia"
+                   asp-route-id="@lichGanNhat.Id"
+                   asp-route-returnUrl="LichPhongVan"
+                   class="btn btn-danger">
                     🚀 BẮT ĐẦU PHỎNG VẤN NGAY
                 </a>
+                <button class="btn btn-outline-secondary btn-sm"
+                        onclick="xemCV('@lichGanNhat.UngVienId')">
+                    📄 Xem CV
+                </button>
 
-                <a asp-action="XemCV" asp-route-id="@lichGanNhat.Id" class="btn btn-outline-secondary">
-                    📄 XEM CV
-                </a>
+
                 <a asp-action="GhiChu" asp-route-id="@lichGanNhat.Id" class="btn btn-outline-warning">
                     📝 GHI CHÚ
                 </a>
+                <button class="btn btn-outline-danger btn-sm btn-huy" data-id="@lichGanNhat.Id" data-bs-toggle="modal" data-bs-target="#huyModal">
+                    <i class="bi bi-x-circle"></i> Hủy lịch
+                </button>
+                @if (lichGanNhat.IsTreHen)
+                {
+                    <button class="btn btn-outline-danger btn-sm btn-huy"
+                            data-id="@lichGanNhat.Id"
+                            data-bs-toggle="modal"
+                            data-bs-target="#huyModal">
+                        🛑 Hủy vì trễ
+                    </button>
+                }
             </div>
         </div>
     }
+<div class="row">
+    <!-- Cột: Lịch trễ hẹn -->
+    <div class="col-md-6">
+        <div class="bg-white p-3 shadow-sm rounded-3 h-100">
+            <h5 class="fw-bold text-danger">⏰ Lịch trễ hẹn</h5>
+            <p class="text-muted fst-italic mb-2">
+                Lịch đã quá giờ và chưa được phỏng vấn. Vui lòng <strong>hủy lịch</strong> hoặc đề xuất lịch mới với ứng viên.
+            </p>
+            <div style="height: 500px; overflow-y: auto;">
+                @if (Model.LichTreHen.Any())
+                {
+                    @foreach (var item in Model.LichTreHen)
+                    {
+                        <div class="card border-danger border-start border-4 mb-3 shadow-sm bg-light">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="fw-bold text-danger mb-0">@item.HoTen</h6>
+                                        <small class="text-muted">@item.ViTri</small>
+                                        <br />
+                                        <small class="text-muted">@item.Email</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-warning text-dark">Đã quá giờ</span><br />
+                                        <span class="fw-bold">@item.ThoiGian?.ToString("HH:mm - dd/MM")</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2 mt-2">
+                                    @if (item.ThoiGian <= DateTime.Now && item.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString())
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm btn-huy"
+                                                data-id="@item.Id"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#huyModal">
+                                            🛑 Hủy vì trễ
+                                        </button>
+                                    }
 
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="xemCV('@item.UngVienId')">📄 Xem CV</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
 
-    <!-- 📋 Lịch hôm nay còn lại -->
-    <h5 class="fw-bold mb-3">📋 Lịch hôm nay còn lại</h5>
-    @foreach (var item in Model)
-    {
-        <div class="card mb-3 border-start border-4 border-secondary shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="fw-bold mb-0">@item.HoTen</h6>
-                        <small class="text-muted">@item.ViTri</small>
-                        <br />
-                        <small class="text-muted">@item.Email</small>
-                    </div>
-                    <div class="text-end">
-                        <div class="fw-bold">@item.ThoiGian?.ToString("HH:mm")</div>
-                        <div class="text-muted">40 phút</div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-end gap-2 mt-2">
-                    <a asp-action="XemCV" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm">CV</a>
-                    <a asp-action="GhiChu" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm">Ghi chú</a>
-                </div>
             </div>
         </div>
-    }
+    </div>
+
+    <!-- Cột: Lịch còn lại -->
+    <div class="col-md-6">
+        <div class="bg-white p-3 shadow-sm rounded-3 h-100">
+            <h5 class="fw-bold text-secondary">📋 Lịch phỏng vấn còn lại</h5>
+            <div style="height: 500px; overflow-y: auto;">
+                @if (Model.ConLai != null && Model.ConLai.Any())
+                {
+                    @foreach (var item in Model.ConLai)
+                    {
+                        <div class="card mb-3 border-start border-4 border-secondary shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="fw-bold mb-0">@item.HoTen</h6>
+                                        <small class="text-muted">@item.ViTri</small>
+                                        <br />
+                                        <small class="text-muted">@item.Email</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold">@item.ThoiGian?.ToString("HH:mm - dd/MM")</div>
+                                        <div class="text-muted">Phỏng vấn 40 phút</div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-2">
+                                    <button class="btn btn-outline-secondary btn-sm"
+                                            onclick="xemCV('@item.UngVienId')">
+                                        📄 Xem CV
+                                    </button>
+                                    <a asp-action="GhiChu" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm">Ghi chú</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
 </div>
+
+
+<!-- Modal Hủy Lịch -->
+<div class="modal fade" id="huyModal" tabindex="-1" aria-labelledby="huyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form asp-controller="InterviewerDashboard" asp-action="Huy" method="post">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="huyModalLabel"><i class="bi bi-x-circle-fill me-1"></i> Hủy lịch phỏng vấn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="huyLichId" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Lý do hủy</label>
+                        <textarea name="ghiChu" class="form-control" required rows="3" placeholder="Nhập lý do hủy lịch..."></textarea>
+                    </div>
+                </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger">
+                            ✅ Xác nhận hủy lịch
+                        </button>
+                    </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const btns = document.querySelectorAll(".btn-huy");
+    const inputId = document.getElementById("huyLichId");
+
+    btns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id");
+        inputId.value = id;
+      });
+    });
+</script>
+}

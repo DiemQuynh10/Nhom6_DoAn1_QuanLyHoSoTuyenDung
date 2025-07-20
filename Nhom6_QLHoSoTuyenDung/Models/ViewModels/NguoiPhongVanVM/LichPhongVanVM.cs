@@ -19,6 +19,17 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
         [Display(Name = "Trạng thái")]
         public string TrangThai { get; set; } = string.Empty;
 
+        public string UngVienId { get; set; } = "";   // ✅ ID của ứng viên
+        public string? LinkCV { get; set; }           // ✅ Đường dẫn CV của ứng viên (nếu có)
+        public bool IsTreHen =>
+     ThoiGian.HasValue &&
+     ThoiGian.Value <= DateTime.Now &&
+     !string.IsNullOrEmpty(TrangThai) &&
+     TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString() &&
+     TrangThai != TrangThaiPhongVanEnum.Huy.ToString();
+
+        public bool HienThiNutBatDau => ThoiGian.HasValue && ThoiGian.Value <= DateTime.Now.AddHours(1) && ThoiGian.Value > DateTime.Now;
+
 
     }
 

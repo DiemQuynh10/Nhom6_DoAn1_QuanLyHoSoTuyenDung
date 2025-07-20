@@ -1,0 +1,72 @@
+﻿
+<!-- Modal sửa vị trí -->
+<div class="modal fade" id="modalSuaViTri" tabindex="-1" aria-labelledby="modalSuaViTriLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" asp-action="EditPopup">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalSuaViTriLabel">Chỉnh sửa vị trí tuyển dụng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="MaViTri" id="edit-MaViTri" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên vị trí</label>
+                            <input name="TenViTri" id="edit-TenViTri" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phòng ban</label>
+                            <select name="PhongBanId" id="edit-PhongBanId" class="form-select">
+                                @foreach (var pb in ViewBag.PhongBans as List<PhongBan>)
+                                {
+                                    <option value="@pb.Id">@pb.TenPhong</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số lượng cần tuyển</label>
+                            <input name="SoLuongCanTuyen" id="edit-SoLuongCanTuyen" type="number" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="TrangThai" id="edit-TrangThai" class="form-select">
+                                <option>Đang tuyển</option>
+                                <option>Tạm dừng</option>
+                                <option>Đã đóng</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Kỹ năng</label>
+                            <textarea name="KyNang" id="edit-KyNang" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Lưu thay đổi</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function moModalSuaViTri(maViTri) {
+            fetch(`/ViTriTuyenDungs/GetViTriById?id=${maViTri}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("edit-MaViTri").value = data.maViTri;
+                    document.getElementById("edit-TenViTri").value = data.tenViTri;
+                    document.getElementById("edit-PhongBanId").value = data.phongBanId;
+                    document.getElementById("edit-SoLuongCanTuyen").value = data.soLuongCanTuyen;
+                    document.getElementById("edit-TrangThai").value = data.trangThai;
+                    document.getElementById("edit-KyNang").value = data.kyNang;
+
+                    var modal = new bootstrap.Modal(document.getElementById("modalSuaViTri"));
+                    modal.show();
+                });
+        }
+    </script>
+}

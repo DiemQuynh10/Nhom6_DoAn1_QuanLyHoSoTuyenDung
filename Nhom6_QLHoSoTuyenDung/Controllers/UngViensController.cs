@@ -26,7 +26,11 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
         private async Task LoadDropdownsAsync()
         {
-            ViewBag.ViTriList = new SelectList(await _context.ViTriTuyenDungs.ToListAsync(), "MaViTri", "TenViTri");
+            ViewBag.ViTriList = new SelectList(
+     await _context.ViTriTuyenDungs
+         .Where(v => v.TrangThai == "Đang tuyển")
+         .ToListAsync(),
+     "MaViTri", "TenViTri");
             ViewBag.GioiTinhList = new SelectList(
                 Enum.GetValues(typeof(GioiTinhEnum))
                     .Cast<GioiTinhEnum>()
@@ -50,7 +54,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             ViewBag.TongUngVien = stats["TongUngVien"];
             ViewBag.MoiTuanNay = stats["MoiTuanNay"];
-            ViewBag.DaPhongVan = stats["DaPhongVan"];
             ViewBag.DaTuyen = stats["DaTuyen"];
             ViewBag.TyLeChuyenDoi = stats["TyLeChuyenDoi"];
             ViewBag.NguonLabels = stats["NguonLabels"];
@@ -133,6 +136,50 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"❌ Lỗi khi xử lý file: {ex.Message}";
+            }
+
+            return RedirectToAction("Index");
+        }
+        [HttpPost]
+        public async Task<IActionResult> CapNhatLinkCVHangLoat()
+        {
+            try
+            {
+                var wwwrootPath = _env.WebRootPath;
+                var cvFolder = Path.Combine(wwwrootPath, "cv");
+
+                if (!Directory.Exists(cvFolder))
+                {
+                    TempData["ErrorMessage"] = "❌ Thư mục chứa CV không tồn tại.";
+                    return RedirectToAction("Index");
+                }
+
+                var pdfFiles = Directory.GetFiles(cvFolder, "*.pdf")
+                                        .Select(Path.GetFileName)
+                                        .ToHashSet(); // VD: "UV0984.pdf"
+
+                var ungViens = await _context.UngViens.ToListAsync();
+                int updated = 0;
+
+                foreach (var uv in ungViens)
+                {
+                    var expectedFile = $"{uv.MaUngVien}.pdf";
+                    var correctLink = $"/cv/{expectedFile}";
+
+                    if (pdfFiles.Contains(expectedFile) && uv.LinkCV != correctLink)
+                    {
+                        uv.LinkCV = correctLink;
+                        updated++;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"✅ Đã cập nhật {updated} link CV mới.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"❌ Có lỗi: {ex.Message}";
             }
 
             return RedirectToAction("Index");

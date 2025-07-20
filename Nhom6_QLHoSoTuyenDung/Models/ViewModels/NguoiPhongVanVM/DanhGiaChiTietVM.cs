@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
+namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
 {
     public class DanhGiaChiTietVM
     {

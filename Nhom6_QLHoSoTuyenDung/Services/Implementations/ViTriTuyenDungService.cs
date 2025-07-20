@@ -49,6 +49,11 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
             _context.ViTriTuyenDungs.Add(model);
             _context.SaveChanges();
         }
+        public bool TenViTriDaTonTai(string tenViTri)
+        {
+            return _context.ViTriTuyenDungs.Any(v => v.TenViTri.ToLower() == tenViTri.ToLower());
+        }
+
 
         public void Update(ViTriTuyenDung model)
         {
@@ -102,7 +107,7 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
 
         public List<QuyTrinhTuyenDungItem> ThongKeQuyTrinh(List<UngVien> dsUngVien)
         {
-            return ThongKeViTriHelper.ThongKeQuyTrinhTuyenDung(dsUngVien);
+            return ThongKeViTriHelper.ThongKeQuyTrinhTuyenDung(_context, dsUngVien);
         }
 
         public List<HoatDongDashboardVM> LayHoatDongGanDay()

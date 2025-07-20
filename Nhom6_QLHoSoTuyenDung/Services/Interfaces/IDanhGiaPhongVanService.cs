@@ -1,4 +1,4 @@
-﻿using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM;
+﻿using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM;
 
 namespace Nhom6_QLHoSoTuyenDung.Services.Interfaces
 {
@@ -6,6 +6,8 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Interfaces
     {
         Task<DanhGiaPhongVanVM?> GetFormAsync(string lichId);
         Task<bool> LuuAsync(DanhGiaPhongVanVM vm, string nguoiDungId);
+    
+
     }
 
 

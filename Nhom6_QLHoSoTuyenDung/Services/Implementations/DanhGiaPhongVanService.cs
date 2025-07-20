@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
 using Nhom6_QLHoSoTuyenDung.Models.Enums;
-using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM;
 using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 
 public class DanhGiaPhongVanService : IDanhGiaPhongVanService
@@ -30,7 +30,8 @@ public class DanhGiaPhongVanService : IDanhGiaPhongVanService
             TenViTri = lich.ViTriTuyenDung?.TenViTri,
             TenPhong = lich.PhongPhongVan?.TenPhong,
             ThoiGian = lich.ThoiGian ?? DateTime.Now,
-            KinhNghiem = lich.UngVien?.KinhNghiem
+            KinhNghiem = lich.UngVien?.KinhNghiem,
+            UngVienId = lich.UngVien?.MaUngVien
         };
 
     }
@@ -54,7 +55,7 @@ public class DanhGiaPhongVanService : IDanhGiaPhongVanService
             _context.DanhGiaPhongVans.Add(danhGia);
         }
 
-        // Cập nhật nội dung
+        // Cập nhật nội dung đánh giá
         danhGia.DiemDanhGia = (int)vm.DiemDanhGia;
         danhGia.NhanXet = vm.NhanXet;
         if (vm.DeXuat.HasValue)
@@ -62,11 +63,14 @@ public class DanhGiaPhongVanService : IDanhGiaPhongVanService
             danhGia.DeXuat = vm.DeXuat.Value.ToString();
         }
 
+        // ✅ Cập nhật trạng thái lịch phỏng vấn
+        var lich = await _context.LichPhongVans.FirstOrDefaultAsync(l => l.Id == vm.LichPhongVanId);
+        if (lich != null && lich.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString())
+        {
+            lich.TrangThai = TrangThaiPhongVanEnum.HoanThanh.ToString();
+        }
+
         await _context.SaveChangesAsync();
         return true;
     }
-
-
-
-
 }

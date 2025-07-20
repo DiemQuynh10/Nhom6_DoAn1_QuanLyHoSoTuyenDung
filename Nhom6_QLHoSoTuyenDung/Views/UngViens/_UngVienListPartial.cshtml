@@ -15,7 +15,7 @@
                 <th>Ứng viên</th>
                 <th>Vị trí ứng tuyển</th>
                 <th>Nguồn</th>
-                <th>Ngày sinh</th>
+                <th>Ngày thêm</th>
                 <th>Trạng thái</th>
                 <th>CV</th>
                 <th>Hành động</th>
@@ -51,7 +51,9 @@
                     <td>
                         @if (!string.IsNullOrEmpty(uv.LinkCV))
                         {
-                            <button class="btn btn-sm btn-outline-info" onclick="showCV('/uploads/@uv.LinkCV')" title="Xem CV trực tiếp">
+                            <button class="btn btn-sm btn-outline-info"
+                                    onclick="showCV('@Url.Content(uv.LinkCV)')"
+                                    title="Xem CV trực tiếp">
                                 <i class="bi bi-eye-fill"></i>
                             </button>
                         }

@@ -33,6 +33,9 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
      //   public List<int> TrangThaiCounts { get; set; } = new();
         public List<int> TrangThaiUngVienCounts { get; set; } = new();
         public List<string> TrangThaiUngVienLabels { get; set; } = new();
+        public List<LichPhongVanVM> LichTreHen { get; set; } = new();
+        public List<LichPhongVanVM> ConLai { get; set; } = new(); // ✅ có gán new()
+
 
     }
 

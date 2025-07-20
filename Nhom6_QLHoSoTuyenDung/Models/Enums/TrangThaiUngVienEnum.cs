@@ -3,8 +3,6 @@
     public enum TrangThaiUngVienEnum
     {
         Moi,
-        DaPhongVan,
-        DeXuat,
         DaTuyen,
         TuChoi
     }

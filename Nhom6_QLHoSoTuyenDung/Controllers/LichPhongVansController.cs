@@ -26,6 +26,8 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         public async Task<IActionResult> Index()
         {
             var dashboard = await _lichService.GetDashboardAsync();
+            var chuaCoLich = await _lichService.GetUngViensChuaCoLichAsync();
+            ViewBag.UngViensChuaCoLich = chuaCoLich;
             return View(dashboard);
         }
 
@@ -36,33 +38,31 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             if (vm == null)
                 return NotFound();
 
-            // ✅ Lấy danh sách người phỏng vấn từ bảng trung gian (đã từng tham gia phỏng vấn)
-            var nguoiPhongVanIds = await _context.NhanVienThamGiaPhongVans
-                .Select(x => x.NhanVienId)
-                .Distinct()
+            // ✅ Lọc người dùng có vai trò là Người phỏng vấn
+            var nguoiPhongVanIds = await _context.NguoiDungs
+                .Where(nd => nd.VaiTro == "Interviewer") // hoặc dùng enum nếu có
+                .Select(nd => nd.NhanVienId)
                 .ToListAsync();
 
-            // ✅ Lấy danh sách nhân viên dùng Id (khóa chính) để hiển thị trong dropdown
+            // ✅ Lấy danh sách nhân viên tương ứng
             vm.NguoiPhongVanOptions = await _context.NhanViens
-                .Where(nv => nguoiPhongVanIds.Contains(nv.MaNhanVien)) // Có thể bỏ nếu muốn hiện tất cả
+                .Where(nv => nguoiPhongVanIds.Contains(nv.MaNhanVien))
                 .Select(nv => new SelectListItem
                 {
-                    Value = nv.MaNhanVien, // ✅ dùng GUID (id), không dùng MaNhanVien nữa
+                    Value = nv.MaNhanVien,
                     Text = nv.HoTen + " (" + nv.Email + ")"
                 }).ToListAsync();
 
             return PartialView("_FormTaoLichPhongVan", vm);
         }
 
-        // 3. Xử lý lưu lịch phỏng vấn
-        [HttpPost]
         [HttpPost]
         public async Task<IActionResult> CreateLichFromPopup(TaoLichPhongVanVM vm)
         {
             if (string.IsNullOrEmpty(vm.TrangThai))
-                vm.TrangThai = "Đã lên lịch";
+                vm.TrangThai = TrangThaiPhongVanEnum.DaLenLich.ToString();
 
-            // ✅ B1: Tạo và lưu lịch phỏng vấn trước (LichPhongVan)
+            // Tạo model lịch từ ViewModel
             var model = new LichPhongVan
             {
                 Id = Guid.NewGuid().ToString(),
@@ -74,27 +74,24 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                 GhiChu = vm.GhiChu
             };
 
-            _context.LichPhongVans.Add(model);
-            await _context.SaveChangesAsync(); // ⚠️ PHẢI lưu trước để tránh lỗi FK
-
-            // ✅ B2: Lưu bảng người phỏng vấn sau khi lịch đã được lưu thành công
-            if (vm.NguoiPhongVanIds != null && vm.NguoiPhongVanIds.Any())
-            {
-                foreach (var nvId in vm.NguoiPhongVanIds)
+            // Gán danh sách người phỏng vấn để kiểm tra
+            model.NhanVienThamGiaPVs = vm.NguoiPhongVanIds
+                .Select(id => new NhanVienThamGiaPhongVan
                 {
-                    _context.NhanVienThamGiaPhongVans.Add(new NhanVienThamGiaPhongVan
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        LichPhongVanId = model.Id,
-                        NhanVienId = nvId, // ✅ phải là ID (GUID) thật của bảng NhanViens
-                        VaiTro = "Phỏng vấn viên"
-                    });
-                }
+                    Id = Guid.NewGuid().ToString(),
+                    NhanVienId = id,
+                    LichPhongVanId = model.Id,
+                    VaiTro = "Phỏng vấn viên"
+                }).ToList();
 
-                await _context.SaveChangesAsync();
+            // 🧠 GỌI VÀ KIỂM TRA QUA SERVICE
+            var (success, message) = await _lichService.CreateLichAsync(model);
+            if (!success)
+            {
+                return Json(new { success = false, message });
             }
 
-            return Json(new { success = true, message = "Tạo lịch phỏng vấn thành công!" });
+            return Json(new { success = true, message });
         }
 
 
