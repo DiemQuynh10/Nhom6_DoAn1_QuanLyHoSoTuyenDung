@@ -1,0 +1,165 @@
+﻿@using Nhom6_QLHoSoTuyenDung.Models.ViewModels
+@model DangNhapVM
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Đăng nhập – CarritoGo</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <!-- Bootstrap & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+    <!-- CSS riêng -->
+    <link href="~/css/site.css" rel="stylesheet" />
+</head>
+<body class="login-page">
+
+    <!-- Bubbles BG -->
+    <div class="bubbles" aria-hidden="true">
+        @for (int i = 0; i < 10; i++)
+        {
+            <div class="bubble"></div>
+        }
+    </div>
+
+    <div class="login-container">
+
+        <!-- -------- Cột trái -------- -->
+        <aside class="left" aria-label="Giới thiệu CyberFortis">
+            <div class="logo-row">
+                <img src="~/images/logofull.png" class="logo-square" alt="Logo CarritoGo" />
+            </div>
+
+            <h2>Hệ Thống Quản Lý Hồ Sơ Tuyển Dụng Nội Bộ</h2>
+            <p class="intro">
+                Được phát triển riêng cho nội bộ CyberFortis</br> Tự động hóa và bảo mật toàn diện quy trình tuyển dụng
+            </p>
+
+            <div class="box-about">
+                <h4>Hệ Thống tuyển dụng của CyberFortis</h4>
+                <ul>
+                    <li>
+                        <i class="fa-solid fa-store"></i> Sử dụng Tuyển dụng nội bộ quy mô 2000+ nhân sự
+                    </li>
+                    <li><i class="fa-solid fa-users"></i>Phân quyền chặt chẽ</li>
+                    <li><i class="fa-solid fa-user-tie"></i> 2000+ nhân viên, </li>
+                    <li><i class="fa-solid fa-history"></i>  Bảo mật cấp doanh nghiệp, bảo vệ dữ liệu ứng viên</li>
+                </ul>
+            </div>
+
+            <div class="box-features">
+                <h4>Tính Năng Hệ Thống</h4>
+                <ul>
+                    <li><i class="fa-solid fa-file-alt"></i> Quản lý hồ sơ thông minh</li>
+                    <li><i class="fa-solid fa-calendar-check"></i> Tạo lịch phỏng vấn nhanh chóng</li>
+                    <li><i class="fa-solid fa-chart-line"></i> Báo cáo &amp; phân tích</li>
+                </ul>
+            </div>
+
+            <div class="stats">
+                <div class="item"><strong>500+</strong><span>Sản Phẩm</span></div>
+                <div class="item"><strong>2M+</strong><span>Khách Hàng</span></div>
+                <div class="item"><strong>2000+</strong><span>Nhân Viên</span></div>
+                <div class="item"><strong>15+</strong><span>Năm</span></div>
+            </div>
+        </aside>
+
+        <!-- -------- Cột phải – Đăng nhập -------- -->
+        <section class="right" aria-label="Đăng nhập hệ thống">
+            <div class="login-header text-center">
+                <div class="icon-circle"><i class="fa-solid fa-lock"></i></div>
+                <h2>Đăng nhập hệ thống</h2>
+                <p class="subtitle">Truy cập vào bảng điều khiển nhân sự</p>
+            </div>
+
+            <div class="login-body">
+                <form asp-action="DangNhap" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div class="input-group mb-3">
+                        <input asp-for="TenDangNhap"
+                               type="text" autocomplete="username"
+                               placeholder="Username hoặc Email"
+                               class="form-control @(ViewData.ModelState[nameof(Model.TenDangNhap)]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span class="icon"><i class="fa-solid fa-user"></i></span>
+                        <span asp-validation-for="TenDangNhap" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="input-group password mb-3">
+                        <input asp-for="MatKhau"
+                               type="password" autocomplete="current-password"
+                               placeholder="Mật khẩu"
+                               class="form-control @(ViewData.ModelState[nameof(Model.MatKhau)]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span class="icon"><i class="fa-solid fa-lock"></i></span>
+                        <span asp-validation-for="MatKhau" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="actions form-check mb-3">
+                        <input asp-for="GhiNho" type="checkbox" class="form-check-input me-1" id="chkRemember" />
+                        <label asp-for="GhiNho" class="form-check-label" for="chkRemember">Ghi nhớ đăng nhập</label>
+                        <a asp-action="QuenMatKhau" class="float-end">Quên mật khẩu?</a>
+                    </div>
+
+                    <button type="submit" class="btn-login w-100">Đăng nhập</button>
+                </form>
+
+                <div class="footer-info mt-4">
+                    <h4><i class="fa-solid fa-shield-halved me-2"></i>Bảo Mật &amp; Quyền Riêng Tư</h4>
+                    <p>
+                        Thông tin đăng nhập được mã hóa và bảo vệ theo tiêu chuẩn cao nhất.<br />
+                        CarritoGo cam kết bảo vệ dữ liệu cá nhân &amp; thông tin công ty.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ======= TOAST STACK (ngoài form) ======= -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index:1100">
+        @* Success toast *@
+        @if (TempData["Success"] != null)
+        {
+            <div class="toast align-items-center text-success border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]
+                    </div>
+                    <button type="button" class="btn-close me-2 m-auto"
+                            data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+        @* Error toast *@
+        @if (TempData["Error"] != null)
+        {
+            <div class="toast align-items-center text-danger border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>@TempData["Error"]
+                    </div>
+                    <button type="button" class="btn-close me-2 m-auto"
+                            data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Bootstrap JS & Validation -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Tự ẩn toast sau 4 giây
+        document.querySelectorAll('.toast').forEach(t => {
+            const toast = new bootstrap.Toast(t, { delay: 12000 });
+            toast.show();
+        });
+    </script>
+</body>
+</html>

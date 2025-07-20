@@ -1,0 +1,67 @@
+﻿@* Partial View: _FilterOffcanvasPartial.cshtml *@
+@model BoLocViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using Nhom6_QLHoSoTuyenDung.Models.ViewModels
+
+<!-- Chỉ giữ lại phần offcanvas, không có nút gọi -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFilter">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold text-primary">
+            <i class="bi bi-sliders2-vertical me-2"></i> Bộ lọc nâng cao
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form method="get">
+            <div class="mb-3">
+                <label class="form-label">Từ khoá (Họ tên)</label>
+                <input type="text" name="Keyword" value="@Model.Keyword" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Trạng thái</label>
+                <input type="text" name="TrangThai" value="@Model.TrangThai" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Vị trí ứng tuyển</label>
+                <select name="ViTriId" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    @foreach (var item in Model.ViTriList)
+                    {
+                        <option value="@item.Value" selected="@(item.Value == Model.ViTriId?.ToString() ? "selected" : null)">
+                            @item.Text
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Giới tính</label>
+                <select name="GioiTinh" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    @foreach (var item in Model.GioiTinhList)
+                    {
+                        <option value="@item.Value" selected="@(item.Value == Model.GioiTinh ? "selected" : null)">
+                            @item.Text
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Từ ngày</label>
+                <input type="date" name="FromDate" value="@Model.FromDate" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Đến ngày</label>
+                <input type="date" name="ToDate" value="@Model.ToDate" class="form-control" />
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search me-1"></i> Lọc kết quả
+                </button>
+                <a href="@Model.ResetUrl" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i> Đặt lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

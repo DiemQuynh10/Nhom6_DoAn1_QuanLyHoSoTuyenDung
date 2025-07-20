@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Nhom6_QLHoSoTuyenDung.Models;
+using Nhom6_QLHoSoTuyenDung.Models.Entities;
 
-    public class AppDbContext : DbContext
+public class AppDbContext : DbContext
     {
         public AppDbContext (DbContextOptions<AppDbContext> options)
             : base(options)

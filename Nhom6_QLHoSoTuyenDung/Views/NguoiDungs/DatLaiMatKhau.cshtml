@@ -1,0 +1,208 @@
+﻿@using Nhom6_QLHoSoTuyenDung.Models.ViewModels
+@model DatLaiMatKhauVM
+@{
+    ViewData["Title"] = "Đặt lại mật khẩu";
+    ViewBag.FormClass = "single-form";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+@section Style {
+    <style>
+        /* ---------- INPUT STYLE ---------- */
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 1.4rem
+        }
+
+            .input-wrapper .form-control {
+                height: 48px;
+                padding: 0 52px 0 46px;
+                font-size: 16px;
+                border: 2px solid #d9dfe3;
+                border-radius: 14px;
+                transition: border-color .18s, box-shadow .18s;
+            }
+
+                .input-wrapper .form-control:focus {
+                    border-color: #3bbfad;
+                    box-shadow: 0 0 0 3px rgb(59 191 173 / .2);
+                }
+
+        .icon-left, .toggle-pass {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 17px;
+            color: #8c9aa6;
+        }
+
+        .icon-left {
+            left: 18px
+        }
+
+        .toggle-pass {
+            right: 18px;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer
+        }
+
+        .form-control.is-invalid {
+            border-color: #e74c3c
+        }
+
+        .invalid-feedback {
+            font-size: 13px;
+            color: #e74c3c;
+            margin-top: 4px
+        }
+
+        /* ---------- PASSWORD METER ---------- */
+        .pw-meter {
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e8ea;
+            overflow: hidden
+        }
+
+            .pw-meter span {
+                display: block;
+                height: 100%;
+                width: 0;
+                background: linear-gradient(90deg,#ff7676,#ffa76b,#ffe16b,#4ed964);
+                transition: width .25s
+            }
+
+        /* ---------- INFO BOX ---------- */
+        .info-box {
+            background: #e6faf6;
+            border-left: 5px solid #3bbfad;
+            padding: 18px 20px;
+            border-radius: 10px;
+            font-size: 15px;
+            color: #2b2b2b
+        }
+
+            .info-box h4 {
+                font-size: 16px;
+                font-weight: 600;
+                margin: 0 0 8px;
+                color: #3bbfad
+            }
+
+        /* ---------- BUTTON ---------- */
+        .btn-primary-grad {
+            display: block;
+            width: 100%;
+            padding: 13px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            background: linear-gradient(135deg,#009c8a,#01857a 60%,#00756d);
+            transition: transform .15s, box-shadow .15s
+        }
+
+            .btn-primary-grad:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(0,0,0,.15)
+            }
+    </style>
+}
+
+<div class="login-header text-center mb-4">
+    <div class="icon-circle mb-3"><i class="fa-solid fa-lock-open fa-lg"></i></div>
+    <h2 class="mb-1">Đặt lại mật khẩu</h2>
+    <p class="subtitle">Tạo mật khẩu mới bảo mật hơn</p>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<form asp-action="DatLaiMatKhau" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="TenDangNhap" />
+
+    <!-- Mật khẩu mới -->
+    <div class="input-wrapper password">
+        <i class="fa-solid fa-lock icon-left"></i>
+
+        <input asp-for="MatKhauMoi" type="password"
+               placeholder="Mật khẩu mới"
+               class="form-control @(ViewData.ModelState[nameof(Model.MatKhauMoi)]?.Errors.Count > 0 ? "is-invalid" : "")" />
+
+        <button type="button" class="toggle-pass" aria-label="Hiện/ẩn mật khẩu">
+            <i class="fa-solid fa-eye"></i>
+        </button>
+
+        <span asp-validation-for="MatKhauMoi" class="invalid-feedback"></span>
+        <div class="pw-meter mt-2"><span></span></div>
+    </div>
+
+    <!-- Xác nhận mật khẩu -->
+    <div class="input-wrapper password">
+        <i class="fa-solid fa-lock icon-left"></i>
+
+        <input asp-for="XacNhanMkMoi" type="password"
+               placeholder="Nhập lại mật khẩu"
+               class="form-control @(ViewData.ModelState[nameof(Model.XacNhanMkMoi)]?.Errors.Count > 0 ? "is-invalid" : "")" />
+
+        <button type="button" class="toggle-pass" aria-label="Hiện/ẩn mật khẩu">
+            <i class="fa-solid fa-eye"></i>
+        </button>
+
+        <span asp-validation-for="XacNhanMkMoi" class="invalid-feedback"></span>
+    </div>
+
+    <button type="submit" class="btn-primary-grad">Đặt lại mật khẩu</button>
+</form>
+
+<p class="text-center mt-3 uv-link">
+    <a asp-action="DangNhap"><i class="fa-solid fa-arrow-left me-1"></i> Quay về đăng nhập</a>
+</p>
+
+<div class="info-box mt-4">
+    <h4><i class="fa-solid fa-shield-halved me-2"></i>Bảo mật & Quyền riêng tư</h4>
+    <p>
+        Thông tin đăng nhập được mã hóa theo tiêu chuẩn cao nhất.<br>
+        CarritoGo cam kết bảo vệ dữ liệu cá nhân &amp; thông tin công ty.
+    </p>
+</div>
+
+@section Script {
+    <script>
+        /* Toggle eye */
+        document.querySelectorAll('.toggle-pass').forEach(btn=>{
+          btn.addEventListener('click',()=>{
+            const inp  = btn.closest('.password').querySelector('input'),
+                  icon = btn.querySelector('i');
+            if(inp.type==='password'){
+              inp.type='text';  icon.classList.replace('fa-eye','fa-eye-slash');
+            }else{
+              inp.type='password'; icon.classList.replace('fa-eye-slash','fa-eye');
+            }
+          });
+        });
+
+        /* Password strength */
+        const pwd   = document.querySelector('[name="MatKhauMoi"]'),
+              meter = document.querySelector('.pw-meter span');
+        pwd.addEventListener('input',()=>{
+          const v = pwd.value;
+          let lvl = 0;
+          if(v.length>=8) lvl++;
+          if(/[A-Z]/.test(v)) lvl++;
+          if(/[0-9]/.test(v)) lvl++;
+          if(/[^A-Za-z0-9]/.test(v)) lvl++;
+          meter.style.width = `${lvl*25}%`;
+        });
+    </script>
+}

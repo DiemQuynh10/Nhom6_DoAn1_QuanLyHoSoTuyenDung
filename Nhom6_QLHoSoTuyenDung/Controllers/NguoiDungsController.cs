@@ -1,169 +1,200 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Nhom6_QLHoSoTuyenDung.Models;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels;
+using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 
 namespace Nhom6_QLHoSoTuyenDung.Controllers
 {
     public class NguoiDungsController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly ITaiKhoanService _svc;
+        private const int MAX_FAILED = 5;
+        private const int OTP_EXPIRE_SEC = 120;
 
-        public NguoiDungsController(AppDbContext context)
-        {
-            _context = context;
-        }
+        public NguoiDungsController(ITaiKhoanService svc)
+            => _svc = svc;
 
-        // GET: NguoiDungs
-        public async Task<IActionResult> Index()
-        {
-            var appDbContext = _context.NguoiDungs.Include(n => n.NhanVien).Include(n => n.PhongBan);
-            return View(await appDbContext.ToListAsync());
-        }
+        // --- Đăng nhập (giữ nguyên) ---
+        [HttpGet]
+        public IActionResult DangNhap() => View(new DangNhapVM());
 
-        // GET: NguoiDungs/Details/5
-        public async Task<IActionResult> Details(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var nguoiDung = await _context.NguoiDungs
-                .Include(n => n.NhanVien)
-                .Include(n => n.PhongBan)
-                .FirstOrDefaultAsync(m => m.NhanVienId == id);
-            if (nguoiDung == null)
-            {
-                return NotFound();
-            }
-
-            return View(nguoiDung);
-        }
-
-        // GET: NguoiDungs/Create
-        public IActionResult Create()
-        {
-            ViewData["NhanVienId"] = new SelectList(_context.Set<NhanVien>(), "MaNhanVien", "MaNhanVien");
-            ViewData["PhongBanId"] = new SelectList(_context.Set<PhongBan>(), "Id", "Id");
-            return View();
-        }
-
-        // POST: NguoiDungs/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("NhanVienId,TenDangNhap,MatKhau,VaiTro,PhongBanId,HoTen,Email,SoDienThoai,NgayTao")] NguoiDung nguoiDung)
+        public async Task<IActionResult> DangNhap(DangNhapVM vm)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return View(vm);
+
+            var fails = HttpContext.Session.GetInt32("SoLanSai") ?? 0;
+            if (fails >= MAX_FAILED)
             {
-                _context.Add(nguoiDung);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("", $"Bạn đã thử quá {MAX_FAILED} lần. Vui lòng thử lại sau.");
+                return View(vm);
             }
-            ViewData["NhanVienId"] = new SelectList(_context.Set<NhanVien>(), "MaNhanVien", "MaNhanVien", nguoiDung.NhanVienId);
-            ViewData["PhongBanId"] = new SelectList(_context.Set<PhongBan>(), "Id", "Id", nguoiDung.PhongBanId);
-            return View(nguoiDung);
+
+            var user = await _svc.DangNhapAsync(vm, HttpContext);
+            if (user == null)
+            {
+                HttpContext.Session.SetInt32("SoLanSai", fails + 1);
+                ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
+                return View(vm);
+            }
+
+            // ✅ Reset đếm sai
+            HttpContext.Session.SetInt32("SoLanSai", 0);
+
+            // ✅ Đăng nhập bằng Claims (an toàn với cả user/pass & Gmail)
+            var claims = new List<Claim>
+{
+    new Claim(ClaimTypes.NameIdentifier, user.NhanVienId),
+    new Claim(ClaimTypes.Name, user.TenDangNhap),
+    new Claim(ClaimTypes.Role, user.VaiTro),
+    new Claim("HoTen", user.HoTen ?? "Người dùng")
+};
+
+            var identity = new ClaimsIdentity(claims, "Login");
+            var principal = new ClaimsPrincipal(identity);
+            await HttpContext.SignInAsync(principal);
+
+            // ✅ Nếu vẫn cần Session, có thể giữ lại
+            HttpContext.Session.SetString("IDNguoiDung", user.NhanVienId);
+            HttpContext.Session.SetString("HoTen", user.HoTen ?? "Người dùng");
+            HttpContext.Session.SetString("VaiTro", user.VaiTro);
+
+            if (user == null)
+            {
+                HttpContext.Session.SetInt32("SoLanSai", fails + 1);
+                ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
+                return View(vm);
+            }
+
+            HttpContext.Session.SetInt32("SoLanSai", 0);
+            var role = user.VaiTro.Trim().ToLowerInvariant();
+
+            var dest = role switch
+            {
+                "admin" => ("Home", "Index"),
+                "hr" => ("Home", "Index"),
+                "interviewer" => ("InterviewerDashboard", "Index"),
+                _ => ("NguoiDungs", "DangNhap")
+            };
+
+            return RedirectToAction(dest.Item2, dest.Item1);
+
         }
 
-        // GET: NguoiDungs/Edit/5
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        // --- Quên mật khẩu (hiển thị form) ---
+        [HttpGet]
+        public IActionResult QuenMatKhau() => View(new QuenMatKhauVM());
 
-            var nguoiDung = await _context.NguoiDungs.FindAsync(id);
-            if (nguoiDung == null)
-            {
-                return NotFound();
-            }
-            ViewData["NhanVienId"] = new SelectList(_context.Set<NhanVien>(), "MaNhanVien", "MaNhanVien", nguoiDung.NhanVienId);
-            ViewData["PhongBanId"] = new SelectList(_context.Set<PhongBan>(), "Id", "Id", nguoiDung.PhongBanId);
-            return View(nguoiDung);
-        }
-
-        // POST: NguoiDungs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // --- Gửi OTP AJAX ---
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("NhanVienId,TenDangNhap,MatKhau,VaiTro,PhongBanId,HoTen,Email,SoDienThoai,NgayTao")] NguoiDung nguoiDung)
+        public async Task<JsonResult> QuenMatKhauAjax([FromBody] QuenMatKhauVM vm)
         {
-            if (id != nguoiDung.NhanVienId)
-            {
-                return NotFound();
-            }
+            if (!ModelState.IsValid)
+                return Json(new { success = false, error = "Vui lòng nhập đầy đủ thông tin." });
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(nguoiDung);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!NguoiDungExists(nguoiDung.NhanVienId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["NhanVienId"] = new SelectList(_context.Set<NhanVien>(), "MaNhanVien", "MaNhanVien", nguoiDung.NhanVienId);
-            ViewData["PhongBanId"] = new SelectList(_context.Set<PhongBan>(), "Id", "Id", nguoiDung.PhongBanId);
-            return View(nguoiDung);
+            var otp = await _svc.GuiMaXacNhanAsync(vm.TenDangNhap.Trim(), vm.Email.Trim().ToLowerInvariant(), HttpContext);
+            if (otp == null)
+                return Json(new { success = false, error = "Không tìm thấy tài khoản." });
+
+            HttpContext.Session.SetString("Otp_Email", vm.Email.Trim().ToLowerInvariant());
+            HttpContext.Session.SetString("ThoiGianMa", DateTime.UtcNow.ToString("O"));
+            HttpContext.Session.SetString("Otp_User", vm.TenDangNhap.Trim().ToLowerInvariant());
+
+            return Json(new { success = true });
         }
 
-        // GET: NguoiDungs/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        // --- Hiển thị form Xác nhận mã ---
+        [HttpGet]
+        public IActionResult XacNhanMa(string tenDangNhap)
         {
-            if (id == null)
+            var timeStr = HttpContext.Session.GetString("ThoiGianMa");
+            int rem = 0;
+            if (!string.IsNullOrEmpty(timeStr))
             {
-                return NotFound();
+                var issued = DateTime.Parse(timeStr).ToUniversalTime();
+                var elapsed = (DateTime.UtcNow - issued).TotalSeconds;
+                rem = OTP_EXPIRE_SEC - (int)elapsed;
+                if (rem < 0) rem = 0;
             }
-
-            var nguoiDung = await _context.NguoiDungs
-                .Include(n => n.NhanVien)
-                .Include(n => n.PhongBan)
-                .FirstOrDefaultAsync(m => m.NhanVienId == id);
-            if (nguoiDung == null)
-            {
-                return NotFound();
-            }
-
-            return View(nguoiDung);
+            ViewBag.SecondsLeft = rem;
+            return View(new XacNhanMaVM { TenDangNhap = tenDangNhap });
         }
 
-        // POST: NguoiDungs/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        // --- Verify OTP AJAX ---
+        [HttpPost]
+        public JsonResult VerifyOtpAjax([FromBody] XacNhanMaVM vm)
         {
-            var nguoiDung = await _context.NguoiDungs.FindAsync(id);
-            if (nguoiDung != null)
+            var timeStr = HttpContext.Session.GetString("ThoiGianMa");
+            if (string.IsNullOrEmpty(timeStr))
+                return Json(new { success = false, error = "Phiên đã hết, vui lòng gửi lại mã." });
+
+            var issued = DateTime.Parse(timeStr).ToUniversalTime();
+            var elapsed = (DateTime.UtcNow - issued).TotalSeconds;
+            if (elapsed > OTP_EXPIRE_SEC)
+                return Json(new { success = false, error = "⛔ Mã đã hết hạn." });
+
+            if (!_svc.KiemTraMaXacNhan(HttpContext, vm.MaXacNhan))
+                return Json(new { success = false, error = "Mã sai. Vui lòng thử lại." });
+
+            return Json(new { success = true });
+        }
+
+        // --- Resend OTP AJAX ---
+        [HttpPost]
+        public JsonResult ResendOtp()
+        {
+            var key = HttpContext.Session.GetString("Otp_User");
+            var email = HttpContext.Session.GetString("Otp_Email");
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(email))
+                return Json(new { success = false, error = "Phiên đã hết, vui lòng thử lại Quên mật khẩu." });
+
+            _ = _svc.GuiMaXacNhanAsync(key, email, HttpContext);
+            HttpContext.Session.SetString("ThoiGianMa", DateTime.UtcNow.ToString("O"));
+            return Json(new { success = true });
+        }
+
+        // --- Đặt lại mật khẩu ---
+        [HttpGet]
+        public IActionResult DatLaiMatKhau(string tenDangNhap)
+            => View(new DatLaiMatKhauVM { TenDangNhap = tenDangNhap });
+
+        [HttpPost]
+        public async Task<IActionResult> DatLaiMatKhau(DatLaiMatKhauVM vm)
+        {
+            if (!ModelState.IsValid) return View(vm);
+
+            var ok = await _svc.DatLaiMatKhauAsync(vm.TenDangNhap, vm.MatKhauMoi);
+            if (!ok)
             {
-                _context.NguoiDungs.Remove(nguoiDung);
+                TempData["Error"] = "Không tìm thấy người dùng.";
+                return View(vm);
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            TempData["Success"] = "Đổi mật khẩu thành công. Mời đăng nhập lại.";
+            return RedirectToAction("DangNhap");
         }
 
-        private bool NguoiDungExists(string id)
+        // --- Logout ---
+        public async Task<IActionResult> Logout()
         {
-            return _context.NguoiDungs.Any(e => e.NhanVienId == id);
+            // 1. Đăng xuất khỏi hệ thống (xoá cookie đăng nhập)
+            await HttpContext.SignOutAsync();
+
+            // 2. Xoá toàn bộ session
+            HttpContext.Session.Clear();
+
+            // 3. Xoá cache
+            HttpContext.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            HttpContext.Response.Headers["Pragma"] = "no-cache";
+            HttpContext.Response.Headers["Expires"] = "0";
+
+            return RedirectToAction("DangNhap");
         }
+
+
     }
 }

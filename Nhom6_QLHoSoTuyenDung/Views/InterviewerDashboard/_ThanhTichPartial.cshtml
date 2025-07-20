@@ -1,0 +1,24 @@
+﻿@model Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.DashboardNguoiPhongVanVM
+
+<div class="card shadow-sm rounded-4 p-3 h-100">
+    <h5 class="fw-bold mb-3"><i class="bi bi-trophy"></i> Thành tích của tôi</h5>
+    <p class="fw-bold">@Model.HoTen</p>
+    <p class="text-muted mb-2">@Model.ChucDanh</p>
+    <p><span class="text-primary fw-bold">@Model.TyLeThanhCong%</span> - @Model.TongSoPhongVan phỏng vấn</p>
+    <p class="text-success mb-1">@Model.SoThanhCong Thành công</p>
+    <p class="text-danger mb-1">@Model.SoKhongPhuHop Không phù hợp</p>
+    <div class="text-muted">Xếp hạng trong team</div>
+    @{
+        var percent = Model.TyLeThanhCong;
+        var progressColor = percent >= 80 ? "bg-success"
+        : percent >= 60 ? "bg-primary"
+        : percent >= 40 ? "bg-warning"
+        : "bg-danger";
+    }
+    <div class="progress mt-1" style="height: 8px;">
+        <div class="progress-bar @progressColor" role="progressbar"
+             style="width: @percent%;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100">
+        </div>
+    </div>
+
+</div>

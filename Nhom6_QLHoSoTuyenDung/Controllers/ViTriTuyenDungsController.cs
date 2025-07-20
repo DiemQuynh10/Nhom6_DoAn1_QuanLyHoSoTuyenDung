@@ -1,163 +1,223 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Nhom6_QLHoSoTuyenDung.Models;
+using Nhom6_QLHoSoTuyenDung.Data;
+using Nhom6_QLHoSoTuyenDung.Models.Entities;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels;
+using Nhom6_QLHoSoTuyenDung.Models.ViewModels.ViTriTuyenDungVM;
+using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 
 namespace Nhom6_QLHoSoTuyenDung.Controllers
 {
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.HR}")]
     public class ViTriTuyenDungsController : Controller
     {
+        private readonly IViTriTuyenDungService _viTriService;
         private readonly AppDbContext _context;
 
-        public ViTriTuyenDungsController(AppDbContext context)
+        public ViTriTuyenDungsController(IViTriTuyenDungService viTriService, AppDbContext context)
         {
+            _viTriService = viTriService;
             _context = context;
         }
 
-        // GET: ViTriTuyenDungs
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? keyword, string? trangThai, string? phongBanId)
         {
-            var appDbContext = _context.ViTriTuyenDungs.Include(v => v.PhongBan);
-            return View(await appDbContext.ToListAsync());
+            var dsViTri = _viTriService.GetAll(keyword, trangThai, phongBanId);
+            var phanBoTrangThai = _viTriService.PhanBoTrangThai(dsViTri);
+            var (thang, soLuongMoi) = _viTriService.DemTheoThang(dsViTri);
+            var soLuongHoanThanh = _viTriService.DemSoLuongHoanThanhTheoThang(dsViTri);
+
+            var dsUngVien = _context.UngViens.Include(u => u.LichPhongVans).ToList();
+            var quyTrinh = _viTriService.ThongKeQuyTrinh(dsUngVien);
+            var hoatDongGanDay = _viTriService.LayHoatDongGanDay();
+
+            var vm = new BieuDoViTriTuyenDungVM
+            {
+                DanhSachViTri = dsViTri,
+                PhanBoTrangThai = phanBoTrangThai,
+                Thang = thang,
+                SoLuongViTriMoi = soLuongMoi,
+                SoLuongHoanThanh = soLuongHoanThanh,
+                QuyTrinhTuyenDung = quyTrinh,
+                HoatDongGanDay = hoatDongGanDay
+            };
+
+            ViewBag.PhongBans = _context.PhongBans.ToList();
+            ViewBag.CurrentKeyword = keyword;
+            ViewBag.CurrentTrangThai = trangThai;
+            ViewBag.CurrentPhongBanId = phongBanId;
+
+            return View(vm);
         }
 
-        // GET: ViTriTuyenDungs/Details/5
-        public async Task<IActionResult> Details(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var viTriTuyenDung = await _context.ViTriTuyenDungs
-                .Include(v => v.PhongBan)
-                .FirstOrDefaultAsync(m => m.MaViTri == id);
-            if (viTriTuyenDung == null)
-            {
-                return NotFound();
-            }
-
-            return View(viTriTuyenDung);
-        }
-
-        // GET: ViTriTuyenDungs/Create
         public IActionResult Create()
         {
-            ViewData["PhongBanId"] = new SelectList(_context.PhongBans, "Id", "Id");
+            ViewData["PhongBanId"] = new SelectList(_context.PhongBans, "Id", "TenPhong");
             return View();
         }
 
-        // POST: ViTriTuyenDungs/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaViTri,TenViTri,SoLuongCanTuyen,TrangThai,PhongBanId,KyNang,NgayTao")] ViTriTuyenDung viTriTuyenDung)
+        public IActionResult Create(ViTriTuyenDung model)
         {
-            if (ModelState.IsValid)
+            if (_context.ViTriTuyenDungs.Any(v => v.TenViTri.ToLower() == model.TenViTri.ToLower()))
             {
-                _context.Add(viTriTuyenDung);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["PhongBanId"] = new SelectList(_context.PhongBans, "Id", "Id", viTriTuyenDung.PhongBanId);
-            return View(viTriTuyenDung);
-        }
-
-        // GET: ViTriTuyenDungs/Edit/5
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var viTriTuyenDung = await _context.ViTriTuyenDungs.FindAsync(id);
-            if (viTriTuyenDung == null)
-            {
-                return NotFound();
-            }
-            ViewData["PhongBanId"] = new SelectList(_context.PhongBans, "Id", "Id", viTriTuyenDung.PhongBanId);
-            return View(viTriTuyenDung);
-        }
-
-        // POST: ViTriTuyenDungs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("MaViTri,TenViTri,SoLuongCanTuyen,TrangThai,PhongBanId,KyNang,NgayTao")] ViTriTuyenDung viTriTuyenDung)
-        {
-            if (id != viTriTuyenDung.MaViTri)
-            {
-                return NotFound();
+                ModelState.AddModelError("TenViTri", "Tên vị trí đã tồn tại.");
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(viTriTuyenDung);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ViTriTuyenDungExists(viTriTuyenDung.MaViTri))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                _viTriService.Create(model);
+                TempData["Success"] = "Đã thêm vị trí thành công!";
+                return RedirectToAction("Index");
             }
-            ViewData["PhongBanId"] = new SelectList(_context.PhongBans, "Id", "Id", viTriTuyenDung.PhongBanId);
-            return View(viTriTuyenDung);
+
+            ViewData["PhongBanId"] = new SelectList(_context.PhongBans, "Id", "TenPhong", model.PhongBanId);
+            return View(model);
         }
 
-        // GET: ViTriTuyenDungs/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        [HttpPost]
+        public IActionResult CreatePopup(ViTriTuyenDung model)
         {
-            if (id == null)
+            if (_context.ViTriTuyenDungs.Any(v => v.TenViTri.ToLower() == model.TenViTri.ToLower()))
             {
-                return NotFound();
+                TempData["Error"] = "Tên vị trí đã tồn tại!";
+                return RedirectToAction("Index");
             }
 
-            var viTriTuyenDung = await _context.ViTriTuyenDungs
-                .Include(v => v.PhongBan)
-                .FirstOrDefaultAsync(m => m.MaViTri == id);
-            if (viTriTuyenDung == null)
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                _viTriService.Create(model);
+                TempData["Success"] = "Đã thêm vị trí thành công!";
             }
 
-            return View(viTriTuyenDung);
+            return RedirectToAction("Index");
         }
 
-        // POST: ViTriTuyenDungs/Delete/5
+        public IActionResult Edit(string id)
+        {
+            var viTri = _viTriService.GetById(id);
+            if (viTri == null) return NotFound();
+
+            ViewData["PhongBanId"] = new SelectList(_context.PhongBans, "Id", "TenPhong", viTri.PhongBanId);
+            return View(viTri);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(string id, ViTriTuyenDung model)
+        {
+            if (id != model.MaViTri) return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                _viTriService.Update(model);
+                return RedirectToAction("Index");
+            }
+
+            ViewData["PhongBanId"] = new SelectList(_context.PhongBans, "Id", "TenPhong", model.PhongBanId);
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditPopup(ViTriTuyenDung model)
+        {
+            if (!ModelState.IsValid)
+                return RedirectToAction("Index");
+
+            var viTri = await _context.ViTriTuyenDungs.FindAsync(model.MaViTri);
+            if (viTri == null) return NotFound();
+
+            viTri.TenViTri = model.TenViTri;
+            viTri.PhongBanId = model.PhongBanId;
+            viTri.SoLuongCanTuyen = model.SoLuongCanTuyen;
+            viTri.TrangThai = model.TrangThai;
+            viTri.KyNang = model.KyNang;
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật thành công!";
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Delete(string id)
+        {
+            var viTri = _viTriService.GetById(id);
+            if (viTri == null) return NotFound();
+
+            return View(viTri);
+        }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public IActionResult DeleteConfirmed(string id)
         {
-            var viTriTuyenDung = await _context.ViTriTuyenDungs.FindAsync(id);
-            if (viTriTuyenDung != null)
+            _viTriService.Delete(id);
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult HoatDongGanDay()
+        {
+            var hoatDongGanDay = _viTriService.LayHoatDongGanDay();
+            return View(hoatDongGanDay);
+        }
+
+        public IActionResult TatCaHoatDong()
+        {
+            var hoatDong7Ngay = _viTriService.LayHoatDongGanDay();
+            return View("HoatDongGanDay", hoatDong7Ngay);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CapNhatTrangThai([FromBody] CapNhatTrangThaiVM model)
+        {
+            var viTri = await _context.ViTriTuyenDungs.FirstOrDefaultAsync(v => v.MaViTri == model.MaViTri);
+            if (viTri == null)
+                return Json(new { success = false });
+
+            viTri.TrangThai = model.TrangThai;
+            bool isAutoPaused = false;
+
+            if (model.TrangThai == "Đang tuyển")
             {
-                _context.ViTriTuyenDungs.Remove(viTriTuyenDung);
+                var soLuongUngVien = await _context.UngViens
+                    .CountAsync(uv => uv.ViTriUngTuyenId == viTri.MaViTri);
+
+                if (soLuongUngVien >= viTri.SoLuongCanTuyen)
+                {
+                    viTri.TrangThai = "Tạm dừng";
+                    isAutoPaused = true;
+                }
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return Json(new { success = true, isAutoPaused });
         }
 
-        private bool ViTriTuyenDungExists(string id)
+        [HttpGet]
+        public async Task<IActionResult> GetViTriById(string id)
         {
-            return _context.ViTriTuyenDungs.Any(e => e.MaViTri == id);
+            var viTri = await _context.ViTriTuyenDungs
+                .Include(v => v.UngViens)
+                .FirstOrDefaultAsync(v => v.MaViTri == id);
+
+            if (viTri == null) return NotFound();
+
+            var soLuongTrungTuyen = viTri.UngViens?
+                .Count(uv => uv.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString()) ?? 0;
+
+            return Json(new
+            {
+                viTri.MaViTri,
+                viTri.TenViTri,
+                viTri.PhongBanId,
+                viTri.SoLuongCanTuyen,
+                viTri.TrangThai,
+                viTri.KyNang,
+                SoLuongTrungTuyen = soLuongTrungTuyen
+            });
         }
     }
 }
