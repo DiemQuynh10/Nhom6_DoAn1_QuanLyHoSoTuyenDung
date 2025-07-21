@@ -8,7 +8,6 @@
 
 @{
     ViewData["Title"] = "Quản lý Ứng viên";
-    ViewData["PageTitle"] = "Quản lý Ứng viên";
     var nguonLabels = ViewBag.NguonLabels as List<string> ?? new List<string>();
     var nguonValues = ViewBag.NguonValues as List<int> ?? new List<int>();
     var trangThaiLabels = ViewBag.TrangThaiLabels as List<string> ?? new List<string>();
@@ -16,25 +15,77 @@
     var viTriLabels = ViewBag.ViTriLabels as List<string> ?? new List<string>();
     var viTriValues = ViewBag.ViTriValues as List<int> ?? new List<int>();
     int totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
-}
-<style>
-    .card {
-        border-radius: 8px;
-        border: 1px solid #e0e0e0;
-        background-color: #fff;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    canvas {
-        max-height: 250px;
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        padding: 1rem;
+        height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.2s ease;
     }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+    .chart-card {
+        background-color: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+        height: 340px;
+    }
+
+    .bg-stat-1 {
+        background-color: #f0f7ff;
+    }
+
+    .pastel {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+        transition: all 0.2s ease;
+    }
+
+        .pastel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        }
+
+    .pastel-blue {
+        background-color: #e6f0ff;
+    }
+
+    .pastel-purple {
+        background-color: #f2e8ff;
+    }
+
+    .pastel-yellow {
+        background-color: #fff8e6;
+    }
+
+    .pastel-green {
+        background-color: #e6fff2;
+    }
+
+
 </style>
+
 
 <div class="container mt-4">
     <!-- NÚt chức năng -->
     <!-- TIÊU ĐỀ & NÚT CHỨC NĂNG – sticky -->
     @await Html.PartialAsync("_ControlBarPartial", new ThanhDieuKhienVM
 {
+    Title = "Quản lý Ứng viên",
     Icon = "bi bi-people-fill",
     CreateTargetId = "#addUngVienModal",
     ImportTargetId = "#importExcelModal",
@@ -76,25 +127,68 @@
         </div>
     }
     <!-- THỐNG KÊ -->
-    <div class="row mb-4 text-center">
-        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Tổng ứng viên</div><h4>@ViewBag.TongUngVien</h4></div></div>
-        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Mới tuần này</div><h4>@ViewBag.MoiTuanNay</h4></div></div>
-        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Đã phỏng vấn</div><h4>@ViewBag.DaPhongVan</h4></div></div>
-        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Đã tuyển</div><h4>@ViewBag.DaTuyen</h4></div></div>
-        <div class="col-md-2"><div class="card p-2"><div class="text-muted">Tỷ lệ chuyển đổi</div><h4>@ViewBag.TyLeChuyenDoi %</h4></div></div>
+    <div class="row g-3 mb-4 px-3">
+        <div class="col-md-3">
+            <div class="card pastel pastel-blue text-center py-3">
+                <div class="text-muted">Tổng ứng viên</div>
+                <h4 class="mb-0 fw-bold">@ViewBag.TongUngVien</h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card pastel pastel-purple text-center py-3">
+                <div class="text-muted">Mới tuần này</div>
+                <h4 class="mb-0 fw-bold">@ViewBag.MoiTuanNay</h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card pastel pastel-yellow text-center py-3">
+                <div class="text-muted">Đã phỏng vấn</div>
+                <h4 class="mb-0 fw-bold">@ViewBag.DaPhongVan</h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card pastel pastel-green text-center py-3">
+                <div class="text-muted">Đã tuyển</div>
+                <h4 class="mb-0 fw-bold">@ViewBag.DaTuyen</h4>
+            </div>
+        </div>
     </div>
+
 
     <!-- BIỂU ĐỒ -->
-    <div class="row mb-4">
-        <div class="col-md-4"><div class="card p-3"><h6 class="text-center">Ứng viên theo nguồn</h6><canvas id="chartNguon"></canvas></div></div>
-        <div class="col-md-4"><div class="card p-3"><h6 class="text-center">Ứng viên theo trạng thái</h6><canvas id="chartTrangThai"></canvas></div></div>
-        <div class="col-md-4"><div class="card p-3"><h6 class="text-center">Ứng viên theo vị trí</h6><canvas id="chartViTri"></canvas></div></div>
+    <div class="container px-4">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="chart-card">
+                    <h6>Ứng viên theo nguồn</h6>
+                    <canvas id="chartNguon"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-card">
+                    <h6>Ứng viên theo trạng thái</h6>
+                    <canvas id="chartTrangThai"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-card">
+                    <h6>Ứng viên theo vị trí</h6>
+                    <canvas id="chartViTri"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
+
+
     <!-- DANH SÁCH ỨNG VIÊN -->
-    @await Html.PartialAsync("_UngVienListPartial", Model)
+    <div class="container px-4 mt-4">
+        <div class="scroll-container mb-4">
+            @await Html.PartialAsync("_UngVienListPartial", Model)
+        </div>
+    </div>
+
     @await Html.PartialAsync("_FilterOffcanvasPartial", (BoLocViewModel)ViewBag.FilterViewModel)
-</div>
 <!-- Phân trang -->
 <div class="d-flex justify-content-between align-items-center mt-3">
     <div>
@@ -188,6 +282,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/chart-colors.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -210,11 +305,12 @@
             form.style.display = form.style.display === "none" ? "block" : "none";
         }
 
-        const dataNguon = {
-            labels: @Html.Raw(JsonSerializer.Serialize(ViewBag.NguonLabels)),
+            
+                const dataNguon = {
+            labels: ["LinkedIn", "Website công ty", "Giới thiệu", "Khác"],
             datasets: [{
                 data: @Html.Raw(JsonSerializer.Serialize(ViewBag.NguonValues)),
-                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#8BC34A', '#9C27B0', '#00BCD4']
+                 backgroundColor: ChartColors.pieColors
             }]
         };
 
@@ -222,7 +318,7 @@
             labels: @Html.Raw(JsonSerializer.Serialize(ViewBag.TrangThaiLabels)),
             datasets: [{
                 data: @Html.Raw(JsonSerializer.Serialize(ViewBag.TrangThaiValues)),
-                backgroundColor: ['#42A5F5', '#BA68C8', '#FFB74D', '#4DB6AC', '#7986CB', '#EF5350']
+                backgroundColor: ChartColors.barColors
             }]
         };
 
@@ -230,9 +326,10 @@
             labels: @Html.Raw(JsonSerializer.Serialize(ViewBag.ViTriLabels)),
             datasets: [{
                 data: @Html.Raw(JsonSerializer.Serialize(ViewBag.ViTriValues)),
-                backgroundColor: ['#42A5F5', '#AB47BC', '#FF7043', '#66BB6A', '#29B6F6', '#EF5350']
+                backgroundColor: ChartColors.barColors
             }]
         };
+
 
         new Chart(document.getElementById('chartNguon'), {
             type: 'doughnut',
@@ -398,5 +495,12 @@
         }
 
     </script>
-
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.forEach(function (el) {
+                    new bootstrap.Tooltip(el);
+                });
+            });
+        </script>
 }

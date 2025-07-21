@@ -34,7 +34,11 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Enums
         }
         public static T ToEnum<T>(this string value) where T : struct, Enum
         {
-            return Enum.TryParse<T>(value, out var result) ? result : default;
+            if (string.IsNullOrWhiteSpace(value)) return default;
+
+            return Enum.TryParse<T>(value.Trim(), ignoreCase: true, out var result)
+                ? result
+                : default;
         }
 
     }

@@ -22,7 +22,13 @@
             <li><a class="dropdown-item" href="/NguoiDungs/CaiDat">⚙️ Cài đặt</a></li>
             <li><a class="dropdown-item" href="/NguoiDungs/ThongTinCaNhan">🧍 Thông tin</a></li>
             <li><hr class="dropdown-divider" /></li>
-            <li><a class="dropdown-item text-danger fw-semibold" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">🧱 Đăng xuất</a></li>
+            <li>
+                <form asp-controller="NguoiDungs" asp-action="Logout" method="post" class="d-inline w-100">
+                    <button type="submit" class="dropdown-item text-danger fw-semibold">🚪 Đăng xuất</button>
+                </form>
+            </li>
         </ul>
     </div>
 </header>
+
+

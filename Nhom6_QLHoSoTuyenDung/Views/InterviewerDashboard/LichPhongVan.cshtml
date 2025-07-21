@@ -2,11 +2,11 @@
 @model Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.LichPhongVanPageVM
 @{
     Layout = "~/Views/Shared/_LayoutInterviewer.cshtml";
+    ViewData["Title"] = "📅 Lịch Phỏng Vấn";
     var lichGanNhat = Model.LichGanNhat;
 }
 
 <div class="container mt-4">
-    <h3 class="fw-bold text-primary mb-4">📅 Lịch Phỏng Vấn</h3>
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success">@TempData["Success"]</div>
@@ -87,6 +87,7 @@
             </div>
         </div>
     }
+</div>
 <div class="row">
     <!-- Cột: Lịch trễ hẹn -->
     <div class="col-md-6">

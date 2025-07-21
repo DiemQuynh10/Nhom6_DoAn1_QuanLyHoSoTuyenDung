@@ -5,6 +5,21 @@
 @{
     var lichMap = ViewBag.LichPhongVanMap as Dictionary<string, LichPhongVan>;
 }
+<style>
+    .btn-icon-label::after {
+        content: attr(data-label);           /* nội dung lấy từ data-label */
+        margin-left: 6px;
+        opacity: 0;
+        white-space: nowrap;
+        transition: opacity 0.25s ease;
+        color: inherit;
+    }
+
+    .btn-icon-label:hover::after {
+        opacity: 1;
+    }
+</style>
+
 
 <div class="card p-3">
     <h5 class="fw-bold mb-3">Danh sách ứng viên</h5>
@@ -49,45 +64,50 @@
                         </span>
                     </td>
                     <td>
-                        @if (!string.IsNullOrEmpty(uv.LinkCV))
-                        {
-                            <button class="btn btn-sm btn-outline-info"
-                                    onclick="showCV('@Url.Content(uv.LinkCV)')"
-                                    title="Xem CV trực tiếp">
-                                <i class="bi bi-eye-fill"></i>
-                            </button>
-                        }
-                        else
-                        {
-                            <span class="text-muted">Không có</span>
-                        }
+                       <!-- 👁 Nút xem CV -->
+@if (!string.IsNullOrEmpty(uv.LinkCV))
+{
+    <button class="btn btn-sm btn-outline-info me-1 btn-icon-label"
+            onclick="showCV('@Url.Content(uv.LinkCV)')"
+            data-label="Xem CV"
+            title="Xem CV trực tiếp">
+        <i class="bi bi-eye-fill"></i>
+    </button>
+}
+else
+{
+    <span class="text-muted">Không có</span>
+}
                     </td>
                     <td>
-                        <!-- Nút xem chi tiết -->
-                        <button class="btn btn-sm btn-outline-primary me-1"
+                        <!-- 🧍 Chi tiết -->
+                        <button class="btn btn-sm btn-outline-primary me-1 btn-icon-label"
                                 onclick="showChiTiet('@uv.MaUngVien')"
+                                data-label="Chi tiết"
                                 title="Xem chi tiết ứng viên">
                             <i class="bi bi-person-vcard"></i>
                         </button>
 
+                        <!-- 📅 Lịch -->
                         @if (daCoLich)
                         {
-                            <!-- Nút xem lịch -->
-                            <button class="btn btn-sm btn-outline-success"
+                            <button class="btn btn-sm btn-outline-success me-1 btn-icon-label"
                                     onclick="xemLichPhongVan('@uv.MaUngVien')"
+                                    data-label="Xem lịch"
                                     title="Xem lịch phỏng vấn">
                                 <i class="bi bi-calendar-check-fill"></i>
                             </button>
                         }
                         else
                         {
-                            // nút tạo lịch phỏng vấn
-                            <a class="btn btn-sm btn-outline-secondary"
-                               onclick="moFormTaoLich('@uv.MaUngVien')"
-                               title="Tạo lịch phỏng vấn">
+                            <button class="btn btn-sm btn-outline-secondary btn-icon-label"
+                                    onclick="moFormTaoLich('@uv.MaUngVien')"
+                                    data-label="Tạo lịch"
+                                    title="Tạo lịch phỏng vấn">
                                 <i class="bi bi-calendar-plus-fill"></i>
-                            </a>
+                            </button>
                         }
+
                     </td>
                 </tr>
             }

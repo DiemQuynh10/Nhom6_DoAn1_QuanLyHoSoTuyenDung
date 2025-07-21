@@ -1,88 +1,31 @@
-﻿@*
-  Partial sidebar cho role Interviewer – ĐÃ CÓ modal xác nhận đăng xuất
-*@
-@using Nhom6_QLHoSoTuyenDung.Models.Enums
-@{
-    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
-    var act = ViewContext.RouteData.Values["action"]?.ToString();
-    string A(string c, string? a = null) => c == ctrl && (a == null || a == act) ? "is-active" : "";
-    var hoTen = Context.Session.GetString("HoTen") ?? "Interviewer";
+﻿@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString()?.ToLower();
+    var act = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower();
+    string A(string c, string? a = null) => c == ctrl && (a == null || a == act) ? "active" : "";
 }
+<nav class="nav flex-column">
+    <a asp-controller="InterviewerDashboard" asp-action="Index"
+       class="nav-link @A("interviewerdashboard", "index")">
+        <i class="bi bi-grid-fill me-2"></i> Tổng quan
+    </a>
 
-<aside class="iv-sidebar">
-    <!-- BRAND -->
-    <div class="iv-brand mb-4">
-        <h5>Interviewer</h5><small>Dashboard</small>
-    </div>
+    <a asp-controller="InterviewerDashboard" asp-action="LichPhongVan"
+       class="nav-link @A("interviewerdashboard", "lichphongvan")">
+        <i class="bi bi-calendar2-event-fill me-2"></i> Lịch phỏng vấn
+    </a>
 
-    <!-- MENU -->
-    <nav class="nav flex-column iv-menu">
-        <a asp-controller="InterviewerDashboard" asp-action="Index"
-           class="iv-item @A("InterviewerDashboard", "Index")">
-            <i class="bi bi-grid-fill"></i><span>Tổng quan</span>
-        </a>
+    <a asp-controller="InterviewerDashboard" asp-action="LichSuPhongVan"
+       class="nav-link @A("interviewerdashboard", "lichsuphongvan")">
+        <i class="bi bi-clock-history me-2"></i> Lịch sử
+    </a>
 
-        <a asp-controller="InterviewerDashboard" asp-action="LichPhongVan"
-           class="iv-item @A("InterviewerDashboard", "LichPhongVan")">
-            <i class="bi bi-calendar2-event-fill"></i><span>Lịch phỏng vấn</span>
-        </a>
+    <a asp-controller="InterviewerDashboard" asp-action="DaPhongVan"
+       class="nav-link @A("interviewerdashboard", "daphongvan")">
+        <i class="bi bi-check2-square me-2"></i> Trạng thái chờ
+    </a>
 
-        <a asp-controller="InterviewerDashboard" asp-action="LichSuPhongVan"
-           class="iv-item @A("InterviewerDashboard", "LichSuPhongVan")">
-            <i class="bi bi-clock-history"></i><span>Lịch sử</span>
-        </a>
-
-        <a class="nav-link" asp-action="DaPhongVan" asp-controller="InterviewerDashboard">
-                <i class="bi bi-check2-square me-1"></i> Đã phỏng vấn
-        </a>
-        <a asp-controller="CaiDat" asp-action="Index"
-           class="iv-item @A("CaiDat")">
-            <i class="bi bi-gear-fill"></i><span>Cài đặt</span>
-        </a>
-    </nav>
-
-
-    <!-- ACCOUNT -->
-    <div class="iv-account mt-auto">
-        <div class="d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-user-circle fs-4 text-primary"></i>
-                <span class="fw-medium">@hoTen</span>
-            </div>
-            <div class="dropdown">
-                <button class="btn-icon" data-bs-toggle="dropdown" aria-label="Tùy chọn">
-                    <i class="fa-solid fa-ellipsis-vertical"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                    <li><a class="dropdown-item" asp-controller="Settings" asp-action="Index">⚙️ Cài đặt</a></li>
-                    <li><a class="dropdown-item" asp-controller="NguoiDungs" asp-action="Profile">👤 Thông tin</a></li>
-                    <li><a class="dropdown-item" asp-controller="NguoiDungs" asp-action="ChangePassword">🔑 Đổi mật khẩu</a></li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <!-- Nút mở modal xác nhận -->
-                    <li>
-                        <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#logoutConfirm">
-                            🚪 Đăng xuất
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</aside>
-
-<!-- MODAL CONFIRM LOGOUT -->
-<div class="modal fade" id="logoutConfirm" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0">
-            <div class="modal-header">
-                <h5 class="modal-title text-danger"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">Bạn chắc chắn muốn rời phiên làm việc?</div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <a class="btn btn-danger" asp-controller="NguoiDungs" asp-action="Logout">Đăng xuất</a>
-            </div>
-        </div>
-    </div>
-</div>
+    <a asp-controller="CaiDat" asp-action="Index"
+       class="nav-link @A("caidat")">
+        <i class="bi bi-gear-fill me-2"></i> Cài đặt
+    </a>
+</nav>

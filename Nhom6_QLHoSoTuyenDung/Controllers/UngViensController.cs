@@ -54,6 +54,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             ViewBag.TongUngVien = stats["TongUngVien"];
             ViewBag.MoiTuanNay = stats["MoiTuanNay"];
+            ViewBag.DaPhongVan = stats["DaPhongVan"];
             ViewBag.DaTuyen = stats["DaTuyen"];
             ViewBag.TyLeChuyenDoi = stats["TyLeChuyenDoi"];
             ViewBag.NguonLabels = stats["NguonLabels"];

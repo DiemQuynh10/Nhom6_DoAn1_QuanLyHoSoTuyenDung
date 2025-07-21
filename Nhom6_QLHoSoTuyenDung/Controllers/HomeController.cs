@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.Dashboard;
 using Nhom6_QLHoSoTuyenDung.Services;
 
@@ -72,25 +73,43 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             vm.TongHoSo = query.Count();
 
             // Ứng viên mới
+            // Ứng viên mới: lọc theo trạng thái Mới + thời gian nếu có
             if (time == "week")
             {
-                vm.UngVienMoi = query.Count(u => u.NgayNop >= startOfWeek);
+                vm.UngVienMoi = baseQuery.Count(u =>
+                    u.TrangThai == TrangThaiUngVienEnum.Moi.ToString() &&
+                    u.NgayNop.HasValue &&
+                    u.NgayNop.Value >= startOfWeek);
             }
             else if (time == "month")
             {
-                vm.UngVienMoi = query.Count(u => u.NgayNop >= new DateTime(today.Year, today.Month, 1));
+                vm.UngVienMoi = baseQuery.Count(u =>
+                    u.TrangThai == TrangThaiUngVienEnum.Moi.ToString() &&
+                    u.NgayNop.HasValue &&
+                    u.NgayNop.Value >= new DateTime(today.Year, today.Month, 1));
             }
             else if (time == "year")
             {
-                vm.UngVienMoi = query.Count(u => u.NgayNop >= new DateTime(today.Year, 1, 1));
+                vm.UngVienMoi = baseQuery.Count(u =>
+                    u.TrangThai == TrangThaiUngVienEnum.Moi.ToString() &&
+                    u.NgayNop.HasValue &&
+                    u.NgayNop.Value >= new DateTime(today.Year, 1, 1));
             }
             else
-            {   
-                vm.UngVienMoi = query.Count(u => u.NgayNop >= startOfWeek);
+            {
+                // ✅ Trường hợp không lọc theo thời gian → trả về tất cả ứng viên có trạng thái Mới
+                vm.UngVienMoi = baseQuery.Count(u => u.TrangThai == TrangThaiUngVienEnum.Moi.ToString());
             }
 
-            // Số phỏng vấn
-            var lichQuery = _context.LichPhongVans.Include(l => l.UngVien).AsQueryable();
+
+ 
+            // Số phỏng vấn: chỉ lấy những lịch có trạng thái HoanThanh
+            var lichQuery = _context.LichPhongVans
+                .Include(l => l.UngVien)
+                .Where(l => l.TrangThai == TrangThaiPhongVanEnum.HoanThanh.ToString())
+                .AsQueryable();
+
+            // Áp dụng điều kiện thời gian nếu có
             if (time == "week")
             {
                 lichQuery = lichQuery.Where(l => l.ThoiGian.HasValue && l.ThoiGian.Value >= startOfWeek);
@@ -102,10 +121,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             else if (time == "year")
             {
                 lichQuery = lichQuery.Where(l => l.ThoiGian.HasValue && l.ThoiGian.Value >= new DateTime(today.Year, 1, 1));
-            }
-            else
-            {
-                lichQuery = lichQuery.Where(l => l.ThoiGian.HasValue && l.ThoiGian.Value >= startOfWeek);
             }
 
             vm.SoPhongVan = lichQuery.Count();
@@ -121,8 +136,21 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             vm.PhongVanData = Enumerable.Range(1, 12)
                 .Select(m => _context.LichPhongVans.Count(l => l.ThoiGian.HasValue && l.ThoiGian.Value.Month == m)).ToList();
 
-            vm.NguonLabels = query.GroupBy(u => u.NguonUngTuyen).Select(g => g.Key ?? "Khác").ToList();
-            vm.NguonData = query.GroupBy(u => u.NguonUngTuyen).Select(g => g.Count()).ToList();
+            var nguonGroup = query
+    .GroupBy(u =>
+        u.NguonUngTuyen != null && (
+            u.NguonUngTuyen.ToLower().Contains("linkedin")) ? "LinkedIn" :
+        u.NguonUngTuyen.ToLower().Contains("website") ? "Website công ty" :
+        u.NguonUngTuyen.ToLower().Contains("giới thiệu") || u.NguonUngTuyen.ToLower().Contains("bạn bè") ? "Giới thiệu" :
+        "Khác")
+    .Select(g => new
+    {
+        Nguon = g.Key,
+        Count = g.Count()
+    }).ToList();
+
+            vm.NguonLabels = nguonGroup.Select(g => g.Nguon).ToList();
+            vm.NguonData = nguonGroup.Select(g => g.Count).ToList();
 
             // Ứng viên mới nhất
             vm.UngVienMoiNhat = query
