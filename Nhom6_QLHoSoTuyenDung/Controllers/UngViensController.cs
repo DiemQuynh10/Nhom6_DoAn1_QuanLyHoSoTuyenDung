@@ -74,8 +74,16 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                 ToDate = filter.ToDate?.ToString("yyyy-MM-dd"),
                 ViTriList = ((SelectList)ViewBag.ViTriList).ToList(),
                 GioiTinhList = ((SelectList)ViewBag.GioiTinhList).ToList(),
-                ResetUrl = "/UngViens"
+                TrangThaiList = Enum.GetValues(typeof(TrangThaiUngVienEnum)) // 🟦 hoặc TrangThaiPhongVanEnum tuỳ form lọc
+         .Cast<Enum>()
+         .Select(tt => new SelectListItem
+         {
+             Value = tt.ToString(),
+             Text = tt.GetDisplayName()
+         }).ToList(),
+                ResetUrl = Url.Action("Index", "UngViens")
             };
+
             ViewBag.FilterViewModel = filterViewModel;
 
             var totalItems = allUngViens.Count;
@@ -103,7 +111,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(UngVien model, IFormFile CvFile)
         {
-            if (!ModelState.IsValid || CvFile == null)
+            if (!ModelState.IsValid ||CvFile == null)
             {
                 TempData["Error"] = "Vui lòng nhập đầy đủ thông tin và chọn CV.";
                 return RedirectToAction("Index");

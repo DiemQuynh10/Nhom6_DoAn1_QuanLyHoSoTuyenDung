@@ -81,7 +81,7 @@
             <div class="login-body">
                 <form asp-action="DangNhap" method="post" novalidate>
                     @Html.AntiForgeryToken()
-
+                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
                     <div class="input-group mb-3">
                         <input asp-for="TenDangNhap"
                                type="text" autocomplete="username"
@@ -105,6 +105,10 @@
                         <label asp-for="GhiNho" class="form-check-label" for="chkRemember">Ghi nhớ đăng nhập</label>
                         <a asp-action="QuenMatKhau" class="float-end">Quên mật khẩu?</a>
                     </div>
+                    @if (Context.Session.GetInt32("SoLanSai") != null && Context.Session.GetInt32("SoLanSai") > 0)
+                    {
+                        <div class="text-danger">Bạn đã nhập sai @Context.Session.GetInt32("SoLanSai") lần.</div>
+                    }
 
                     <button type="submit" class="btn-login w-100">Đăng nhập</button>
                 </form>

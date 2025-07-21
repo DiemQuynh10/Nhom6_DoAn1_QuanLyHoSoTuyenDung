@@ -92,10 +92,12 @@
     <!-- Cột: Lịch trễ hẹn -->
     <div class="col-md-6">
         <div class="bg-white p-3 shadow-sm rounded-3 h-100">
+            <div style="min-height: 90px;">
             <h5 class="fw-bold text-danger">⏰ Lịch trễ hẹn</h5>
             <p class="text-muted fst-italic mb-2">
                 Lịch đã quá giờ và chưa được phỏng vấn. Vui lòng <strong>hủy lịch</strong> hoặc đề xuất lịch mới với ứng viên.
             </p>
+            </div>
             <div style="height: 500px; overflow-y: auto;">
                 @if (Model.LichTreHen.Any())
                 {
@@ -140,7 +142,9 @@
     <!-- Cột: Lịch còn lại -->
     <div class="col-md-6">
         <div class="bg-white p-3 shadow-sm rounded-3 h-100">
+            <div style="min-height: 90px;">
             <h5 class="fw-bold text-secondary">📋 Lịch phỏng vấn còn lại</h5>
+            </div>
             <div style="height: 500px; overflow-y: auto;">
                 @if (Model.ConLai != null && Model.ConLai.Any())
                 {

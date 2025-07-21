@@ -12,24 +12,27 @@
     var trangThaiUVEnum = EnumExtensions.GetEnumFromDisplayName<TrangThaiUngVienEnum>(Model.TrangThai);
     string trangThaiUngVienText = trangThaiUVEnum?.GetDisplayName() ?? "Chưa đề xuất";
 
-    string badgeUngVien = Model.TrangThai switch
+    string badgeUngVien = trangThaiUVEnum switch
     {
-        "DaTuyen" => "bg-success",
-        "TuChoi" => "bg-danger",
+        TrangThaiUngVienEnum.DaTuyen => "bg-success",
+        TrangThaiUngVienEnum.TuChoi => "bg-danger",
+        TrangThaiUngVienEnum.CanPhongVanLan2 => "bg-warning text-dark",
         _ => "bg-secondary"
     };
+
 
     // ✅ Trạng thái Phỏng vấn - dùng enum
     var trangThaiPVEnum = EnumExtensions.GetEnumFromDisplayName<TrangThaiPhongVanEnum>(Model.TrangThaiPhongVan);
     string trangThaiPhongVanText = trangThaiPVEnum?.GetDisplayName() ?? "Không rõ";
 
-    string badgePhongVan = Model.TrangThaiPhongVan switch
+    string badgePhongVan = trangThaiPVEnum switch
     {
-        "HoanThanh" => "bg-success",
-        "DaLenLich" => "bg-info text-dark",
-        "Huy" => "bg-danger",
+        TrangThaiPhongVanEnum.HoanThanh => "bg-success",
+        TrangThaiPhongVanEnum.DaLenLich => "bg-info text-dark",
+        TrangThaiPhongVanEnum.Huy => "bg-danger",
         _ => "bg-secondary"
     };
+
 }
 
 

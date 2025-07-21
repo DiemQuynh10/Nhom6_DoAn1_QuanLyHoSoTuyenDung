@@ -35,9 +35,10 @@
 
     <!-- Nút lên lịch -->
     <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taoLichModal">
+        <button class="btn btn-primary" id="btnTaoLichMoi">
             + Lên lịch phỏng vấn mới
         </button>
+
     </div>
 
     <!--Thống Kê nhanh-->
@@ -213,46 +214,32 @@
                 <h5 class="modal-title">Tạo lịch phỏng vấn</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <!-- Chọn ứng viên -->
-                <div class="mb-3">
-                    <label for="ungVienSelect" class="form-label fw-bold">Chọn ứng viên</label>
-                    <select id="ungVienSelect" class="form-select">
-                        <option disabled selected>-- Chọn ứng viên cần lên lịch --</option>
-                        @foreach (var uv in (List<UngVien>)ViewBag.UngViensChuaCoLich)
-                        {
-                            <option value="@uv.MaUngVien">@uv.HoTen - @uv.Email</option>
-                        }
-                    </select>
-
-                </div>
-
-                <!-- Form tạo lịch sẽ được load vào đây -->
-                <div id="formLichBody" class="mt-3 text-muted">
-                    <p>Vui lòng chọn ứng viên để hiển thị biểu mẫu tạo lịch.</p>
-                </div>
+            <div class="modal-body" id="formLichBody">
+                <p>Đang tải biểu mẫu...</p>
             </div>
+
         </div>
     </div>
 </div>
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-   
+
+    <!-- Chart Donut -->
     <canvas id="donutChart" height="200"></canvas>
-
     <script>
-        //Biểu đồ trạng thái phỏng vấn
         const trangThaiLabels = @Html.Raw(JsonSerializer.Serialize(Model.TrangThaiLabels));
         const trangThaiValues = @Html.Raw(JsonSerializer.Serialize(Model.TrangThaiValues));
 
         new Chart(document.getElementById('donutChart'), {
             type: 'doughnut',
             data: {
-                labels: trangThaiLabels,  // ['Hoàn thành', 'Đã lên lịch', 'Chờ xác nhận', 'Đã huỷ']
+                labels: trangThaiLabels,
                 datasets: [{
-                    data: trangThaiValues, 
+                    data: trangThaiValues,
                     backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
                     borderWidth: 0
                 }]
@@ -272,19 +259,18 @@
         });
     </script>
 
+    <!-- Chart Bar -->
     <canvas id="barChart" height="200"></canvas>
-
     <script>
-        //Biểu đồ vị trí tuyển dụng
         const viTriLabels = @Html.Raw(JsonSerializer.Serialize(Model.ViTriLabels));
         const viTriCounts = @Html.Raw(JsonSerializer.Serialize(Model.ViTriCounts));
 
         new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
-                labels: viTriLabels, // ['Frontend Developer', 'Backend Developer', ...]
+                labels: viTriLabels,
                 datasets: [{
-                    data: viTriCounts, // [45, 38, 28, 22, 18]
+                    data: viTriCounts,
                     backgroundColor: ['#3b82f6', '#10b981', '#a855f7', '#f59e0b', '#6366f1'],
                     borderRadius: 10,
                     barThickness: 16
@@ -304,29 +290,77 @@
         });
     </script>
 
+    <!-- Select2 + Modal tạo lịch -->
     <script>
+        // ✅ Hàm khởi tạo select2 cho ô tìm ứng viên
+                function initSelect2UngVien() {
+            const $select = $('#ungVienSelect2');
 
-        // -------------------------
-        // 2. Load biểu mẫu khi chọn ứng viên
-        // -------------------------
-        document.getElementById('ungVienSelect').addEventListener('change', function () {
-            const id = this.value;
+            // Nếu chưa tìm thấy element → không làm gì
+            if ($select.length === 0) {
+                console.warn('Không tìm thấy #ungVienSelect2');
+                return;
+            }
+
+            // Nếu đã có select2 thì xóa trước để tránh bị đè
+            if ($select.hasClass("select2-hidden-accessible")) {
+                $select.select2('destroy');
+            }
+
+            $select.select2({
+                placeholder: 'Tìm theo tên hoặc email',
+                allowClear: true,
+                minimumInputLength: 1,
+                        language: {
+            inputTooShort: function () {
+                return "Nhập ít nhất 1 ký tự để tìm kiếm";
+            }
+        },
+                ajax: {
+                    url: '/LichPhongVans/TimUngVienSelect2',
+                    dataType: 'json',
+                    delay: 300,
+                    data: function (params) {
+                        return { tuKhoa: params.term };
+                    },
+                    processResults: function (data) {
+                        return { results: data };
+                    }
+                },
+                dropdownParent: $('#taoLichModal')
+            });
+
+            $select.on('select2:select', function (e) {
+                const data = e.params.data;
+                $("input[name='UngVienId']").val(data.id);
+                $('#tenViTriDisplay').val(data.viTri || '');
+            });
+
+        }
+
+
+        // ✅ Load form popup khi nhấn nút
+        document.getElementById('btnTaoLichMoi').addEventListener('click', function () {
             const body = document.getElementById('formLichBody');
             body.innerHTML = "<p>Đang tải biểu mẫu...</p>";
 
-            fetch(`/LichPhongVans/TaoLichPopup?ungVienId=${encodeURIComponent(id)}`)
+            fetch(`/LichPhongVans/TaoLichPopup`)
                 .then(res => res.text())
                 .then(html => {
                     body.innerHTML = html;
+
+                    // ✅ Phải gọi sau khi DOM mới đã render xong
+                    initSelect2UngVien();
                 })
                 .catch(err => {
                     body.innerHTML = "<p class='text-danger'>Không thể tải biểu mẫu. Vui lòng thử lại.</p>";
                 });
+
+            const modal = new bootstrap.Modal(document.getElementById('taoLichModal'));
+            modal.show();
         });
 
-        // -------------------------
-        // 3. Gửi form tạo lịch (AJAX)
-        // -------------------------
+        // ✅ Gửi form AJAX
         document.addEventListener('submit', async function (e) {
             if (e.target && e.target.id === 'formTaoLich') {
                 e.preventDefault();
@@ -347,38 +381,21 @@
 
                         Swal.fire({
                             icon: 'success',
-                            title: '<span class="fw-bold text-success"><i class="bi bi-patch-check-fill me-1"></i> Thành công</span>',
-                            text: result.message,
-                            confirmButtonText: 'OK',
-                            customClass: {
-                                confirmButton: 'btn btn-primary'
-                            },
-                            buttonsStyling: false
-                        }).then(() => {
-                            location.reload();
-                        });
+                            title: 'Thành công',
+                            text: result.message
+                        }).then(() => location.reload());
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Lỗi tạo lịch',
-                            text: result.message,
-                            confirmButtonText: 'Thử lại',
-                            customClass: {
-                                confirmButton: 'btn btn-danger'
-                            },
-                            buttonsStyling: false
+                            text: result.message
                         });
                     }
                 } catch (error) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Kết nối thất bại',
-                        text: 'Không thể gửi dữ liệu đến máy chủ. Vui lòng thử lại.',
-                        confirmButtonText: 'Đóng',
-                        customClass: {
-                            confirmButton: 'btn btn-secondary'
-                        },
-                        buttonsStyling: false
+                        text: 'Không thể gửi dữ liệu đến máy chủ. Vui lòng thử lại.'
                     });
                 }
             }
@@ -429,6 +446,7 @@
         .card-interview-list {
             margin-top: 30px; 
         }
+
 
     </style>
 

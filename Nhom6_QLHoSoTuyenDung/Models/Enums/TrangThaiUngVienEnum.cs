@@ -7,10 +7,17 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Enums
         [Display(Name = "Mới")]
         Moi,
 
+        [Display(Name = "Đã phỏng vấn")]
+        DaPhongVan,
+
+        [Display(Name = "Cần phỏng vấn lần 2")]
+        CanPhongVanLan2,
+
         [Display(Name = "Đã tuyển")]
         DaTuyen,
 
         [Display(Name = "Từ chối")]
         TuChoi
     }
+
 }

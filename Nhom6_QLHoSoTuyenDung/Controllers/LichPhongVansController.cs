@@ -32,9 +32,9 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         }
 
         // 2. Trả về popup tạo lịch (giao diện HR)
-        public async Task<IActionResult> TaoLichPopup(string ungVienId)
+        public async Task<IActionResult> TaoLichPopup(string? ungVienId = null)
         {
-            var vm = await _lichService.GetFormDataAsync(ungVienId);
+            var vm = await _lichService.GetFormDataAsync(ungVienId); // null cũng được
             if (vm == null)
                 return NotFound();
 
@@ -52,9 +52,14 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                     Value = nv.MaNhanVien,
                     Text = nv.HoTen + " (" + nv.Email + ")"
                 }).ToListAsync();
+            ViewBag.UngViensChuaCoLich = await _context.UngViens
+    .Where(u => !_context.LichPhongVans.Any(l => l.UngVienId == u.MaUngVien))
+    .Select(u => new { u.MaUngVien, u.HoTen, u.Email })
+    .ToListAsync();
 
             return PartialView("_FormTaoLichPhongVan", vm);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateLichFromPopup(TaoLichPhongVanVM vm)
@@ -113,5 +118,56 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return Content(html, "text/html");
         }
+        [HttpGet]
+        [HttpGet]
+        public async Task<IActionResult> TimUngVienDon(string tuKhoa)
+        {
+            if (string.IsNullOrWhiteSpace(tuKhoa))
+                return Json(null);
+
+            var ungVien = await _context.UngViens
+                .Include(u => u.ViTriUngTuyen)
+                .Where(u => u.HoTen.Contains(tuKhoa) || u.Email.Contains(tuKhoa))
+                .Select(u => new
+                {
+                    hoTen = u.HoTen,
+                    email = u.Email,
+                    viTri = u.ViTriUngTuyen.TenViTri,
+                    trangThai = u.TrangThai.ToString()
+                })
+                .FirstOrDefaultAsync();
+
+            return Json(ungVien);
+        }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> TimUngVienSelect2(string tuKhoa)
+        {
+            var query = _context.UngViens
+                .Include(u => u.ViTriUngTuyen)
+                .Where(u => !_context.LichPhongVans.Any(l => l.UngVienId == u.MaUngVien));
+
+            if (!string.IsNullOrWhiteSpace(tuKhoa))
+            {
+                query = query.Where(u => u.HoTen.Contains(tuKhoa) || u.Email.Contains(tuKhoa));
+            }
+
+            var result = await query
+                .OrderBy(u => u.HoTen)
+                .Take(20)
+                .Select(u => new
+                {
+                    id = u.MaUngVien,
+                    text = $"{u.HoTen} ({u.Email})",
+                    viTri = u.ViTriUngTuyen.TenViTri
+                }).ToListAsync();
+
+            return Json(result);
+        }
+
+
+
     }
 }

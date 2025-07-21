@@ -1,6 +1,8 @@
 ﻿@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
 @model TaoLichPhongVanVM
 
+
+ @* form này sẽ tạo lịch phỏng vấn bên trang ứng viên *@
 <form asp-action="TaoLichMoi" method="post" class="row g-3">
     <input type="hidden" name="UngVienId" value="@Model.UngVienId" />
     <input type="hidden" name="ViTriId" value="@Model.ViTriId" />

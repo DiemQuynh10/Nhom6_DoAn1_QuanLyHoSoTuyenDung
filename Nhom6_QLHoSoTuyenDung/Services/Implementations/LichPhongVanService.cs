@@ -21,14 +21,8 @@ public class LichPhongVanService : ILichPhongVanService
             .FirstOrDefaultAsync(l => l.UngVienId == ungVienId);
     }
 
-    public async Task<TaoLichPhongVanVM?> GetFormDataAsync(string ungVienId)
+    public async Task<TaoLichPhongVanVM?> GetFormDataAsync(string? ungVienId)
     {
-        var ungVien = await _context.UngViens
-            .Include(u => u.ViTriUngTuyen)
-            .FirstOrDefaultAsync(u => u.MaUngVien == ungVienId);
-
-        if (ungVien == null) return null;
-
         var phongList = await _context.PhongPhongVans
             .Select(p => new SelectListItem
             {
@@ -36,15 +30,30 @@ public class LichPhongVanService : ILichPhongVanService
                 Text = p.TenPhong + " - " + p.DiaDiem
             }).ToListAsync();
 
-        return new TaoLichPhongVanVM
+        var model = new TaoLichPhongVanVM
         {
-            UngVienId = ungVien.MaUngVien,
-            TenUngVien = ungVien.HoTen,
-            ViTriId = ungVien.ViTriUngTuyenId,
-            TenViTri = ungVien.ViTriUngTuyen?.TenViTri,
-            PhongList = phongList
+            PhongList = phongList,
+            NguoiPhongVanOptions = new List<SelectListItem>() // sẽ gán sau từ controller
         };
+
+        if (!string.IsNullOrEmpty(ungVienId))
+        {
+            var ungVien = await _context.UngViens
+                .Include(u => u.ViTriUngTuyen)
+                .FirstOrDefaultAsync(u => u.MaUngVien == ungVienId);
+
+            if (ungVien != null)
+            {
+                model.UngVienId = ungVien.MaUngVien;
+                model.TenUngVien = ungVien.HoTen;
+                model.ViTriId = ungVien.ViTriUngTuyenId;
+                model.TenViTri = ungVien.ViTriUngTuyen?.TenViTri;
+            }
+        }
+
+        return model;
     }
+
 
 
     public async Task<(bool, string)> CreateLichAsync(LichPhongVan model)
@@ -96,6 +105,7 @@ public class LichPhongVanService : ILichPhongVanService
                 return (false, "Một trong các người phỏng vấn đã có lịch gần thời gian này.");
 
         }
+        model.TrangThai = TrangThaiPhongVanEnum.DaLenLich.ToString();
 
         // ✅ Lưu lịch nếu không trùng
         _context.LichPhongVans.Add(model);

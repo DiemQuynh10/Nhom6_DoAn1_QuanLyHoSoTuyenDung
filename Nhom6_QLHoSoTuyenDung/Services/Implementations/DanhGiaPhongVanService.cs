@@ -33,10 +33,72 @@ public class DanhGiaPhongVanService : IDanhGiaPhongVanService
             KinhNghiem = lich.UngVien?.KinhNghiem,
             UngVienId = lich.UngVien?.MaUngVien
         };
-
     }
 
     public async Task<bool> LuuAsync(DanhGiaPhongVanVM vm, string nguoiDungId)
+    {
+        var nhanVien = await _context.NhanViens
+            .FirstOrDefaultAsync(n => n.MaNhanVien == nguoiDungId);
+        if (nhanVien == null) return false;
+
+        var danhGia = await _context.DanhGiaPhongVans
+            .FirstOrDefaultAsync(d => d.LichPhongVanId == vm.LichPhongVanId &&
+                                      d.NhanVienDanhGiaId == nhanVien.MaNhanVien);
+
+        if (danhGia == null)
+        {
+            danhGia = new DanhGiaPhongVan
+            {
+                Id = Guid.NewGuid().ToString(),
+                LichPhongVanId = vm.LichPhongVanId,
+                NhanVienDanhGiaId = nhanVien.MaNhanVien
+            };
+            _context.DanhGiaPhongVans.Add(danhGia);
+        }
+
+        // ✅ Cập nhật điểm số và nhận xét
+        danhGia.DiemDanhGia = (int)vm.DiemDanhGia;
+        danhGia.NhanXet = vm.NhanXet;
+
+        if (vm.DeXuat.HasValue)
+        {
+            var deXuat = vm.DeXuat.Value;
+            danhGia.DeXuat = deXuat.ToString();
+
+            // ✅ Cập nhật trạng thái ứng viên tương ứng
+            var lich = await _context.LichPhongVans
+                .Include(l => l.UngVien)
+                .FirstOrDefaultAsync(l => l.Id == vm.LichPhongVanId);
+
+            if (lich?.UngVien != null)
+            {
+                switch (deXuat)
+                {
+                    case DeXuatEnum.TiepNhan:
+                        lich.UngVien.TrangThai = TrangThaiUngVienEnum.DaTuyen.ToString();
+                        break;
+
+                    case DeXuatEnum.TuChoi:
+                        lich.UngVien.TrangThai = TrangThaiUngVienEnum.TuChoi.ToString();
+                        break;
+
+                    case DeXuatEnum.CanPhongVanLan2:
+                        lich.UngVien.TrangThai = TrangThaiUngVienEnum.CanPhongVanLan2.ToString();
+                        break;
+                }
+
+                // ✅ Đánh dấu lịch phỏng vấn đã hoàn thành
+                if (lich.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString())
+                {
+                    lich.TrangThai = TrangThaiPhongVanEnum.HoanThanh.ToString();
+                }
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    public async Task<bool> LuuChiTietAsync(DanhGiaChiTietVM vm, string nguoiDungId)
     {
         var nhanVien = await _context.NhanViens.FirstOrDefaultAsync(n => n.MaNhanVien == nguoiDungId);
         if (nhanVien == null) return false;
@@ -50,27 +112,56 @@ public class DanhGiaPhongVanService : IDanhGiaPhongVanService
             {
                 Id = Guid.NewGuid().ToString(),
                 LichPhongVanId = vm.LichPhongVanId,
-                NhanVienDanhGiaId = nhanVien.MaNhanVien
+                NhanVienDanhGiaId = nhanVien.MaNhanVien,
+                NgayDanhGia = DateTime.Now
             };
             _context.DanhGiaPhongVans.Add(danhGia);
         }
 
-        // Cập nhật nội dung đánh giá
-        danhGia.DiemDanhGia = (int)vm.DiemDanhGia;
+        // Cập nhật thông tin đánh giá chi tiết
+        danhGia.KyNangChuyenMon = vm.KyNangChuyenMon;
+        danhGia.GiaoTiep = vm.GiaoTiep;
+        danhGia.GiaiQuyetVanDe = vm.GiaiQuyetVanDe;
+        danhGia.ThaiDoLamViec = vm.ThaiDoLamViec;
+        danhGia.TinhThanHocHoi = vm.TinhThanHocHoi;
+        danhGia.DiemDanhGia = vm.DiemDanhGia;
         danhGia.NhanXet = vm.NhanXet;
-        if (vm.DeXuat.HasValue)
+        if (Enum.TryParse<DeXuatEnum>(vm.DeXuat, out var deXuatEnum))
         {
-            danhGia.DeXuat = vm.DeXuat.Value.ToString();
+            danhGia.DeXuat = deXuatEnum.ToString(); // ✅ Lưu đúng như "TiepNhan", "TuChoi"
+        }
+        else
+        {
+            danhGia.DeXuat = null; // hoặc xử lý nếu sai định dạng
         }
 
-        // ✅ Cập nhật trạng thái lịch phỏng vấn
-        var lich = await _context.LichPhongVans.FirstOrDefaultAsync(l => l.Id == vm.LichPhongVanId);
-        if (lich != null && lich.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString())
+
+        // Lấy lịch và cập nhật trạng thái ứng viên
+        var lich = await _context.LichPhongVans
+            .Include(l => l.UngVien)
+            .FirstOrDefaultAsync(l => l.Id == vm.LichPhongVanId);
+        // 2. Cập nhật trạng thái
+        if (lich?.UngVien != null && danhGia.DeXuat != null)
         {
-            lich.TrangThai = TrangThaiPhongVanEnum.HoanThanh.ToString();
+            switch (deXuatEnum)
+            {
+                case DeXuatEnum.TiepNhan:
+                    lich.UngVien.TrangThai = TrangThaiUngVienEnum.DaTuyen.ToString(); break;
+                case DeXuatEnum.TuChoi:
+                    lich.UngVien.TrangThai = TrangThaiUngVienEnum.TuChoi.ToString(); break;
+                case DeXuatEnum.CanPhongVanLan2:
+                    lich.UngVien.TrangThai = TrangThaiUngVienEnum.CanPhongVanLan2.ToString(); break;
+            }
+
+            // Lịch phỏng vấn đã hoàn thành
+            if (lich.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString())
+                lich.TrangThai = TrangThaiPhongVanEnum.HoanThanh.ToString();
         }
+
 
         await _context.SaveChangesAsync();
         return true;
     }
+
+
 }

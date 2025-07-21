@@ -25,9 +25,11 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
         }
 
         [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> DanhGia(string id, string? returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl ?? "LichPhongVan";
+
             var vm = await _service.GetFormAsync(id);
             if (vm == null) return NotFound();
 
@@ -39,8 +41,17 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
             ViewBag.NhanXet = danhGia?.NhanXet;
             ViewBag.DiemTrungBinh = danhGia?.DiemDanhGia;
 
+            // 👉 Thêm phần này để truyền dữ liệu cho popup đánh giá chi tiết:
+            ViewBag.KyNangChuyenMon = danhGia?.KyNangChuyenMon;
+            ViewBag.GiaoTiep = danhGia?.GiaoTiep;
+            ViewBag.GiaiQuyetVanDe = danhGia?.GiaiQuyetVanDe;
+            ViewBag.ThaiDoLamViec = danhGia?.ThaiDoLamViec;
+            ViewBag.TinhThanHocHoi = danhGia?.TinhThanHocHoi;
+            ViewBag.DeXuat = danhGia?.DeXuat;
+
             return View(vm);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -51,7 +62,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
                 return RedirectToAction("DangNhap", "NguoiDungs");
 
             if (!ModelState.IsValid)
-                return View(vm); // vẫn cần validate form
+                return View(vm);
 
             var result = await _service.LuuAsync(vm, nguoiDungId);
             if (!result)
@@ -61,10 +72,15 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
             return RedirectToAction(nameof(DanhGia), new { id = vm.LichPhongVanId });
         }
 
-
         [HttpGet]
         public async Task<IActionResult> DanhGiaChiTiet(string lichPhongVanId)
         {
+            var lich = await _context.LichPhongVans.FindAsync(lichPhongVanId);
+            if (lich?.TrangThai == TrangThaiPhongVanEnum.HoanThanh.ToString())
+            {
+                TempData["Error"] = "Lịch phỏng vấn đã hoàn tất. Không thể chỉnh sửa đánh giá.";
+                return RedirectToAction(nameof(DanhGia), new { id = lichPhongVanId });
+            }
             var danhGia = await _context.DanhGiaPhongVans.FirstOrDefaultAsync(d => d.LichPhongVanId == lichPhongVanId);
 
             var vm = new DanhGiaChiTietVM
@@ -96,77 +112,15 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
             if (string.IsNullOrEmpty(nguoiDungId))
                 return RedirectToAction("DangNhap", "NguoiDungs");
 
-            float diemTrungBinh = (vm.KyNangChuyenMon + vm.GiaoTiep + vm.GiaiQuyetVanDe + vm.ThaiDoLamViec + vm.TinhThanHocHoi) / 5f;
+            // Tính điểm trung bình
+            vm.DiemDanhGia = (vm.KyNangChuyenMon + vm.GiaoTiep + vm.GiaiQuyetVanDe + vm.ThaiDoLamViec + vm.TinhThanHocHoi) / 5f;
 
-            var danhGia = await _context.DanhGiaPhongVans.FirstOrDefaultAsync(d => d.LichPhongVanId == vm.LichPhongVanId);
-            if (danhGia != null)
-            {
-                danhGia.KyNangChuyenMon = vm.KyNangChuyenMon;
-                danhGia.GiaoTiep = vm.GiaoTiep;
-                danhGia.GiaiQuyetVanDe = vm.GiaiQuyetVanDe;
-                danhGia.ThaiDoLamViec = vm.ThaiDoLamViec;
-                danhGia.TinhThanHocHoi = vm.TinhThanHocHoi;
-                danhGia.NhanXet = vm.NhanXet;
-                danhGia.DiemDanhGia = diemTrungBinh;
-                danhGia.DeXuat = vm.DeXuat;
-            }
-            else
-            {
-                danhGia = new DanhGiaPhongVan
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    LichPhongVanId = vm.LichPhongVanId,
-                    NhanVienDanhGiaId = nguoiDungId,
-                    KyNangChuyenMon = vm.KyNangChuyenMon,
-                    GiaoTiep = vm.GiaoTiep,
-                    GiaiQuyetVanDe = vm.GiaiQuyetVanDe,
-                    ThaiDoLamViec = vm.ThaiDoLamViec,
-                    TinhThanHocHoi = vm.TinhThanHocHoi,
-                    DiemDanhGia = diemTrungBinh,
-                    NhanXet = vm.NhanXet,
-                    NgayDanhGia = DateTime.Now
-                };
-                _context.DanhGiaPhongVans.Add(danhGia);
-            }
-
-            await _context.SaveChangesAsync();
+            var result = await _service.LuuChiTietAsync(vm, nguoiDungId);
+            if (!result)
+                return Unauthorized();
 
             TempData["Success"] = "✅ Đánh giá chi tiết đã được lưu!";
             return RedirectToAction(nameof(DanhGia), new { id = vm.LichPhongVanId });
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CapNhatTrangThai(string id, string deXuat)
-        {
-            var lich = await _context.LichPhongVans.FindAsync(id);
-            if (lich == null) return NotFound();
-
-            // ❗ Chỉ cho phép tiếp nhận / từ chối nếu đã hoàn thành phỏng vấn
-            if (lich.TrangThai != TrangThaiPhongVanEnum.HoanThanh.ToString())
-            {
-                TempData["Error"] = "❌ Chỉ được tiếp nhận hoặc từ chối sau khi đã phỏng vấn xong.";
-                return RedirectToAction(nameof(DanhGia), new { id });
-            }
-
-            // 🔎 Lấy ứng viên liên quan
-            var ungVien = await _context.UngViens.FindAsync(lich.UngVienId);
-
-            if (deXuat?.ToLower() == "tiepnhan")
-            {
-                if (ungVien != null)
-                    ungVien.TrangThai = TrangThaiUngVienEnum.DaTuyen.ToString();
-            }
-            else if (deXuat?.ToLower() == "tuchoi")
-            {
-                if (ungVien != null)
-                    ungVien.TrangThai = TrangThaiUngVienEnum.TuChoi.ToString();
-            }
-
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "✅ Cập nhật trạng thái ứng viên thành công!";
-            return RedirectToAction(nameof(DanhGia), new { id });
-        }
-
     }
 }

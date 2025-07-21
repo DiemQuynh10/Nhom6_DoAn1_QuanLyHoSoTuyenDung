@@ -1,6 +1,5 @@
 ﻿@using Nhom6_QLHoSoTuyenDung.Models.Enums
 @using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
-@using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
 @model DanhGiaChiTietVM
 
 @{
@@ -9,51 +8,52 @@
 }
 
 <div class="container mt-4">
-    <h2 class="fw-bold mb-4">Đánh giá ứng viên</h2>
+    <h2 class="fw-bold mb-4 text-primary">Đánh giá ứng viên</h2>
 
-    <!-- 🔸 Hiển thị lỗi tổng quát -->
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
     <form asp-action="DanhGiaChiTiet" asp-controller="DanhGiaPhongVans" method="post">
-        <input type="hidden" name="LichPhongVanId" value="@Model.LichPhongVanId" />
-        <div class="row">
-            <div class="col-md-6 mb-3">
+        <input type="hidden" asp-for="LichPhongVanId" />
+
+        <div class="row g-3">
+            <div class="col-md-6">
                 <label asp-for="KyNangChuyenMon" class="form-label">Kỹ năng chuyên môn</label>
-                <input asp-for="KyNangChuyenMon" type="number" min="1" max="10" class="form-control" />
+                <input asp-for="KyNangChuyenMon" type="number" class="form-control" min="1" max="10" />
                 <span asp-validation-for="KyNangChuyenMon" class="text-danger"></span>
             </div>
 
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6">
                 <label asp-for="GiaoTiep" class="form-label">Giao tiếp</label>
-                <input asp-for="GiaoTiep" type="number" min="1" max="10" class="form-control" />
+                <input asp-for="GiaoTiep" type="number" class="form-control" min="1" max="10" />
                 <span asp-validation-for="GiaoTiep" class="text-danger"></span>
             </div>
 
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6">
                 <label asp-for="GiaiQuyetVanDe" class="form-label">Giải quyết vấn đề</label>
-                <input asp-for="GiaiQuyetVanDe" type="number" min="1" max="10" class="form-control" />
+                <input asp-for="GiaiQuyetVanDe" type="number" class="form-control" min="1" max="10" />
                 <span asp-validation-for="GiaiQuyetVanDe" class="text-danger"></span>
             </div>
 
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6">
                 <label asp-for="ThaiDoLamViec" class="form-label">Thái độ làm việc</label>
-                <input asp-for="ThaiDoLamViec" type="number" min="1" max="10" class="form-control" />
+                <input asp-for="ThaiDoLamViec" type="number" class="form-control" min="1" max="10" />
                 <span asp-validation-for="ThaiDoLamViec" class="text-danger"></span>
             </div>
 
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6">
                 <label asp-for="TinhThanHocHoi" class="form-label">Tinh thần học hỏi</label>
-                <input asp-for="TinhThanHocHoi" type="number" min="1" max="10" class="form-control" />
+                <input asp-for="TinhThanHocHoi" type="number" class="form-control" min="1" max="10" />
                 <span asp-validation-for="TinhThanHocHoi" class="text-danger"></span>
             </div>
         </div>
 
-        <div class="mb-3">
+        <div class="mt-4">
             <label asp-for="NhanXet" class="form-label">Nhận xét</label>
-            <textarea asp-for="NhanXet" rows="3" class="form-control"></textarea>
+            <textarea asp-for="NhanXet" class="form-control" rows="4"></textarea>
             <span asp-validation-for="NhanXet" class="text-danger"></span>
         </div>
-        <div class="mb-3">
+
+        <div class="mt-4">
             <label asp-for="DeXuat" class="form-label">Đề xuất</label>
             <select asp-for="DeXuat" class="form-select" asp-items="Html.GetEnumSelectList<DeXuatEnum>()">
                 <option disabled selected value="">-- Chọn đề xuất --</option>
@@ -61,18 +61,17 @@
             <span asp-validation-for="DeXuat" class="text-danger"></span>
         </div>
 
-        <div class="d-flex justify-content-between mt-3">
+        <div class="d-flex justify-content-between mt-4">
             <a asp-action="DanhGia" asp-route-id="@Model.LichPhongVanId" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left-circle me-1"></i> Quay lại
             </a>
-
             <button type="submit" class="btn btn-primary">
-                <i class="bi bi-save me-1"></i> Lưu đánh giá
+                <i class="bi bi-send me-1"></i> Lưu đánh giá
             </button>
         </div>
-
     </form>
 </div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

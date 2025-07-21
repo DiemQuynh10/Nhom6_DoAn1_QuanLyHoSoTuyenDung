@@ -281,9 +281,15 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
                     ThoiGian = l.ThoiGian,
                     TenNguoiPhongVan = tenNguoiDung, // nếu cần gán tên người đang login
                     LinkCV = l.UngVien.LinkCV,
-                    TrangThai = l.UngVien.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString() ? "DaTuyen" :
-            l.UngVien.TrangThai == TrangThaiUngVienEnum.TuChoi.ToString() ? "TuChoi" : "Khac",
-                    TrangThaiPhongVan = l.TrangThai,
+                    TrangThai = string.IsNullOrWhiteSpace(l.UngVien.TrangThai)
+    ? "Không rõ"
+    : l.UngVien.TrangThai.ToEnum<TrangThaiUngVienEnum>().GetDisplayName(),
+
+                    TrangThaiPhongVan = string.IsNullOrWhiteSpace(l.TrangThai)
+    ? "Không rõ"
+    : l.TrangThai.ToEnum<TrangThaiPhongVanEnum>().GetDisplayName(),
+
+
 
 
                     // Điểm đánh giá
@@ -358,42 +364,7 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
                 .ToListAsync();
         }
 
-        public async Task<List<DaPhongVanVM>> GetLichPhongVanDaDanhGiaAsync(string userId)
-        {
-            var lichIdsDaDanhGia = await _context.DanhGiaPhongVans
-                .Where(d =>
-                    d.NhanVienDanhGiaId == userId.ToString()
-                    && !string.IsNullOrEmpty(d.NhanXet)) // ✅ bỏ kiểm tra DeXuat
-                .Select(d => d.LichPhongVanId)
-                .ToListAsync();
-
-            var lichPhongVans = await _context.LichPhongVans
-                .Include(l => l.UngVien)
-                .Include(l => l.ViTriTuyenDung)
-                .Include(l => l.DanhGiaPhongVans)
-                .Where(l => lichIdsDaDanhGia.Contains(l.Id))
-                .Where(l =>
-    l.TrangThai == TrangThaiPhongVanEnum.HoanThanh.ToString() &&
-    (l.UngVien.TrangThai != TrangThaiUngVienEnum.DaTuyen.ToString() &&
-     l.UngVien.TrangThai != TrangThaiUngVienEnum.TuChoi.ToString())) // ✅ chỉ hiện ứng viên chưa bị quyết định
-                .ToListAsync();
-
-            var viewModels = lichPhongVans.Select(l => new DaPhongVanVM
-            {
-                LichId = l.Id,
-                TenUngVien = l.UngVien?.HoTen ?? "Không rõ",
-                Email = l.UngVien?.Email ?? "",
-                ViTri = l.ViTriTuyenDung?.TenViTri ?? "",
-                ThoiGian = l.ThoiGian ?? DateTime.Now,
-                LinkCV = l.UngVien?.LinkCV,
-                DiemTB = l.DanhGiaPhongVans
-                            .FirstOrDefault(d => d.NhanVienDanhGiaId == userId.ToString())?.DiemDanhGia,
-                NhanXet = l.DanhGiaPhongVans
-                            .FirstOrDefault(d => d.NhanVienDanhGiaId == userId.ToString())?.NhanXet
-            }).ToList();
-
-            return viewModels;
-        }
+  
         public async Task<bool> HuyLichPhongVanAsync(string id, string ghiChu)
         {
             var lich = await _context.LichPhongVans.FindAsync(id);
@@ -487,6 +458,54 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
             };
         }
 
+
+        // Implementation
+        public async Task<List<string>> GetDanhSachLichPhongVanTheoDeXuatAsync(string username, DeXuatEnum deXuat)
+        {
+            var nguoiDung = await _context.NguoiDungs
+                .Include(nd => nd.NhanVien)
+                .FirstOrDefaultAsync(nd => nd.TenDangNhap == username);
+
+            if (nguoiDung?.NhanVienId == null) return new List<string>();
+
+            var maNhanVien = nguoiDung.NhanVienId;
+
+            return await _context.DanhGiaPhongVans
+                .Where(d => d.NhanVienDanhGiaId == maNhanVien && d.DeXuat == deXuat.ToString())
+                .Select(d => d.LichPhongVanId)
+                .ToListAsync();
+        }
+
+
+        public async Task<List<DaPhongVanVM>> GetThongTinChiTietLichAsync(List<string> lichIds, string username)
+        {
+            var nguoiDung = await _context.NguoiDungs
+                .Include(nd => nd.NhanVien)
+                .FirstOrDefaultAsync(nd => nd.TenDangNhap == username);
+
+            var maNhanVien = nguoiDung?.NhanVienId ?? "";
+
+            var lichPhongVans = await _context.LichPhongVans
+                .Include(l => l.UngVien)
+                .Include(l => l.ViTriTuyenDung)
+                .Include(l => l.DanhGiaPhongVans)
+                .Where(l => lichIds.Contains(l.Id))
+                .ToListAsync();
+
+            return lichPhongVans.Select(l => new DaPhongVanVM
+            {
+                LichId = l.Id,
+                TenUngVien = l.UngVien?.HoTen ?? "Không rõ",
+                Email = l.UngVien?.Email ?? "",
+                ViTri = l.ViTriTuyenDung?.TenViTri ?? "",
+                ThoiGian = l.ThoiGian ?? DateTime.Now,
+                LinkCV = l.UngVien?.LinkCV,
+                DiemTB = l.DanhGiaPhongVans
+                    .FirstOrDefault(d => d.NhanVienDanhGiaId == maNhanVien)?.DiemDanhGia,
+                NhanXet = l.DanhGiaPhongVans
+                    .FirstOrDefault(d => d.NhanVienDanhGiaId == maNhanVien)?.NhanXet
+            }).ToList();
+        }
 
 
 

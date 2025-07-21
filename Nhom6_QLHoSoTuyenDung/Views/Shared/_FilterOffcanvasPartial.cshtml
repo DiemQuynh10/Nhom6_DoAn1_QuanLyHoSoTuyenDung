@@ -19,8 +19,17 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Trạng thái</label>
-                <input type="text" name="TrangThai" value="@Model.TrangThai" class="form-control" />
+                <select name="TrangThai" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    @foreach (var item in Model.TrangThaiList)
+                    {
+                        <option value="@item.Value" selected="@(item.Value == Model.TrangThai ? "selected" : null)">
+                            @item.Text
+                        </option>
+                    }
+                </select>
             </div>
+
             <div class="mb-3">
                 <label class="form-label">Vị trí ứng tuyển</label>
                 <select name="ViTriId" class="form-select">
@@ -58,9 +67,10 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search me-1"></i> Lọc kết quả
                 </button>
-                <a href="@Model.ResetUrl" class="btn btn-outline-secondary">
+                <a asp-action="Index" asp-controller="UngViens" class="btn btn-outline-secondary">
                     <i class="bi bi-x-circle me-1"></i> Đặt lại
                 </a>
+
             </div>
         </form>
     </div>

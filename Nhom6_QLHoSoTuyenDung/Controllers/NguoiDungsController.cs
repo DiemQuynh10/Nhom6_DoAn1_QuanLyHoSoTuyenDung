@@ -13,7 +13,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
     {
         private readonly ITaiKhoanService _svc;
         private const int MAX_FAILED = 5;
-        private const int OTP_EXPIRE_SEC = 120;
+        private const int OTP_EXPIRE_SEC = 30;
 
         public NguoiDungsController(ITaiKhoanService svc)
             => _svc = svc;
@@ -63,12 +63,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             HttpContext.Session.SetString("HoTen", user.HoTen ?? "Người dùng");
             HttpContext.Session.SetString("VaiTro", user.VaiTro);
 
-            if (user == null)
-            {
-                HttpContext.Session.SetInt32("SoLanSai", fails + 1);
-                ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
-                return View(vm);
-            }
 
             HttpContext.Session.SetInt32("SoLanSai", 0);
             var role = user.VaiTro.Trim().ToLowerInvariant();
@@ -96,23 +90,21 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             if (!ModelState.IsValid)
                 return Json(new { success = false, error = "Vui lòng nhập đầy đủ thông tin." });
 
-            var otp = await _svc.GuiMaXacNhanAsync(vm.TenDangNhap.Trim(), vm.Email.Trim().ToLowerInvariant(), HttpContext);
-            if (otp == null)
-                return Json(new { success = false, error = "Không tìm thấy tài khoản." });
+            var errorMessage = await _svc.GuiMaXacNhanAsync(vm.TenDangNhap.Trim(), vm.Email.Trim().ToLowerInvariant(), HttpContext);
 
-            HttpContext.Session.SetString("Otp_Email", vm.Email.Trim().ToLowerInvariant());
-            HttpContext.Session.SetString("ThoiGianMa", DateTime.UtcNow.ToString("O"));
-            HttpContext.Session.SetString("Otp_User", vm.TenDangNhap.Trim().ToLowerInvariant());
+            if (!string.IsNullOrEmpty(errorMessage))
+                return Json(new { success = false, error = errorMessage }); // Gửi lỗi ra giao diện
 
-            return Json(new { success = true });
+            return Json(new { success = true }); // ✅ gửi thành công, không trả mã
         }
+
 
         // --- Hiển thị form Xác nhận mã ---
         [HttpGet]
         public IActionResult XacNhanMa(string tenDangNhap)
         {
             var timeStr = HttpContext.Session.GetString("ThoiGianMa");
-            int rem = 0;
+            int rem = OTP_EXPIRE_SEC;
             if (!string.IsNullOrEmpty(timeStr))
             {
                 var issued = DateTime.Parse(timeStr).ToUniversalTime();
@@ -145,14 +137,18 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
         // --- Resend OTP AJAX ---
         [HttpPost]
-        public JsonResult ResendOtp()
+        public async Task<JsonResult> ResendOtp()
         {
             var key = HttpContext.Session.GetString("Otp_User");
             var email = HttpContext.Session.GetString("Otp_Email");
+
             if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(email))
                 return Json(new { success = false, error = "Phiên đã hết, vui lòng thử lại Quên mật khẩu." });
 
-            _ = _svc.GuiMaXacNhanAsync(key, email, HttpContext);
+            var result = await _svc.GuiMaXacNhanAsync(key, email, HttpContext);
+            if (!string.IsNullOrEmpty(result))
+                return Json(new { success = false, error = result });
+
             HttpContext.Session.SetString("ThoiGianMa", DateTime.UtcNow.ToString("O"));
             return Json(new { success = true });
         }

@@ -48,6 +48,11 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
 
         public async Task<int> AddAsync(UngVien model, IFormFile CvFile, IWebHostEnvironment env)
         {
+            if (model == null || string.IsNullOrWhiteSpace(model.HoTen) || string.IsNullOrWhiteSpace(model.Email)
+       || string.IsNullOrWhiteSpace(model.ViTriUngTuyenId) || CvFile == null)
+            {
+                return 0; // lỗi thiếu dữ liệu
+            }
             if (string.IsNullOrEmpty(model.TrangThai))
                 model.TrangThai = TrangThaiUngVienEnum.Moi.ToString();
 

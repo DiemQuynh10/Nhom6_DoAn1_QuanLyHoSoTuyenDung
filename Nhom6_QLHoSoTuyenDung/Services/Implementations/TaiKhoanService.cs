@@ -81,37 +81,50 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
 
             var user = await _db.NguoiDungs
                 .FirstOrDefaultAsync(u =>
-                    u.TenDangNhap.ToLower() == key || u.Email.ToLower() == mailLower);
-            if (user == null) return null;
+                    u.TenDangNhap.ToLower() == key &&
+                    u.Email.ToLower() == mailLower);
 
-            // Sinh mã 6 chữ số
+            if (user == null)
+                return "Không tìm thấy tài khoản với thông tin đã nhập.";
+
+            // Sinh mã OTP ngẫu nhiên gồm 6 chữ số
             var rng = new Random();
             string otp = rng.Next(100000, 999999).ToString();
 
-            // Lưu vào Session
+            // Lưu OTP và các thông tin vào session
             http.Session.SetString("Otp_Ma", otp);
             http.Session.SetString("Otp_User", key);
             http.Session.SetString("Otp_Email", mailLower);
             http.Session.SetString("ThoiGianMa", DateTime.UtcNow.ToString("O"));
 
-            // Gửi mail
+            // Tạo nội dung email
             var msg = new MailMessage
             {
                 From = new MailAddress(_mail.Mail, _mail.DisplayName),
-                Subject = "Mã xác nhận đặt lại mật khẩu",
-                Body = $"Mã của bạn: {otp} (hết hạn sau {OTP_EXPIRE_MIN} phút)",
+                Subject = "🔐 Mã xác nhận đặt lại mật khẩu",
+                Body = $"Xin chào {user.HoTen ?? "bạn"},\n\n" +
+                       $"Mã xác nhận đặt lại mật khẩu của bạn là: {otp}\n" +
+                       $"Mã sẽ hết hạn sau {OTP_EXPIRE_MIN} phút.\n\n" +
+                       $"Nếu bạn không yêu cầu, hãy bỏ qua email này.",
                 IsBodyHtml = false
             };
             msg.To.Add(user.Email!);
 
-            using var client = new SmtpClient(_mail.Host, _mail.Port)
+            try
             {
-                Credentials = new NetworkCredential(_mail.Mail, _mail.Password),
-                EnableSsl = true
-            };
-            await client.SendMailAsync(msg);
+                using var client = new SmtpClient(_mail.Host, _mail.Port)
+                {
+                    Credentials = new NetworkCredential(_mail.Mail, _mail.Password),
+                    EnableSsl = true
+                };
+                await client.SendMailAsync(msg);
+            }
+            catch (Exception ex)
+            {
+                return $"Lỗi gửi email: {ex.Message}";
+            }
 
-            return otp;
+            return null; // ✅ Thành công
         }
 
         // Kiểm tra OTP
