@@ -20,6 +20,11 @@
                    class="nav-link @(currentController == "vitrituyendungs" ? "active" : "")">📌 Vị trí tuyển dụng</a>
                 <a asp-controller="LichPhongVans" asp-action="Index"
                    class="nav-link @(currentController == "lichphongvans" ? "active" : "")">💬 Phỏng vấn</a>
+                <a asp-controller="HRPhongVan" asp-action="TrangThaiCho"
+                   class="nav-link @(currentController == "hrphongvan" ? "active" : "")"
+                   title="Ứng viên cần phỏng vấn vòng 2">
+                    ⏳ Trạng thái chờ
+                </a>
                 <a asp-controller="ThongKe" asp-action="Index"
                    class="nav-link @(currentController == "thongke" ? "active" : "")">📊 Thống kê & báo cáo</a>
                 <a asp-controller="NhanViens" asp-action="Index"

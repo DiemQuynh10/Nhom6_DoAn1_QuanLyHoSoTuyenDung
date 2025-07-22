@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM;
 
@@ -192,5 +193,47 @@ public class LichPhongVanService : ILichPhongVanService
         return chuaCoLich;
     }
 
+    public async Task<List<DaPhongVanVM>> GetUngViensChuaCoLichVong2Async()
+    {
+        // B1: Lấy các lịch có đánh giá đề xuất phỏng vấn lần 2
+        var lichV1 = await _context.LichPhongVans
+            .Include(l => l.UngVien)
+            .Include(l => l.ViTriTuyenDung)
+            .Include(l => l.DanhGiaPhongVans)
+            .Where(l => l.DanhGiaPhongVans.Any(d => d.DeXuat == DeXuatEnum.CanPhongVanLan2.ToString()))
+            .ToListAsync();
+
+        var result = new List<DaPhongVanVM>();
+
+        foreach (var lich in lichV1)
+        {
+            var ungVienId = lich.UngVienId;
+
+            // B2: Kiểm tra xem đã có lịch mới cho vòng 2 chưa
+            var daCoLichV2 = await _context.LichPhongVans
+                .AnyAsync(l => l.UngVienId == ungVienId
+                    && l.Id != lich.Id
+                    && l.TrangThai == TrangThaiPhongVanEnum.DaLenLich.ToString());
+
+            if (daCoLichV2)
+                continue;
+
+            // B3: Lấy thông tin ứng viên
+            result.Add(new DaPhongVanVM
+            {
+                LichId = lich.Id,
+                TenUngVien = lich.UngVien?.HoTen ?? "Không rõ",
+                UngVienId = lich.UngVienId,
+                Email = lich.UngVien?.Email ?? "",
+                ViTri = lich.ViTriTuyenDung?.TenViTri ?? "",
+                ThoiGian = lich.ThoiGian ?? DateTime.Now,
+                LinkCV = lich.UngVien?.LinkCV,
+                DiemTB = lich.DanhGiaPhongVans.FirstOrDefault()?.DiemDanhGia,
+                NhanXet = lich.DanhGiaPhongVans.FirstOrDefault()?.NhanXet
+            });
+        }
+
+        return result;
+    }
 
 }

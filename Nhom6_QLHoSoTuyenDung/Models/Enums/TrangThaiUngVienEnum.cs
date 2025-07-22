@@ -13,6 +13,9 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Enums
         [Display(Name = "Cần phỏng vấn lần 2")]
         CanPhongVanLan2,
 
+        [Display(Name = "Đã có lịch vòng 2")]
+        DaCoLichVong2,
+
         [Display(Name = "Đã tuyển")]
         DaTuyen,
 

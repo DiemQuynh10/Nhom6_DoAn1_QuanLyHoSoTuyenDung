@@ -79,7 +79,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                 GhiChu = vm.GhiChu
             };
 
-            // Gán danh sách người phỏng vấn để kiểm tra
             model.NhanVienThamGiaPVs = vm.NguoiPhongVanIds
                 .Select(id => new NhanVienThamGiaPhongVan
                 {
@@ -89,11 +88,18 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                     VaiTro = "Phỏng vấn viên"
                 }).ToList();
 
-            // 🧠 GỌI VÀ KIỂM TRA QUA SERVICE
             var (success, message) = await _lichService.CreateLichAsync(model);
             if (!success)
             {
                 return Json(new { success = false, message });
+            }
+
+            // ✅ Cập nhật trạng thái ứng viên sau khi lên lịch vòng 2
+            var ungVien = await _context.UngViens.FindAsync(vm.UngVienId);
+            if (ungVien != null && ungVien.TrangThai == TrangThaiUngVienEnum.CanPhongVanLan2.ToString())
+            {
+                ungVien.TrangThai = TrangThaiUngVienEnum.DaCoLichVong2.ToString();
+                await _context.SaveChangesAsync();
             }
 
             return Json(new { success = true, message });
@@ -118,7 +124,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return Content(html, "text/html");
         }
-        [HttpGet]
+       
         [HttpGet]
         public async Task<IActionResult> TimUngVienDon(string tuKhoa)
         {
@@ -166,8 +172,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return Json(result);
         }
-
-
 
     }
 }

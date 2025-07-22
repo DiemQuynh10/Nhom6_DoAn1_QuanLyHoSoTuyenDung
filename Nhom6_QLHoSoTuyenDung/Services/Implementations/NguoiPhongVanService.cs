@@ -507,7 +507,5 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
             }).ToList();
         }
 
-
-
     }
 }

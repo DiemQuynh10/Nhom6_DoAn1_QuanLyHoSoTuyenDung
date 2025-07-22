@@ -18,6 +18,13 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         public NguoiDungsController(ITaiKhoanService svc)
             => _svc = svc;
 
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+
         // --- Đăng nhập (giữ nguyên) ---
         [HttpGet]
         public IActionResult DangNhap() => View(new DangNhapVM());
