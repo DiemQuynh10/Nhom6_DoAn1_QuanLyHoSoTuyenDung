@@ -77,7 +77,7 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
                 await CvFile.CopyToAsync(stream);
             }
 
-            model.MaUngVien = Guid.NewGuid().ToString();
+            model.MaUngVien = await GenerateNewMaUngVienAsync();
             model.LinkCV = "/cv/" + fileName;
             model.NgayNop = DateTime.Now;
 
@@ -105,10 +105,10 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
                             var viTriTen = row.Cell(6).GetString().Trim();
                             var viTri = viTriDict.FirstOrDefault(v => v.TenViTri.Trim().Equals(viTriTen, StringComparison.OrdinalIgnoreCase));
                             if (viTri == null) continue;
-
+                            var maUV = await GenerateNewMaUngVienAsync();
                             var ungVien = new UngVien
                             {
-                                MaUngVien = Guid.NewGuid().ToString(),
+                                MaUngVien = maUV,
                                 HoTen = row.Cell(1).GetString().Trim(),
                                 GioiTinh = EnumExtensions.GetEnumFromDisplayName<GioiTinhEnum>(row.Cell(2).GetString())
                                     .GetValueOrDefault(GioiTinhEnum.Khac),
@@ -243,6 +243,23 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
 
             return stats;
         }
+        // Sinh mã mới theo định dạng UV001, UV002,...
+        public async Task<string> GenerateNewMaUngVienAsync()
+        {
+            var lastMa = await _context.UngViens
+                .OrderByDescending(u => u.MaUngVien)
+                .Select(u => u.MaUngVien)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrEmpty(lastMa) || !lastMa.StartsWith("UV"))
+                return "UV001";
+
+            var numberPart = int.TryParse(lastMa.Substring(2), out int num) ? num : 0;
+            var newMa = $"UV{(num + 1):D3}";
+            return newMa;
+        }
+
 
     }
+
 }

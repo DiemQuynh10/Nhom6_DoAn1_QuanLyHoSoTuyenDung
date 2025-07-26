@@ -40,6 +40,7 @@ namespace Nhom6_QLHoSoTuyenDung
             builder.Services.AddScoped<IUngVienService, UngVienService>();
             builder.Services.AddScoped<IViTriTuyenDungService, ViTriTuyenDungService>();
             builder.Services.AddScoped<ITaiKhoanService, TaiKhoanService>();
+            builder.Services.AddScoped<IThongKeService, ThongKeService>();
             var app = builder.Build();
             using (var scope = app.Services.CreateScope())
             {

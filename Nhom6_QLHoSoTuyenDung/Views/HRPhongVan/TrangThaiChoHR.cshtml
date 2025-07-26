@@ -5,8 +5,19 @@
     ViewData["Title"] = "Trạng thái chờ (HR)";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-
+@if (!User.Identity?.IsAuthenticated ?? true)
+{
+    <script>
+        Swal.fire({
+            icon: "warning",
+            title: "Phiên đăng nhập đã hết!",
+            text: "Vui lòng đăng nhập lại.",
+        }).then(() => {
+            window.location.href = "/NguoiDungs/DangNhap";
+        });
+    </script>
+    return;
+}
 <div class="container-fluid px-4 mt-4">
     <h3 class="fw-bold text-primary"><i class="bi bi-hourglass-split me-2"></i> Ứng viên cần phỏng vấn lần 2</h3>
     <p class="text-muted mb-4">Danh sách ứng viên đã được đánh giá và được đề xuất tham gia vòng phỏng vấn tiếp theo</p>
@@ -84,29 +95,97 @@
 </div>
 
 @section Scripts {
+    <!-- Thư viện SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
+        // Mở form tạo lịch vòng 2
         function moFormTaoLich(ungVienId) {
-            $.get('/LichPhongVans/CreateLichFromPopup', { ungVienId }, function (html) {
-                $('#modalTaoLich .modal-body').html(html);
-                $('#modalTaoLich').modal('show');
+            $.ajax({
+                url: '/LichPhongVans/FormTaoLichVong2',
+                data: { ungVienId },
+                type: 'GET',
+                success: function (res) {
+                    // Nếu là JSON thông báo lỗi đăng nhập (ví dụ: { error: true, message: "Phiên đăng nhập đã hết" })
+                    if (res?.error && res?.message) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Phiên đăng nhập đã hết!',
+                            text: res.message,
+                            confirmButtonText: 'Đăng nhập lại',
+                        }).then(() => {
+                            window.location.href = "/NguoiDungs/DangNhap";
+                        });
+                        return;
+                    }
+
+                    // Nếu không phải lỗi → gán nội dung vào modal
+                    $('#modalTaoLich .modal-body').html(res);
+                    $('#modalTaoLich').modal('show');
+                },
+                error: function (xhr) {
+                    try {
+                        // Nếu lỗi là JSON (ví dụ từ Controller trả về lỗi 401 Unauthorized)
+                        var json = JSON.parse(xhr.responseText);
+                        if (json.error && json.message) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Phiên đăng nhập đã hết!',
+                                text: json.message,
+                                confirmButtonText: 'Đăng nhập lại',
+                            }).then(() => {
+                                window.location.href = "/NguoiDungs/DangNhap";
+                            });
+                            return;
+                        }
+                    } catch (e) {
+                        // Không phải JSON → lỗi bình thường
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: xhr.responseText || 'Không thể tạo lịch!',
+                        confirmButtonText: 'OK'
+                    });
+                }
             });
         }
-        // Hàm xử lý submit form tạo lịch bằng Ajax
-        $(document).on('submit', 'form', function (e) {
+
+        // Submit form tạo lịch bằng Ajax
+        $(document).on('submit', '#formTaoLich', function (e) {
             e.preventDefault();
             var form = $(this);
             $.post(form.attr('action'), form.serialize(), function (res) {
                 if (res.success) {
-                    alert('✅ Tạo lịch thành công!');
-                    location.reload(); // Có thể thay bằng reload phần danh sách thôi nếu muốn
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: res.message || 'Tạo lịch thành công!',
+                        confirmButtonText: 'OK'
+                    }).then(() => location.reload());
                 } else {
-                    alert('❌ Lỗi: ' + res.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: res.message || 'Không thể tạo lịch!',
+                        confirmButtonText: 'Thử lại'
+                    });
                 }
+            }).fail(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi mạng',
+                    text: 'Không thể gửi yêu cầu đến server.',
+                    confirmButtonText: 'OK'
+                });
             });
         });
 
+        // Xem CV
         function xemCV(link) {
             window.open(link, '_blank');
         }
     </script>
 }
+

@@ -11,5 +11,6 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Interfaces
         Task<int> ImportFromExcelAsync(IFormFile file);
         Task<UngVien?> GetByIdAsync(string id);
         Task<Dictionary<string, object>> GetDashboardStatsAsync(List<UngVien> list);
+        Task<string> GenerateNewMaUngVienAsync();
     }
 }

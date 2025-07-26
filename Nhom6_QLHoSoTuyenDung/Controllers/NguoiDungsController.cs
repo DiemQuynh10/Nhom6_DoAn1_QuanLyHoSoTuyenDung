@@ -24,15 +24,27 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             return View();
         }
 
-
-        // --- Đăng nhập (giữ nguyên) ---
         [HttpGet]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public IActionResult DangNhap() => View(new DangNhapVM());
+
 
         [HttpPost]
         public async Task<IActionResult> DangNhap(DangNhapVM vm)
         {
             if (!ModelState.IsValid) return View(vm);
+            // ✅ Nếu có dấu @ thì kiểm tra định dạng email
+            if (vm.TenDangNhap.Contains("@"))
+            {
+                var emailValid = System.Text.RegularExpressions.Regex.IsMatch(vm.TenDangNhap,
+                    @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+
+                if (!emailValid)
+                {
+                    ModelState.AddModelError("TenDangNhap", "Email không hợp lệ.");
+                    return View(vm);
+                }
+            }
 
             var fails = HttpContext.Session.GetInt32("SoLanSai") ?? 0;
             if (fails >= MAX_FAILED)
@@ -90,7 +102,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         [HttpGet]
         public IActionResult QuenMatKhau() => View(new QuenMatKhauVM());
 
-        // --- Gửi OTP AJAX ---
+        // --- Hiển thị form nhập email để gửi mã OTP ---
         [HttpPost]
         public async Task<JsonResult> QuenMatKhauAjax([FromBody] QuenMatKhauVM vm)
         {
@@ -106,7 +118,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         }
 
 
-        // --- Hiển thị form Xác nhận mã ---
+        // --- Hiển thị form nhập mã OTP, đồng thời tính SecondsLeft (thời gian còn lại trước khi mã hết hạn) ---
         [HttpGet]
         public IActionResult XacNhanMa(string tenDangNhap)
         {
@@ -123,7 +135,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             return View(new XacNhanMaVM { TenDangNhap = tenDangNhap });
         }
 
-        // --- Verify OTP AJAX ---
+        // --- Kiểm tra mã OTP người dùng nhập vào ---
         [HttpPost]
         public JsonResult VerifyOtpAjax([FromBody] XacNhanMaVM vm)
         {
@@ -142,7 +154,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             return Json(new { success = true });
         }
 
-        // --- Resend OTP AJAX ---
+        // --- Gửi lại mã xác nhận mới nếu người dùng yêu cầu---
         [HttpPost]
         public async Task<JsonResult> ResendOtp()
         {

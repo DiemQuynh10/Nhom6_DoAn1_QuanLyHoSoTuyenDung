@@ -2,84 +2,293 @@
 @model NhanVien
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Chi tiết nhân viên";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Details</h1>
+<!-- ALERT CONTAINER: nằm cố định góc trên‑phải -->
+<div id="alertContainer"></div>
 
-<div>
-    <h4>NhanVien</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HoTen)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HoTen)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaSoNV)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaSoNV)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NgaySinh)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgaySinh)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ChucVu)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ChucVu)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Email)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Email)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SoDienThoai)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SoDienThoai)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NgayVaoCongTy)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayVaoCongTy)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.KinhNghiem)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.KinhNghiem)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MoTa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MoTa)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MucLuong)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MucLuong)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PhongBan)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PhongBan.Id)
-        </dd>
-    </dl>
+<div class="container mt-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-header py-3" style="background: linear-gradient(90deg, #3BA0B9, #66C1D1);">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-person-lines-fill text-white fs-2 me-3"></i>
+                <h2 class="mb-0 text-white fw-bold">Chi tiết nhân viên</h2>
+            </div>
+        </div>
+        <div class="card-body p-5">
+            <div class="row gy-4">
+                <!-- (các trường thông tin giữ nguyên như trước) -->
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Mã nhân viên</label>
+                        <p class="form-control-plaintext fw-semibold fs-5">@Model.MaNhanVien</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Mã số NV</label>
+                        <p class="form-control-plaintext fw-semibold fs-5">@Model.MaSoNV</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Họ và tên</label>
+                        <p class="form-control-plaintext fs-5">@Model.HoTen</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Email</label>
+                        <p class="form-control-plaintext fs-5">@Model.Email</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Số điện thoại</label>
+                        <p class="form-control-plaintext fs-5">@Model.SoDienThoai</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Phòng ban</label>
+                        <p class="form-control-plaintext fs-5">@Model.PhongBan?.TenPhong</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Chức vụ</label>
+                        <p class="form-control-plaintext fs-5">@Model.ChucVu</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Ngày sinh</label>
+                        <p class="form-control-plaintext fs-5">@(Model.NgaySinh?.ToString("dd/MM/yyyy") ?? "-")</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Ngày vào công ty</label>
+                        <p class="form-control-plaintext fs-5">@(Model.NgayVaoCongTy?.ToString("dd/MM/yyyy") ?? "-")</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Kinh nghiệm (năm)</label>
+                        <p class="form-control-plaintext fs-5">@Model.KinhNghiem năm</p>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Mô tả</label>
+                        <p class="form-control-plaintext fs-5">@Model.MoTa</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-group">
+                        <label class="form-label text-muted fs-6">Mức lương</label>
+                        <p class="form-control-plaintext fs-5">@Model.MucLuong?.ToString("N0") vnđ</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 d-flex justify-content-end">
+                <button id="btnEditRequirePwd"
+                        data-id="@Model.MaNhanVien"
+                        class="btn btn-primary btn-lg me-3">
+                    <i class="bi bi-pencil-square me-2"></i> Sửa thông tin
+                </button>
+                <button id="btnDeleteRequirePwd"
+                        data-id="@Model.MaNhanVien"
+                        class="btn btn-danger btn-lg me-3">
+                    <i class="bi bi-trash me-2"></i> Xóa nhân viên
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-arrow-left-circle me-2"></i> Quay về
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaNhanVien">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<!-- Modal xác nhận mật khẩu trước khi SỬA -->
+<div class="modal fade" id="modalEditConfirm" tabindex="-1">
+    <div class="modal-dialog">
+        <form id="formEditConfirm" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận sửa nhân viên</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editMaNV" name="MaNhanVien" />
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu của bạn</label>
+                    <input type="password"
+                           id="editPassword"
+                           name="currentPassword"
+                           class="form-control"
+                           required />
+                </div>
+                <div id="editError" class="text-danger small"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Hủy
+                </button>
+                <button type="submit" class="btn btn-primary">Tiếp tục</button>
+            </div>
+        </form>
+    </div>
 </div>
+
+<!-- Modal xác nhận mật khẩu trước khi XÓA -->
+<div class="modal fade" id="modalDeleteConfirm" tabindex="-1">
+    <div class="modal-dialog">
+        <form id="formDeleteConfirm" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận xóa nhân viên</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="deleteMaNV" name="MaNhanVien" />
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu của bạn</label>
+                    <input type="password"
+                           id="deletePassword"
+                           name="currentPassword"
+                           class="form-control"
+                           required />
+                </div>
+                <div id="deleteError" class="text-danger small"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Hủy
+                </button>
+                <button type="submit" class="btn btn-danger">Xóa</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          // Hàm show alert góc trên‑phải, tự đóng sau 5s
+          function showAutoAlert(htmlMessage) {
+            const container = document.getElementById('alertContainer');
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                ${htmlMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>`;
+            container.appendChild(wrapper.firstElementChild);
+            setTimeout(() => {
+              const bsAlert = bootstrap.Alert.getOrCreateInstance(container.querySelector('.alert'));
+              bsAlert.close();
+            }, 5000);
+          }
+
+          // --- Sửa yêu cầu mật khẩu ---
+          document.getElementById('btnEditRequirePwd')
+            .addEventListener('click', () => {
+              const id = document.getElementById('btnEditRequirePwd').dataset.id;
+              document.getElementById('editMaNV').value = id;
+              document.getElementById('editPassword').value = '';
+              document.getElementById('editError').textContent = '';
+              new bootstrap.Modal(document.getElementById('modalEditConfirm')).show();
+            });
+
+          document.getElementById('formEditConfirm')
+            .addEventListener('submit', async e => {
+              e.preventDefault();
+              const ma  = document.getElementById('editMaNV').value;
+              const pwd = document.getElementById('editPassword').value;
+              const fd = new FormData();
+              fd.append('currentPassword', pwd);
+              const res = await fetch('@Url.Action("VerifyPassword", "NhanViens")', {
+                method: 'POST',
+                body: fd
+              });
+              const j = await res.json();
+              if (j.success) {
+                showAutoAlert('Xác nhận mật khẩu thành công, chuyển đến trang chỉnh sửa…');
+                setTimeout(() => {
+                  window.location.href = `@Url.Action("Edit", "NhanViens")/${ma}`;
+                }, 2000);
+              } else {
+                document.getElementById('editError').textContent = 'Mật khẩu không đúng.';
+              }
+            });
+
+          // --- Xóa yêu cầu mật khẩu ---
+          document.getElementById('btnDeleteRequirePwd')
+            .addEventListener('click', () => {
+              const id = document.getElementById('btnDeleteRequirePwd').dataset.id;
+              document.getElementById('deleteMaNV').value = id;
+              document.getElementById('deletePassword').value = '';
+              document.getElementById('deleteError').textContent = '';
+              new bootstrap.Modal(document.getElementById('modalDeleteConfirm')).show();
+            });
+
+          document.getElementById('formDeleteConfirm')
+            .addEventListener('submit', async e => {
+              e.preventDefault();
+              const fd  = new FormData(e.target);
+              const res = await fetch('@Url.Action("DeleteConfirmed", "NhanViens")', {
+                method: 'POST',
+                body: fd
+              });
+              const j = await res.json();
+              if (j.success) {
+                showAutoAlert(`Đã xóa nhân viên <strong>${fd.get('MaNhanVien')}</strong> thành công!`);
+                setTimeout(() => {
+                  window.location.href = '@Url.Action("Index", "NhanViens")';
+                }, 2000);
+              } else {
+                document.getElementById('deleteError').textContent = j.message || 'Mật khẩu không đúng.';
+              }
+            });
+        });
+    </script>
+}
+
+<style>
+    /* Giữ nguyên styling cũ */
+    .info-group label {
+        font-size: 1rem;
+    }
+
+    .info-group p {
+        font-size: 1.125rem;
+        margin-bottom: 0;
+    }
+
+    h2 {
+        font-size: 2.5rem;
+    }
+
+    .card-header i {
+        font-size: 2.5rem;
+    }
+
+    /* ALERT CONTAINER */
+    #alertContainer {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1080;
+    }
+</style>

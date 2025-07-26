@@ -1,0 +1,231 @@
+﻿@model Nhom6_QLHoSoTuyenDung.Models.ViewModels.ThongKe.ThongKeTongHopVM
+@{
+    ViewData["Title"] = "📊 Thống kê & Báo cáo";
+}
+
+<div class="container-fluid px-4">
+    <!-- Bộ lọc thống kê -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Index" asp-controller="ThongKe" class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <input type="text" name="tuKhoa" class="form-control" placeholder="Tìm kiếm báo cáo, ứng viên..." value="@ViewBag.TuKhoa" />
+                </div>
+
+                <div class="col-md-2">
+                    <select name="loaiBaoCao" class="form-select">
+                        <option value="">Tất cả báo cáo</option>
+                        <option value="trangthai" selected="@("trangthai" == ViewBag.Loai)">Theo trạng thái</option>
+                        <option value="nguon">Theo nguồn</option>
+                        <option value="vitri">Theo vị trí</option>
+                        <option value="phongban">Theo phòng ban</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <input type="date" name="tuNgay" class="form-control"
+                           value="@(ViewBag.TuNgay is DateTime ? ((DateTime)ViewBag.TuNgay).ToString("yyyy-MM-dd") : "")" />
+
+                    
+
+
+                </div>
+                <div class="col-md-2">
+                    <input type="date" name="denNgay" class="form-control"
+                           value="@(ViewBag.DenNgay is DateTime ? ((DateTime)ViewBag.DenNgay).ToString("yyyy-MM-dd") : "")" />
+                </div>
+
+                <div class="col-md-2 d-flex">
+                    <button type="submit" class="btn btn-primary me-2">Áp dụng</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary me-2">Đặt lại</a>
+                    <a asp-action="XuatBaoCao" asp-controller="ThongKe"
+                       asp-route-tuKhoa="@ViewBag.TuKhoa"
+                       asp-route-loaiBaoCao="@ViewBag.Loai"
+                       asp-route-tuNgay="@ViewBag.TuNgay"
+                       asp-route-denNgay="@ViewBag.DenNgay"
+                       class="btn btn-success">
+                        Xuất báo cáo
+                    </a>
+                    
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <button id="btnExportExcel" class="btn btn-outline-success float-end mb-3">
+        <i class="bi bi-file-earmark-excel"></i> Xuất báo cáo đầy đủ
+    </button>
+
+
+    <!-- Tổng quan -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng ứng viên</h5>
+                    <p class="fs-3 fw-bold">@Model.TongUngVien</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Đã tuyển</h5>
+                    <p class="fs-3 fw-bold">@Model.SoDaTuyen</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-dark bg-warning shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Đang xử lý</h5>
+                    <p class="fs-3 fw-bold">@Model.SoDangXuLy</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Vị trí đang tuyển</h5>
+                    <p class="fs-3 fw-bold">@Model.SoViTriDangTuyen</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ -->
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Trạng thái ứng viên</h5>
+                    <p class="text-muted small">Phân bố theo giai đoạn xử lý</p>
+                    <canvas id="chartTrangThai" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Nguồn ứng viên</h5>
+                    <p class="text-muted small">Phân bố theo kênh tuyển dụng</p>
+                    <canvas id="chartNguon" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Vị trí ứng tuyển</h5>
+                    <p class="text-muted small">Số lượng ứng viên theo vị trí</p>
+                    <canvas id="chartViTri" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Phòng ban</h5>
+                    <p class="text-muted small">Phân bố ứng viên theo phòng ban</p>
+                    <canvas id="chartPhongBan" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Đánh giá ứng viên</h5>
+                    <p class="text-muted small">Phân bố theo mức độ đánh giá</p>
+                    <canvas id="chartDanhGia" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Xu hướng ứng tuyển</h5>
+                    <p class="text-muted small">Thống kê theo tháng nộp hồ sơ</p>
+                    <canvas id="chartXuHuongThang" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng vị trí tuyển thành công -->
+    <div class="card border-secondary mt-5">
+        <div class="card-header bg-secondary text-white fw-bold">
+            Vị trí tuyển thành công (Top 5)
+        </div>
+        <div class="card-body p-0">
+            <div id="tableViTriTuyenThanhCong">
+                @await Component.InvokeAsync("ViTriThanhCong", new
+                    {
+                        tuKhoa = ViewBag.TuKhoa,
+                        tuNgay = ViewBag.TuNgay,
+                        denNgay = ViewBag.DenNgay
+                    })
+            </div>
+
+        </div>
+    </div>
+    <!-- Danh sách ứng viên đã tuyển -->
+    <div class="card border-success mt-5">
+        <div class="card-header bg-success text-white fw-bold">
+            Danh sách ứng viên đã được tuyển
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-striped mb-0">
+                <thead class="table-success">
+                    <tr>
+                        <th>#</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                        <th>Vị trí</th>
+                        <th>Ngày nộp</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.UngVienDaTuyen != null && Model.UngVienDaTuyen.Any())
+                    {
+                        int stt = 1;
+                        foreach (var uv in Model.UngVienDaTuyen)
+                        {
+                            <tr>
+                                <td>@(stt++)</td>
+                                <td>@uv.HoTen</td>
+                                <td>@uv.Email</td>
+                                <td>@uv.TenViTri</td>
+                                <td>@uv.NgayNop.ToString("dd/MM/yyyy")</td>
+                                <td><span class="badge bg-success">Đã tuyển</span></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Chưa có ứng viên nào được tuyển.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+<!-- Hidden inputs để JS lấy dữ liệu lọc -->
+<input type="text" id="inputTuKhoa" value="@ViewBag.TuKhoa" hidden />
+<input type="date" id="inputTuNgay" value="@ViewBag.TuNgay" hidden />
+<input type="date" id="inputDenNgay" value="@ViewBag.DenNgay" hidden />
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/thongke.js"></script>
+}

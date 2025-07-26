@@ -64,7 +64,7 @@ public class LichPhongVanService : ILichPhongVanService
             return (false, "Ứng viên không tồn tại.");
 
         model.ViTriId = ungVien.ViTriUngTuyenId;
-        model.Id = Guid.NewGuid().ToString();
+        model.Id = await GenerateNewMaLichAsync();
 
         // ✅ Kiểm tra thời gian null hoặc quá khứ
         if (!model.ThoiGian.HasValue)
@@ -235,5 +235,17 @@ public class LichPhongVanService : ILichPhongVanService
 
         return result;
     }
+    private async Task<string> GenerateNewMaLichAsync()
+    {
+        var lastMa = await _context.LichPhongVans
+            .OrderByDescending(l => l.Id)
+            .Select(l => l.Id)
+            .FirstOrDefaultAsync();
 
+        if (string.IsNullOrEmpty(lastMa) || !lastMa.StartsWith("LP"))
+            return "LP001";
+
+        var number = int.TryParse(lastMa.Substring(2), out int num) ? num : 0;
+        return $"LP{(num + 1):D3}";
+    }
 }

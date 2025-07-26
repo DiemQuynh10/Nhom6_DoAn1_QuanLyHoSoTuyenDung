@@ -172,6 +172,99 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return Json(result);
         }
+        [HttpGet]
+        public async Task<IActionResult> FormTaoLichVong2(string ungVienId)
+        {
+            // ✅ Nếu không đăng nhập
+            if (!User.Identity.IsAuthenticated)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    // Nếu là Ajax → trả JSON để client hiểu
+                    return Json(new { error = true, message = "Phiên đăng nhập đã hết" });
+                }
+
+                // Nếu không phải Ajax → redirect như bình thường
+                return RedirectToAction("DangNhap", "NguoiDungs");
+            }
+
+            // ✅ Lấy ứng viên
+            var ungVien = await _context.UngViens
+                .Include(uv => uv.ViTriUngTuyen)
+                .FirstOrDefaultAsync(uv => uv.MaUngVien == ungVienId);
+
+            if (ungVien == null)
+                return NotFound();
+
+            if (ungVien.TrangThai != TrangThaiUngVienEnum.CanPhongVanLan2.ToString())
+                return BadRequest("Ứng viên này chưa được đề xuất vòng 2!");
+
+            // ✅ Lấy danh sách người phỏng vấn
+            var nguoiPhongVanIds = await _context.NguoiDungs
+                .Where(nd => nd.VaiTro == "Interviewer")
+                .Select(nd => nd.NhanVienId)
+                .ToListAsync();
+
+            var vm = new TaoLichPhongVanVM
+            {
+                UngVienId = ungVien.MaUngVien,
+                ViTriId = ungVien.ViTriUngTuyenId,
+                TenUngVien = ungVien.HoTen,
+                TenViTri = ungVien.ViTriUngTuyen?.TenViTri,
+                PhongList = await _context.PhongPhongVans
+                    .Select(p => new SelectListItem { Value = p.Id, Text = p.TenPhong })
+                    .ToListAsync(),
+                NguoiPhongVanOptions = await _context.NhanViens
+                    .Where(nv => nguoiPhongVanIds.Contains(nv.MaNhanVien))
+                    .Select(nv => new SelectListItem
+                    {
+                        Value = nv.MaNhanVien,
+                        Text = nv.HoTen + " (" + nv.Email + ")"
+                    }).ToListAsync()
+            };
+
+            return PartialView("_FormTaoLich", vm);
+        }
+
+
+        // tạo lịch cho trang ứng viên
+        [HttpGet]
+        public async Task<IActionResult> FormTaoLichLanDau(string ungVienId)
+        {
+            var ungVien = await _context.UngViens
+                .Include(uv => uv.ViTriUngTuyen)
+                .FirstOrDefaultAsync(uv => uv.MaUngVien == ungVienId);
+
+            if (ungVien == null)
+                return NotFound();
+
+            // Trạng thái không cần kiểm tra vì đây là lần đầu
+
+            var nguoiPhongVanIds = await _context.NguoiDungs
+                .Where(nd => nd.VaiTro == "Interviewer")
+                .Select(nd => nd.NhanVienId)
+                .ToListAsync();
+
+            var vm = new TaoLichPhongVanVM
+            {
+                UngVienId = ungVien.MaUngVien,
+                ViTriId = ungVien.ViTriUngTuyenId,
+                TenUngVien = ungVien.HoTen,
+                TenViTri = ungVien.ViTriUngTuyen?.TenViTri,
+                PhongList = await _context.PhongPhongVans
+                    .Select(p => new SelectListItem { Value = p.Id, Text = p.TenPhong })
+                    .ToListAsync(),
+                NguoiPhongVanOptions = await _context.NhanViens
+                    .Where(nv => nguoiPhongVanIds.Contains(nv.MaNhanVien))
+                    .Select(nv => new SelectListItem
+                    {
+                        Value = nv.MaNhanVien,
+                        Text = nv.HoTen + " (" + nv.Email + ")"
+                    }).ToListAsync()
+            };
+
+            return PartialView("_FormTaoLich", vm); // dùng lại view có sẵn
+        }
 
     }
 }

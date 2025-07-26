@@ -149,6 +149,8 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return RedirectToAction("Index");
         }
+
+        // nếu đã copy sẵn file vào thư mục cv
         [HttpPost]
         public async Task<IActionResult> CapNhatLinkCVHangLoat()
         {
@@ -193,5 +195,65 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return RedirectToAction("Index");
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadCvTheoMaUngVien(List<IFormFile> cvFiles)
+        {
+            if (cvFiles == null || cvFiles.Count == 0)
+            {
+                TempData["ErrorMessage"] = "❌ Vui lòng chọn file để tải lên.";
+                return RedirectToAction("Index");
+            }
+
+            var danhSachUngVien = await _context.UngViens.ToListAsync();
+            var pathCv = Path.Combine(_env.WebRootPath, "cv");
+            if (!Directory.Exists(pathCv)) Directory.CreateDirectory(pathCv);
+
+            int demThanhCong = 0;
+            int demKhongTimThay = 0;
+            int daCoCv = 0;
+
+            foreach (var file in cvFiles)
+            {
+                var tenFileGoc = Path.GetFileNameWithoutExtension(file.FileName).Trim();
+                var ungVien = danhSachUngVien.FirstOrDefault(u =>
+                    u.MaUngVien.Equals(tenFileGoc, StringComparison.OrdinalIgnoreCase));
+
+                if (ungVien == null)
+                {
+                    demKhongTimThay++;
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(ungVien.LinkCV))
+                {
+                    daCoCv++;
+                    continue;
+                }
+
+                var ext = Path.GetExtension(file.FileName);
+                var tenMoi = $"{ungVien.MaUngVien}_{Guid.NewGuid().ToString().Substring(0, 5)}{ext}";
+                var filePath = Path.Combine(pathCv, tenMoi);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                ungVien.LinkCV = $"/cv/{tenMoi}";
+                demThanhCong++;
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"✅ {demThanhCong} CV đã được cập nhật.";
+            if (demKhongTimThay > 0)
+                TempData["ErrorMessage"] = $"⚠️ Có {demKhongTimThay} file không khớp mã ứng viên.";
+            if (daCoCv > 0)
+                TempData["WarningMessage"] = $"🔁 Bỏ qua {daCoCv} ứng viên đã có CV.";
+
+            return RedirectToAction("Index");
+        }
+
     }
 }

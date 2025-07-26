@@ -93,6 +93,10 @@
 })
 
 
+    <!-- Nút Upload CV hàng loạt -->
+    <button class="btn btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#uploadCvModal">
+        📤 Tải CV hàng loạt
+    </button>
 
 
     <!-- THÔNG BÁO -->
@@ -185,6 +189,7 @@
     <div class="container px-4 mt-4">
         <div class="scroll-container mb-4">
             @await Html.PartialAsync("_UngVienListPartial", Model)
+
         </div>
     </div>
 
@@ -281,11 +286,41 @@
     </div>
 </div>
 
+    <!-- MODAL UPLOAD CV HÀNG LOẠT -->
+    <div class="modal fade" id="uploadCvModal" tabindex="-1" aria-labelledby="uploadCvModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="UploadCvTheoMaUngVien" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="uploadCvModalLabel">📤 Tải CV hàng loạt</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Chọn các file PDF (tên file = mã ứng viên)</label>
+                            <input type="file" name="cvFiles" class="form-control" multiple accept=".pdf" required />
+                        </div>
+                        <div class="alert alert-warning">
+                            ⚠️ Lưu ý: Tên file phải trùng <b>Mã ứng viên</b>, ví dụ: <code>UV001.pdf</code><br />
+                            Ứng viên đã có CV sẽ được bỏ qua.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Tải lên</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
 @section Scripts {
     <script src="~/js/chart-colors.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
 
     <script>
         function toggleForm() {
@@ -435,66 +470,53 @@
         });
     </script>
     <script>
-        function moPopupTaoLich(ungVienId) {
-            fetch(`/LichPhongVans/FormTaoLich?ungVienId=${ungVienId}`)
-                .then(res => res.text())
-                .then(html => {
-                    Swal.fire({
-                        title: 'Tạo lịch phỏng vấn',
-                        html: html,
-                        showCloseButton: true,
-                        showConfirmButton: false,
-                        width: 800
+                           function moFormTaoLich(ungVienId) {
+               fetch(`/LichPhongVans/FormTaoLichLanDau?ungVienId=${ungVienId}`)
+                    .then(res => res.text())
+                    .then(html => {
+                        Swal.fire({
+                            title: 'Tạo lịch phỏng vấn',
+                            html: html,
+                            showCloseButton: true,
+                            showConfirmButton: false,
+                            width: 700,
+                            didOpen: () => {
+                                const form = document.getElementById('formTaoLich');
+                                if (form) {
+                                    form.addEventListener('submit', function (e) {
+                                        e.preventDefault();
+                                        const thoiGianInput = form.querySelector('input[name="ThoiGian"]');
+                                        const selectedTime = new Date(thoiGianInput.value);
+                                        const now = new Date();
+
+                                        if (selectedTime < now) {
+                                            Swal.fire('❌ Lỗi', 'Không thể tạo lịch với thời gian trong quá khứ.', 'error');
+                                            return;
+                                        }
+
+                                        const formData = new FormData(form);
+                                        fetch('/LichPhongVans/CreateLichFromPopup', {
+                                            method: 'POST',
+                                            body: formData
+                                        })
+                                        .then(res => res.json())
+                                        .then(result => {
+                                            if (result.success) {
+                                                Swal.fire('✅ Thành công', result.message, 'success')
+                                                    .then(() => location.reload());
+                                            } else {
+                                                Swal.fire('❌ Lỗi', result.message, 'error');
+                                            }
+                                        })
+                                        .catch(() => {
+                                            Swal.fire('❌ Lỗi', 'Gửi dữ liệu thất bại!', 'error');
+                                        });
+                                    });
+                                }
+                            }
+                        });
                     });
-                });
-        }
-
-        function moFormTaoLich(ungVienId) {
-            fetch(`/LichPhongVans/TaoLichPopup?ungVienId=${ungVienId}`)
-                .then(res => res.text())
-                .then(html => {
-                    Swal.fire({
-                        title: 'Tạo lịch phỏng vấn',
-                        html: html,
-                        showCloseButton: true,
-                        showConfirmButton: false,
-                        width: 700,
-                        didOpen: () => {
-                                    const form = document.getElementById('formTaoLich');
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const thoiGianInput = form.querySelector('input[name="ThoiGian"]');
-            const selectedTime = new Date(thoiGianInput.value);
-            const now = new Date();
-
-            if (selectedTime < now) {
-                Swal.fire('❌ Lỗi', 'Không thể tạo lịch với thời gian trong quá khứ.', 'error');
-                return;
             }
-
-            const formData = new FormData(form);
-            fetch('/LichPhongVans/CreateLichFromPopup', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(result => {
-                if (result.success) {
-                    Swal.fire('✅ Thành công', result.message, 'success')
-                        .then(() => location.reload());
-                } else {
-                    Swal.fire('❌ Lỗi', result.message, 'error');
-                }
-            })
-            .catch(() => {
-                Swal.fire('❌ Lỗi', 'Gửi dữ liệu thất bại!', 'error');
-            });
-        });
-                        }
-                    });
-                });
-        }
 
     </script>
         <script>
@@ -505,4 +527,22 @@
                 });
             });
         </script>
+        <script>
+            const createModal = document.getElementById('createModal');
+            createModal?.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const ungVienId = button.getAttribute('data-ungvien-id');
+                const inputHidden = createModal.querySelector('#HiddenUngVienId');
+
+                if (ungVienId && inputHidden) {
+                    inputHidden.value = ungVienId;
+
+                    const timUngVienDiv = createModal.querySelector('#TimUngVienDiv');
+                    if (timUngVienDiv) {
+                        timUngVienDiv.style.display = 'none';
+                    }
+                }
+            });
+        </script>
+
 }
