@@ -86,14 +86,8 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             ViewBag.FilterViewModel = filterViewModel;
 
-            var totalItems = allUngViens.Count;
-            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-            var pagedUngViens = allUngViens.OrderByDescending(x => x.NgayNop).Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var pagedUngViens = allUngViens.OrderByDescending(x => x.NgayNop).ToList();
 
-            ViewBag.CurrentPage = page;
-            ViewBag.PageSize = pageSize;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalItems = totalItems;
 
             ViewBag.LichPhongVanMap = await _context.LichPhongVans.GroupBy(l => l.UngVienId).ToDictionaryAsync(g => g.Key, g => g.First());
 
@@ -195,7 +189,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return RedirectToAction("Index");
         }
-
         [HttpPost]
         public async Task<IActionResult> UploadCvTheoMaUngVien(List<IFormFile> cvFiles)
         {

@@ -93,11 +93,7 @@
 })
 
 
-    <!-- Nút Upload CV hàng loạt -->
-    <button class="btn btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#uploadCvModal">
-        📤 Tải CV hàng loạt
-    </button>
-
+   
 
     <!-- THÔNG BÁO -->
     @if (TempData["Success"] != null)
@@ -194,42 +190,7 @@
     </div>
 
     @await Html.PartialAsync("_FilterOffcanvasPartial", (BoLocViewModel)ViewBag.FilterViewModel)
-<!-- Phân trang -->
-<div class="d-flex justify-content-between align-items-center mt-3">
-    <div>
-        Hiển thị @(ViewBag.PageSize * (ViewBag.CurrentPage - 1) + 1)-@((ViewBag.PageSize * (ViewBag.CurrentPage - 1)) + Model.Count())
-        của @ViewBag.TotalItems kết quả
-    </div>
-    <div>
-        <form method="get" class="d-inline">
-            <label>Hiển thị:</label>
-            <select name="pageSize" onchange="this.form.submit()" class="form-select d-inline w-auto">
-                <option value="10" selected="@(ViewBag.PageSize == 10 ? "selected" : null)">10</option>
-                <option value="25" selected="@(ViewBag.PageSize == 25 ? "selected" : null)">25</option>
-                <option value="50" selected="@(ViewBag.PageSize == 50 ? "selected" : null)">50</option>
-                <option value="100" selected="@(ViewBag.PageSize == 100 ? "selected" : null)">100</option>
-            </select>
-        </form>
 
-
-        <ul class="pagination d-inline-flex ms-3">
-            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)&pageSize=@ViewBag.PageSize">‹</a>
-            </li>
-
-            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
-            {
-                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                    <a class="page-link" href="?page=@i&pageSize=@ViewBag.PageSize">@i</a>
-                </li>
-            }
-
-            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)&pageSize=@ViewBag.PageSize">›</a>
-            </li>
-        </ul>
-    </div>
-</div>
 <div class="modal fade" id="cvModal" tabindex="-1" aria-labelledby="cvModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
@@ -286,33 +247,7 @@
     </div>
 </div>
 
-    <!-- MODAL UPLOAD CV HÀNG LOẠT -->
-    <div class="modal fade" id="uploadCvModal" tabindex="-1" aria-labelledby="uploadCvModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form asp-action="UploadCvTheoMaUngVien" method="post" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="uploadCvModalLabel">📤 Tải CV hàng loạt</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Chọn các file PDF (tên file = mã ứng viên)</label>
-                            <input type="file" name="cvFiles" class="form-control" multiple accept=".pdf" required />
-                        </div>
-                        <div class="alert alert-warning">
-                            ⚠️ Lưu ý: Tên file phải trùng <b>Mã ứng viên</b>, ví dụ: <code>UV001.pdf</code><br />
-                            Ứng viên đã có CV sẽ được bỏ qua.
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Tải lên</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
+   
 
 
 @section Scripts {

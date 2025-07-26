@@ -215,7 +215,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             }
 
             await _context.SaveChangesAsync();
-            return Json(new { success = true });
+            return Json(new { success = true, message = "✅ Đã thêm nhân viên thành công!" });
         }
 
 

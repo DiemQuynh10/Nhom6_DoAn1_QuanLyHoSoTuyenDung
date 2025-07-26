@@ -1,6 +1,9 @@
 ﻿using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.ThongKe;
 using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 using OfficeOpenXml;
@@ -12,60 +15,80 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
     public class ThongKeController : Controller
     {
         private readonly IThongKeService _thongKeService;
+        private readonly AppDbContext _context;
 
-        public ThongKeController(IThongKeService thongKeService)
+        public ThongKeController(IThongKeService thongKeService, AppDbContext context)
         {
             _thongKeService = thongKeService;
+            _context = context;
         }
 
-        // Trang chính Thống kê
-        public async Task<IActionResult> Index(string? tuKhoa, string? loaiBaoCao, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<IActionResult> Index(string? tuKhoa, string? loaiBaoCao, DateTime? tuNgay, DateTime? denNgay,
+     string? trangThai, string? viTriId, string? phongBanId)
         {
             ViewBag.TuKhoa = tuKhoa;
             ViewBag.Loai = loaiBaoCao;
             ViewBag.TuNgay = tuNgay;
             ViewBag.DenNgay = denNgay;
+            ViewBag.TrangThai = trangThai;
+            ViewBag.ViTriId = viTriId;
+            ViewBag.PhongBanId = phongBanId;
 
-            var vm = await _thongKeService.GetTongQuanAsync(tuKhoa, loaiBaoCao, tuNgay, denNgay);
-            return View(vm);
+            // 🟢 Gán danh sách filter cho ViewBag (thêm dòng này nếu thiếu)
+            ViewBag.ListTrangThai = Enum.GetValues(typeof(TrangThaiUngVienEnum))
+     .Cast<TrangThaiUngVienEnum>()
+     .Select(e => new SelectListItem
+     {
+         Value = e.ToString(),
+         Text = EnumExtensions.GetDisplayName(e)
+     }).ToList();
+
+
+            ViewBag.ListViTri = await _context.ViTriTuyenDungs
+                .Select(v => new SelectListItem { Value = v.MaViTri, Text = v.TenViTri })
+                .ToListAsync();
+
+            ViewBag.ListPhongBan = await _context.PhongBans
+                .Select(p => new SelectListItem { Value = p.Id, Text = p.TenPhong })
+                .ToListAsync();
+
+            var model = await _thongKeService.GetTongQuanAsync(tuKhoa, loaiBaoCao, tuNgay, denNgay, trangThai, viTriId, phongBanId);
+            return View(model);
         }
 
-        // ---------------------------
-        // Các biểu đồ (truyền bộ lọc)
-        // ---------------------------
 
         [HttpGet]
-        public async Task<IActionResult> BieuDoTrangThaiUngVien(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<IActionResult> BieuDoTrangThaiUngVien(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai, string? viTriId, string? phongBanId)
         {
-            var data = await _thongKeService.GetBieuDoTheoTrangThaiUngVienAsync(tuKhoa, tuNgay, denNgay);
+            var data = await _thongKeService.GetBieuDoTheoTrangThaiUngVienAsync(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId);
             return Json(data);
         }
 
         [HttpGet]
-        public async Task<IActionResult> BieuDoNguonUngVien(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<IActionResult> BieuDoNguonUngVien(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai, string? viTriId, string? phongBanId)
         {
-            var data = await _thongKeService.GetBieuDoNguonUngVienAsync(tuKhoa, tuNgay, denNgay);
+            var data = await _thongKeService.GetBieuDoNguonUngVienAsync(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId);
             return Json(data);
         }
 
         [HttpGet]
-        public async Task<IActionResult> BieuDoTheoViTri(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<IActionResult> BieuDoTheoViTri(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai, string? viTriId, string? phongBanId)
         {
-            var data = await _thongKeService.GetBieuDoTheoViTriUngTuyenAsync(tuKhoa, tuNgay, denNgay);
+            var data = await _thongKeService.GetBieuDoTheoViTriUngTuyenAsync(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId);
             return Json(data);
         }
 
         [HttpGet]
-        public async Task<IActionResult> BieuDoTheoPhongBan(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<IActionResult> BieuDoTheoPhongBan(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai, string? viTriId, string? phongBanId)
         {
-            var data = await _thongKeService.GetBieuDoTheoPhongBanAsync(tuKhoa, tuNgay, denNgay);
+            var data = await _thongKeService.GetBieuDoTheoPhongBanAsync(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId);
             return Json(data);
         }
 
         [HttpGet]
-        public async Task<IActionResult> BieuDoXuHuongNopHoSo(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<IActionResult> BieuDoXuHuongNopHoSo(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai, string? viTriId, string? phongBanId)
         {
-            var data = await _thongKeService.GetXuHuongTheoThangAsync(tuKhoa, tuNgay, denNgay);
+            var data = await _thongKeService.GetXuHuongTheoThangAsync(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId);
             return Json(data);
         }
 
@@ -76,27 +99,25 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             return Json(data);
         }
 
-        // Bảng vị trí tuyển thành công
         [HttpGet]
         public async Task<IActionResult> ViTriTuyenThanhCong(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
         {
             var data = await _thongKeService.GetViTriTuyenThanhCongAsync(tuKhoa, tuNgay, denNgay);
             return PartialView("_ViTriThanhCongPartial", data);
         }
+
         [HttpGet]
-        public async Task<IActionResult> XuatBaoCao(string? tuKhoa, string? loaiBaoCao, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<IActionResult> XuatBaoCao(string? tuKhoa, string? loaiBaoCao, DateTime? tuNgay, DateTime? denNgay, string? trangThai, string? viTriId, string? phongBanId)
         {
-            var reportData = await _thongKeService.GetTongQuanAsync(tuKhoa, loaiBaoCao, tuNgay, denNgay);
+            var reportData = await _thongKeService.GetTongQuanAsync(tuKhoa, loaiBaoCao, tuNgay, denNgay, trangThai, viTriId, phongBanId);
 
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("BaoCaoUngVien");
 
-            // Tiêu đề
             ws.Cell(1, 1).Value = "BÁO CÁO THỐNG KÊ ỨNG VIÊN";
             ws.Cell(2, 1).Value = $"Từ ngày: {(tuNgay?.ToString("dd/MM/yyyy") ?? "Không rõ")}";
             ws.Cell(2, 2).Value = $"Đến ngày: {(denNgay?.ToString("dd/MM/yyyy") ?? "Không rõ")}";
 
-            // Thống kê tổng quan
             ws.Cell(4, 1).Value = "Tổng ứng viên";
             ws.Cell(4, 2).Value = reportData.TongUngVien;
 
@@ -109,7 +130,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             ws.Cell(7, 1).Value = "Vị trí đang tuyển";
             ws.Cell(7, 2).Value = reportData.SoViTriDangTuyen;
 
-            // Danh sách ứng viên đã tuyển
             ws.Cell(9, 1).Value = "STT";
             ws.Cell(9, 2).Value = "Họ tên";
             ws.Cell(9, 3).Value = "Email";
@@ -118,7 +138,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             int row = 10;
             int stt = 1;
-
             foreach (var uv in reportData.UngVienDaTuyen)
             {
                 ws.Cell(row, 1).Value = stt++;
@@ -129,7 +148,49 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                 row++;
             }
 
-            // Format
+            ws.Columns().AdjustToContents();
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            string fileName = $"BaoCaoUngVien_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> XuatBaoCaoDayDu([FromBody] BaoCaoRequestVM request)
+        {
+            if (request == null)
+                return BadRequest("Dữ liệu không hợp lệ");
+
+            if (!request.TuNgay.HasValue || !request.DenNgay.HasValue)
+                return BadRequest("Vui lòng chọn khoảng thời gian cần xuất báo cáo.");
+
+            if (request.LoaiBaoCao != null && request.LoaiBaoCao != "daydu")
+            {
+                return await XuatBaoCaoThongKe(request); // 👉 nếu không phải loại daydu thì chuyển sang hàm mới
+            }
+
+            var report = await _thongKeService.XuatBaoCaoDayDuAsync(new()
+            {
+                TuKhoa = request.TuKhoa,
+                TuNgay = request.TuNgay,
+                DenNgay = request.DenNgay,
+                TrangThai = request.TrangThai,
+                ViTriId = request.ViTriId,
+                PhongBanId = request.PhongBanId,
+                LoaiBaoCao = request.LoaiBaoCao
+            });
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("BaoCaoDayDu");
+
+            ws.Cell(1, 1).Value = "BÁO CÁO CHI TIẾT ỨNG VIÊN";
+            ws.Cell(2, 1).Value = $"Từ ngày: {request.TuNgay?.ToString("dd/MM/yyyy") ?? "Không rõ"}";
+            ws.Cell(2, 2).Value = $"Đến ngày: {request.DenNgay?.ToString("dd/MM/yyyy") ?? "Không rõ"}";
+            ws.Cell(3, 1).Value = $"Loại báo cáo: {request.LoaiBaoCao ?? "Tổng hợp"}";
+
+            ws.Cell(5, 1).InsertTable(report);
             ws.Columns().AdjustToContents();
 
             using var stream = new MemoryStream();
@@ -139,46 +200,73 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             string fileName = $"BaoCaoUngVien_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
-        [HttpPost]
-        public async Task<IActionResult> XuatBaoCaoDayDu([FromBody] XuatBaoCaoVM vm)
+        private async Task<IActionResult> XuatBaoCaoThongKe(BaoCaoRequestVM request)
         {
-            // ✅ Bắt buộc phải có dòng này nếu dùng EPPlus từ bản 5 trở lên
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            List<BieuDoItemVM> data;
+            string tieuDe;
 
-            using var package = new ExcelPackage();
-
-            var sheet = package.Workbook.Worksheets.Add("Tổng Quan");
-
-            sheet.Cells["A1"].Value = "Từ khóa:";
-            sheet.Cells["B1"].Value = vm.TuKhoa ?? "Tất cả";
-
-            sheet.Cells["A2"].Value = "Từ ngày:";
-            sheet.Cells["B2"].Value = vm.TuNgay?.ToString("dd/MM/yyyy") ?? "Không giới hạn";
-
-            sheet.Cells["A3"].Value = "Đến ngày:";
-            sheet.Cells["B3"].Value = vm.DenNgay?.ToString("dd/MM/yyyy") ?? "Không giới hạn";
-
-            sheet.Cells["A5"].Value = "Biểu đồ";
-            sheet.Cells["B5"].Value = "Hình ảnh";
-
-            int row = 6;
-            foreach (var chart in vm.ChartImages)
+            switch (request.LoaiBaoCao)
             {
-                var bytes = Convert.FromBase64String(chart.ImageBase64.Replace("data:image/png;base64,", ""));
-                using var stream = new MemoryStream(bytes);
-                using var image = Image.FromStream(stream);
+                case "trangthai":
+                    data = await _thongKeService.GetBieuDoTheoTrangThaiUngVienAsync(
+                        request.TuKhoa, request.TuNgay, request.DenNgay, request.TrangThai, request.ViTriId, request.PhongBanId);
+                    tieuDe = "Thống kê theo trạng thái ứng viên";
+                    break;
 
-                var picture = sheet.Drawings.AddPicture(chart.Id, image);
-                picture.SetPosition(row - 1, 0, 1, 0);  // Dòng, offset Y, Cột, offset X
-                picture.SetSize(600, 300);
+                case "nguon":
+                    data = await _thongKeService.GetBieuDoNguonUngVienAsync(
+                        request.TuKhoa, request.TuNgay, request.DenNgay, request.TrangThai, request.ViTriId, request.PhongBanId);
+                    tieuDe = "Thống kê theo nguồn ứng viên";
+                    break;
 
-                row += 20;
+                case "vitri":
+                    data = await _thongKeService.GetBieuDoTheoViTriUngTuyenAsync(
+                        request.TuKhoa, request.TuNgay, request.DenNgay, request.TrangThai, request.ViTriId, request.PhongBanId);
+                    tieuDe = "Thống kê theo vị trí ứng tuyển";
+                    break;
+
+                case "phongban":
+                    data = await _thongKeService.GetBieuDoTheoPhongBanAsync(
+                        request.TuKhoa, request.TuNgay, request.DenNgay, request.TrangThai, request.ViTriId, request.PhongBanId);
+                    tieuDe = "Thống kê theo phòng ban";
+                    break;
+
+                default:
+                    return BadRequest("Loại báo cáo thống kê không hợp lệ.");
             }
 
-            var excelBytes = package.GetAsByteArray();
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "BaoCaoDayDu.xlsx");
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("ThongKe");
+
+            ws.Cell(1, 1).Value = "BÁO CÁO THỐNG KÊ";
+            ws.Cell(2, 1).Value = $"Từ ngày: {request.TuNgay?.ToString("dd/MM/yyyy") ?? "Không rõ"}";
+            ws.Cell(2, 2).Value = $"Đến ngày: {request.DenNgay?.ToString("dd/MM/yyyy") ?? "Không rõ"}";
+            ws.Cell(3, 1).Value = $"Loại thống kê: {tieuDe}";
+
+            ws.Cell(5, 1).Value = "Nội dung";
+            ws.Cell(5, 2).Value = "Số lượng";
+
+            int row = 6;
+            foreach (var item in data)
+            {
+                ws.Cell(row, 1).Value = item.Ten;
+                ws.Cell(row, 2).Value = item.SoLuong;
+                row++;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            string fileName = $"ThongKe_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
 
+
+
     }
+
 }

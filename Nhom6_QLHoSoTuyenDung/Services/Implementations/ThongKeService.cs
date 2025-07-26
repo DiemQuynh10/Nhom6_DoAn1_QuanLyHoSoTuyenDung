@@ -17,30 +17,52 @@ namespace Nhom6_QLHoSoTuyenDung.Services
             _context = context;
         }
 
-        public async Task<ThongKeTongHopVM> GetTongQuanAsync(string? tuKhoa, string? loai, DateTime? tuNgay, DateTime? denNgay)
+        private IQueryable<UngVien> FilterUngViens(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai = null, string? viTriId = null, string? phongBanId = null)
         {
-            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay);
+            var query = _context.UngViens.Include(u => u.ViTriUngTuyen).ThenInclude(v => v.PhongBan).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(tuKhoa))
+                query = query.Where(u => u.HoTen.Contains(tuKhoa) || u.Email.Contains(tuKhoa));
+
+            if (tuNgay.HasValue && denNgay.HasValue)
+                query = query.Where(u => u.NgayNop.HasValue && u.NgayNop.Value.Date >= tuNgay.Value.Date && u.NgayNop.Value.Date <= denNgay.Value.Date);
+            else if (tuNgay.HasValue)
+                query = query.Where(u => u.NgayNop.HasValue && u.NgayNop.Value.Date >= tuNgay.Value.Date);
+            else if (denNgay.HasValue)
+                query = query.Where(u => u.NgayNop.HasValue && u.NgayNop.Value.Date <= denNgay.Value.Date);
+
+            if (!string.IsNullOrWhiteSpace(trangThai))
+                query = query.Where(u => u.TrangThai == trangThai);
+
+            if (!string.IsNullOrWhiteSpace(viTriId))
+                query = query.Where(u => u.ViTriUngTuyenId == viTriId);
+
+            if (!string.IsNullOrWhiteSpace(phongBanId))
+                query = query.Where(u => u.ViTriUngTuyen!.PhongBanId == phongBanId);
+
+            return query;
+        }
+
+        public async Task<ThongKeTongHopVM> GetTongQuanAsync(string? tuKhoa, string? loai, DateTime? tuNgay, DateTime? denNgay, string? trangThai = null, string? viTriId = null, string? phongBanId = null)
+        {
+            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId);
 
             var tong = await filtered.CountAsync();
             var daTuyen = await filtered.CountAsync(u => u.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString());
             var xuLy = await filtered.CountAsync(u =>
                 u.TrangThai == TrangThaiUngVienEnum.Moi.ToString()
                 || u.TrangThai == TrangThaiUngVienEnum.DaPhongVan.ToString()
-                || u.TrangThai == TrangThaiUngVienEnum.CanPhongVanLan2.ToString()
-            );
+                || u.TrangThai == TrangThaiUngVienEnum.CanPhongVanLan2.ToString());
 
-            var viTriDangTuyen = await _context.ViTriTuyenDungs
-                .Where(v => v.TrangThai == "Đang tuyển")
-                .CountAsync();
+            var viTriDangTuyen = await _context.ViTriTuyenDungs.Where(v => v.TrangThai == "Đang tuyển").CountAsync();
 
             var daTuyenList = await filtered
                 .Where(u => u.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString())
-                .Include(u => u.ViTriUngTuyen)
                 .Select(u => new UngVienTuyenDungVM
                 {
                     HoTen = u.HoTen,
                     Email = u.Email,
-                    TenViTri = u.ViTriUngTuyen.TenViTri,
+                    TenViTri = u.ViTriUngTuyen!.TenViTri,
                     NgayNop = u.NgayNop ?? DateTime.MinValue
                 })
                 .ToListAsync();
@@ -56,25 +78,21 @@ namespace Nhom6_QLHoSoTuyenDung.Services
             };
         }
 
-
-        // 2. Biểu đồ theo trạng thái ứng viên
-        public async Task<List<BieuDoItemVM>> GetBieuDoTheoTrangThaiUngVienAsync()
+        public async Task<List<BieuDoItemVM>> GetBieuDoTheoTrangThaiUngVienAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai = null, string? viTriId = null, string? phongBanId = null)
         {
-            return await _context.UngViens
+            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId);
+
+            return await filtered
                 .GroupBy(u => u.TrangThai ?? "Khác")
-                .Select(g => new BieuDoItemVM
-                {
-                    Ten = g.Key,
-                    SoLuong = g.Count()
-                }).ToListAsync();
+                .Select(g => new BieuDoItemVM { Ten = g.Key, SoLuong = g.Count() })
+                .ToListAsync();
         }
 
-        // 3. Biểu đồ theo nguồn ứng viên
-        public async Task<List<BieuDoItemVM>> GetBieuDoNguonUngVienAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<List<BieuDoItemVM>> GetBieuDoNguonUngVienAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai = null, string? viTriId = null, string? phongBanId = null)
         {
-            var filtered = await FilterUngViens(tuKhoa, tuNgay, denNgay).ToListAsync();
+            var filtered = await FilterUngViens(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId).ToListAsync();
 
-            var result = filtered
+            return filtered
                 .GroupBy(u =>
                 {
                     var nguon = u.NguonUngTuyen?.Trim().ToLower();
@@ -83,117 +101,73 @@ namespace Nhom6_QLHoSoTuyenDung.Services
                     if (nguon?.Contains("giới thiệu") == true || nguon?.Contains("gioi thieu") == true) return "Giới thiệu";
                     return "Khác";
                 })
-                .Select(g => new BieuDoItemVM
-                {
-                    Ten = g.Key,
-                    SoLuong = g.Count()
-                })
-                .OrderByDescending(g => g.SoLuong)
+                .Select(g => new BieuDoItemVM { Ten = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
                 .ToList();
-
-            return result;
         }
 
-
-
-        // 4. Biểu đồ theo vị trí
-        public async Task<List<BieuDoItemVM>> GetBieuDoTheoViTriUngTuyenAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<List<BieuDoItemVM>> GetBieuDoTheoViTriUngTuyenAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai, string? viTriId, string? phongBanId)
         {
-            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay)
-                .Include(u => u.ViTriUngTuyen);
+            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId).Include(u => u.ViTriUngTuyen);
 
             return await filtered
                 .GroupBy(u => u.ViTriUngTuyen!.TenViTri)
-                .Select(g => new BieuDoItemVM
-                {
-                    Ten = g.Key,
-                    SoLuong = g.Count()
-                }).ToListAsync();
+                .Select(g => new BieuDoItemVM { Ten = g.Key, SoLuong = g.Count() })
+                .ToListAsync();
         }
 
-
-        // 5. Biểu đồ theo phòng ban
-        public async Task<List<BieuDoItemVM>> GetBieuDoTheoPhongBanAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<List<BieuDoItemVM>> GetBieuDoTheoPhongBanAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai, string? viTriId, string? phongBanId)
         {
-            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay)
+            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId)
                 .Include(u => u.ViTriUngTuyen).ThenInclude(v => v.PhongBan);
 
             return await filtered
                 .GroupBy(u => u.ViTriUngTuyen!.PhongBan!.TenPhong)
-                .Select(g => new BieuDoItemVM
-                {
-                    Ten = g.Key,
-                    SoLuong = g.Count()
-                }).ToListAsync();
+                .Select(g => new BieuDoItemVM { Ten = g.Key, SoLuong = g.Count() })
+                .ToListAsync();
         }
 
-
-        // 6. Biểu đồ điểm đánh giá
         public async Task<List<BieuDoItemVM>> GetBieuDoDanhGiaUngVienAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
         {
-            var query = _context.DanhGiaPhongVans
-                .Include(d => d.LichPhongVan).ThenInclude(lp => lp.UngVien)
-                .AsQueryable();
+            var query = _context.DanhGiaPhongVans.Include(d => d.LichPhongVan).ThenInclude(lp => lp.UngVien).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(tuKhoa))
-                query = query.Where(d =>
-                    d.LichPhongVan!.UngVien!.HoTen.Contains(tuKhoa) ||
-                    d.LichPhongVan.UngVien.Email.Contains(tuKhoa));
+                query = query.Where(d => d.LichPhongVan!.UngVien!.HoTen.Contains(tuKhoa) || d.LichPhongVan.UngVien.Email.Contains(tuKhoa));
 
-            if (tuNgay.HasValue)
-                query = query.Where(d =>
-                    d.LichPhongVan!.UngVien!.NgayNop.HasValue &&
-                    d.LichPhongVan.UngVien.NgayNop.Value.Date >= tuNgay.Value.Date);
+            if (tuNgay.HasValue && denNgay.HasValue)
+                query = query.Where(d => d.LichPhongVan!.UngVien!.NgayNop.HasValue && d.LichPhongVan.UngVien.NgayNop.Value.Date >= tuNgay.Value.Date && d.LichPhongVan.UngVien.NgayNop.Value.Date <= denNgay.Value.Date);
+            else if (tuNgay.HasValue)
+                query = query.Where(d => d.LichPhongVan!.UngVien!.NgayNop.HasValue && d.LichPhongVan.UngVien.NgayNop.Value.Date >= tuNgay.Value.Date);
+            else if (denNgay.HasValue)
+                query = query.Where(d => d.LichPhongVan!.UngVien!.NgayNop.HasValue && d.LichPhongVan.UngVien.NgayNop.Value.Date <= denNgay.Value.Date);
 
-            if (denNgay.HasValue)
-                query = query.Where(d =>
-                    d.LichPhongVan!.UngVien!.NgayNop.HasValue &&
-                    d.LichPhongVan.UngVien.NgayNop.Value.Date <= denNgay.Value.Date);
-
-            return await query
-                .GroupBy(d =>
-                    d.DiemDanhGia == null ? "Chưa đánh giá" :
-                    d.DiemDanhGia < 5 ? "Yếu" :
-                    d.DiemDanhGia < 7 ? "Trung bình" :
-                    d.DiemDanhGia < 8.5 ? "Khá" : "Tốt"
-                )
-                .Select(g => new BieuDoItemVM
-                {
-                    Ten = g.Key,
-                    SoLuong = g.Count()
-                }).ToListAsync();
+            return await query.GroupBy(d =>
+                d.DiemDanhGia == null ? "Chưa đánh giá" :
+                d.DiemDanhGia < 5 ? "Yếu" :
+                d.DiemDanhGia < 7 ? "Trung bình" :
+                d.DiemDanhGia < 8.5 ? "Khá" : "Tốt")
+                .Select(g => new BieuDoItemVM { Ten = g.Key, SoLuong = g.Count() })
+                .ToListAsync();
         }
 
-
-
-        // 7. Xu hướng theo tháng (tính theo NgayNop của UngVien)
-        public async Task<List<BieuDoItemVM>> GetXuHuongTheoThangAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<List<BieuDoItemVM>> GetXuHuongTheoThangAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay, string? trangThai, string? viTriId, string? phongBanId)
         {
-            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay)
+            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay, trangThai, viTriId, phongBanId)
                 .Where(u => u.NgayNop != null);
 
             return await filtered
-                .GroupBy(u => u.NgayNop!.Value.Month)
-                .Select(g => new BieuDoItemVM
-                {
-                    Ten = $"Tháng {g.Key}",
-                    SoLuong = g.Count()
-                }).ToListAsync();
+                .GroupBy(u => new { Thang = u.NgayNop!.Value.Month, Nam = u.NgayNop.Value.Year })
+                .Select(g => new BieuDoItemVM { Ten = $"Tháng {g.Key.Thang}/{g.Key.Nam}", SoLuong = g.Count() })
+                .ToListAsync();
         }
 
-        // 8. Vị trí đã tuyển thành công (Top 5)
         public async Task<List<ViTriThanhCongVM>> GetViTriTuyenThanhCongAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
         {
-            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay)
-                .Include(u => u.ViTriUngTuyen).ThenInclude(v => v.PhongBan)
-                .Where(u => u.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString());
+            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay, TrangThaiUngVienEnum.DaTuyen.ToString())
+                .Include(u => u.ViTriUngTuyen).ThenInclude(v => v.PhongBan);
 
             return await filtered
-                .GroupBy(u => new
-                {
-                    TenViTri = u.ViTriUngTuyen!.TenViTri,
-                    PhongBan = u.ViTriUngTuyen.PhongBan!.TenPhong
-                })
+                .GroupBy(u => new { TenViTri = u.ViTriUngTuyen!.TenViTri, PhongBan = u.ViTriUngTuyen.PhongBan!.TenPhong })
                 .Select(g => new ViTriThanhCongVM
                 {
                     TenViTri = g.Key.TenViTri,
@@ -201,39 +175,68 @@ namespace Nhom6_QLHoSoTuyenDung.Services
                     SoLuongTuyen = g.Count(),
                     NgayTuyenGanNhat = g.Max(u => u.NgayNop)!.Value.ToString("dd/MM/yyyy")
                 })
-                .OrderByDescending(v => v.SoLuongTuyen)
+                .OrderByDescending(x => x.SoLuongTuyen)
                 .Take(5)
                 .ToListAsync();
         }
-
-        private IQueryable<UngVien> FilterUngViens(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
+        public async Task<List<BaoCaoDayDuVM>> XuatBaoCaoDayDuAsync(BaoCaoRequestVM request)
         {
-            var query = _context.UngViens.AsQueryable();
+            var query = _context.UngViens
+                .Include(u => u.ViTriUngTuyen)
+                    .ThenInclude(v => v.PhongBan)
+                .AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(tuKhoa))
-                query = query.Where(u => u.HoTen.Contains(tuKhoa) || u.Email.Contains(tuKhoa));
+            // Lọc theo từ khoá
+            if (!string.IsNullOrEmpty(request.TuKhoa))
+            {
+                query = query.Where(u => u.HoTen.Contains(request.TuKhoa) || u.Email.Contains(request.TuKhoa));
+            }
 
-            if (tuNgay.HasValue)
-                query = query.Where(u => u.NgayNop.HasValue && u.NgayNop.Value.Date >= tuNgay.Value.Date);
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(request.TrangThai))
+            {
+                query = query.Where(u => u.TrangThai == request.TrangThai);
+            }
 
-            if (denNgay.HasValue)
-                query = query.Where(u => u.NgayNop.HasValue && u.NgayNop.Value.Date <= denNgay.Value.Date);
+            // Lọc theo vị trí
+            if (!string.IsNullOrEmpty(request.ViTriId))
+            {
+                query = query.Where(u => u.ViTriUngTuyenId == request.ViTriId);
+            }
 
-            return query;
-        }
-        public async Task<List<BieuDoItemVM>> GetBieuDoTheoTrangThaiUngVienAsync(string? tuKhoa, DateTime? tuNgay, DateTime? denNgay)
-        {
-            var filtered = FilterUngViens(tuKhoa, tuNgay, denNgay);
+            // Lọc theo phòng ban
+            if (!string.IsNullOrEmpty(request.PhongBanId))
+            {
+                query = query.Where(u => u.ViTriUngTuyen.PhongBanId == request.PhongBanId);
+            }
 
-            return await filtered
-                .GroupBy(u => u.TrangThai ?? "Khác")
-                .Select(g => new BieuDoItemVM
+            // Lọc theo ngày nộp
+            if (request.TuNgay.HasValue)
+            {
+                query = query.Where(u => u.NgayNop >= request.TuNgay.Value);
+            }
+
+            if (request.DenNgay.HasValue)
+            {
+                query = query.Where(u => u.NgayNop <= request.DenNgay.Value);
+            }
+
+            var data = await query
+                .OrderByDescending(u => u.NgayNop)
+                .Select(u => new BaoCaoDayDuVM
                 {
-                    Ten = g.Key,
-                    SoLuong = g.Count()
-                }).ToListAsync();
-        }
+                    HoTen = u.HoTen,
+                    Email = u.Email,
+                    DienThoai = u.SoDienThoai,
+                    ViTri = u.ViTriUngTuyen.TenViTri,
+                    PhongBan = u.ViTriUngTuyen.PhongBan.TenPhong,
+                    NgayNop = u.NgayNop.Value,
+                    TrangThai = u.TrangThai
+                })
+                .ToListAsync();
 
+            return data;
+        }
 
     }
 }

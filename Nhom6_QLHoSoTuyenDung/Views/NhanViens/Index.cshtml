@@ -233,9 +233,6 @@
             <h2 class="fw-bold">Quản lý nhân viên</h2>
             <p class="text-muted mb-0">Tìm kiếm, lọc &amp; quản lý nhân viên</p>
         </div>
-        <div class="btn-group">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">➕ Thêm nhân viên</button>
-        </div>
     </div>
 
     <!-- Filters -->
@@ -477,40 +474,34 @@
                                         <td>@nv.ChucVu</td>
                                         <td>@nv.KinhNghiem năm</td>
                                         <td class="text-center">
-                                            <div class="dropdown">
-                                                <button class="btn btn-icon" type="button"
-                                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-list"></i>
+                                            <a asp-controller="NhanViens"
+                                               asp-action="Details"
+                                               asp-route-id="@nv.MaNhanVien"
+                                               class="btn btn-link text-primary p-1"
+                                               data-bs-toggle="tooltip"
+                                               data-bs-placement="top"
+                                               title="Xem chi tiết">
+                                                <i class="bi bi-eye-fill fs-5"></i>
+                                            </a>
+
+                                            @if (!((List<string>)ViewBag.AccountIds).Contains(nv.MaNhanVien))
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-link text-success p-1"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modalCreateAccount"
+                                                        data-nvid="@nv.MaNhanVien"
+                                                        title="Tạo tài khoản"
+                                                        data-bs-placement="top">
+                                                    <i class="bi bi-calendar-check-fill fs-5"></i>
                                                 </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li>
-                                                        <a asp-controller="NhanViens"
-                                                           asp-action="Details"
-                                                           asp-route-id="@nv.MaNhanVien"
-                                                           class="dropdown-item">
-                                                            Chi tiết
-                                                        </a>
-                                                    </li>
-                                                    @* Chỉ hiển thị nút Tạo TK nếu chưa có account *@
-                                                    @if (!((List<string>)ViewBag.AccountIds).Contains(nv.MaNhanVien))
-                                                    {
-                                                        <li><hr class="dropdown-divider" /></li>
-                                                        <li>
-                                                            <button type="button"
-                                                                    class="dropdown-item"
-                                                                    data-bs-toggle="modal"
-                                                                    data-bs-target="#modalCreateAccount"
-                                                                    data-nvid="@nv.MaNhanVien">
-                                                                Tạo TK
-                                                            </button>
-                                                        </li>
-                                                    }
-                                                </ul>
-                                            </div>
+                                            }
                                         </td>
+
                                     </tr>
                                 }
                             </tbody>
+
                         </table>
 
                         <!-- Footer nhỏ bên dưới bảng -->
@@ -615,12 +606,16 @@
                                     <td>@uv.ChucVu</td>
                                     <td>@uv.KinhNghiem năm</td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-primary"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#modalThemNhanVien"
-                                                onclick="fillFromCandidate('@uv.MaUngVien')">
-                                            <i class="bi bi-person-plus"></i>
-                                        </button>
+                                            <button class="btn btn-sm btn-primary"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalThemNhanVien"
+                                                    onclick="fillFromCandidate('@uv.MaUngVien')"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="Thêm nhân viên">
+                                                <i class="bi bi-person-plus"></i>
+                                            </button>
+
                                     </td>
                                 </tr>
                             }
@@ -629,117 +624,6 @@
                     <div class="mt-2">
                         <small class="text-muted">Hiển thị @ungVienDatList.Count() / tổng @ungVienDatList.Count()</small>
                     </div>
-                </div>
-            </div>
-        </div>
-
-
-        <!-- Create Modal (thủ công) -->
-        <div class="modal fade" id="modalCreate" tabindex="-1">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content rounded-4 p-4">
-                    <div class="modal-header border-0 mb-3">
-                        <h5 class="modal-title">➕ Thêm nhân viên</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <form id="formCreate" method="post" action="@Url.Action("CreateNhanVien","NhanViens")">
-                        <div id="validationSummary" class="text-danger mb-3"></div>
-                        <div class="row g-3">
-                            <!-- Phòng ban: chọn để sinh mã -->
-                            <div class="col-md-6">
-                                <label class="form-label">Phòng ban</label>
-                                <select name="PhongBanId" id="inpPhongBan" class="form-select" required>
-                                    <option value="">Chọn phòng ban</option>
-                                    @foreach (var pb in ViewBag.PhongBanList as List<PhongBan>)
-                                    {
-                                        <option value="@pb.Id">@pb.TenPhong</option>
-                                    }
-                                </select>
-                            </div>
-
-                            <!-- Mã nhân viên (readonly) -->
-                            <div class="col-md-6">
-                                <label class="form-label">Mã nhân viên</label>
-                                <input name="MaNhanVien" id="inpMaNhanVien" class="form-control" readonly />
-                            </div>
-
-                            <!-- Mã số NV (readonly) -->
-                            <div class="col-md-6">
-                                <label class="form-label">Mã số NV</label>
-                                <input name="MaSoNV" id="inpMaSoNV" class="form-control" readonly />
-                            </div>
-
-                            <!-- Vai trò TK -->
-                            <div class="col-md-6">
-                                <label class="form-label">Vai trò TK</label>
-                                <select name="vaiTro" class="form-select">
-                                    <option value="">(Không bắt buộc)</option>
-                                    @foreach (var r in new[] { "Admin", "HR", "Interviewer" })
-                                    {
-                                        <option value="@r">@r</option>
-                                    }
-                                </select>
-                            </div>
-
-                            <!-- Các trường nhập tay -->
-                            <div class="col-md-6">
-                                <label class="form-label">Họ tên</label>
-                                <input name="HoTen" class="form-control" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Ngày sinh</label>
-                                <input name="NgaySinh" type="date" class="form-control" required />
-                            </div>
-                            <!-- … trong modalCreate, thay input Chức vụ bằng select: -->
-                            <div class="col-md-6">
-                                <label class="form-label">Chức vụ</label>
-                                <select id="inpChucVu"
-                                        name="ChucVu"
-                                        class="form-select"
-                                        disabled
-                                        required>
-                                    <option value="">-- Chọn chức vụ --</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Email</label>
-                                <input name="Email" type="email" class="form-control" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">SĐT</label>
-                                <input name="SoDienThoai" class="form-control" />
-                            </div>
-
-                            <!-- Ngày vào công ty mặc định = hôm nay -->
-                            <div class="col-md-6">
-                                <label class="form-label">Ngày vào công ty</label>
-                                <input name="NgayVaoCongTy"
-                                       type="date"
-                                       class="form-control"
-                                       required
-                                       value="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Kinh nghiệm (năm)</label>
-                                <input name="KinhNghiem" type="number" min="0" class="form-control" />
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label">Mô tả</label>
-                                <textarea name="MoTa" class="form-control"></textarea>
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label">Mức lương</label>
-                                <input name="MucLuong" type="number" step="0.01" class="form-control" />
-                            </div>
-                        </div>
-
-                        <div class="mt-4 text-end">
-                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
-                            <button type="submit" class="btn btn-primary">Lưu</button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -753,7 +637,7 @@
 
                         <div class="modal-header">
                             <h5 class="modal-title">➕ Thêm nhân viên từ ứng viên</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                         </div>
 
                         <div class="modal-body row g-3">
@@ -940,6 +824,13 @@
         document.getElementById('displayCount').textContent =
           document.querySelectorAll('#employeeTable tbody tr:not([style*="display: none"])').length;
       }
+                         document.addEventListener("DOMContentLoaded", function () {
+                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                            new bootstrap.Tooltip(tooltipTriggerEl);
+                        });
+                    });
+
       empBtn.addEventListener('click', filterEmployees);
       empInput.addEventListener('keyup', e => { if (e.key === 'Enter') filterEmployees(); });
 
@@ -956,11 +847,11 @@
 
       // ===== Sinh mã NV & mã số NV & đổ chức vụ =====
       const roleMap = {
-        PBDA: ['Trưởng phòng Phân tích Dữ liệu','Chuyên viên BI','Chuyên viên Phân tích Dữ liệu','Nhân viên Nhập liệu','Thực tập sinh Phân tích Dữ liệu'],
-        PBIT: ['Trưởng phòng IT','Lập trình viên Backend','Lập trình viên Frontend','Nhân viên Hỗ trợ kỹ thuật','Nhân viên Quản trị mạng','Tester / QA','Thực tập sinh IT'],
-        PBKD: ['Trưởng phòng Kinh doanh','Nhân viên Kinh doanh','Chuyên viên Phát triển Thị trường','Chuyên viên Chăm sóc Khách hàng','Telesales','Thực tập sinh Kinh doanh'],
-        PBKT: ['Trưởng phòng Kế toán','Kế toán Tổng hợp','Kế toán Thanh toán','Kế toán Kho / Công nợ','Nhân viên Tài chính – Kế toán','Thực tập sinh Kế toán'],
-        PBNS: ['Trưởng phòng Nhân sự','Chuyên viên Tuyển dụng','Chuyên viên C&B','Chuyên viên Đào tạo & Phát triển','Nhân viên Hành chính – Nhân sự','Thực tập sinh Nhân sự']
+        PBDA: ['Trưởng phòng Phân tích Dữ liệu','Chuyên viên BI','Chuyên viên Phân tích Dữ liệu','Nhân viên Nhập liệu'],
+        PBIT: ['Trưởng phòng IT','Lập trình viên Backend','Lập trình viên Frontend','Nhân viên Hỗ trợ kỹ thuật','Nhân viên Quản trị mạng','Tester / QA'],
+        PBKD: ['Trưởng phòng Kinh doanh','Nhân viên Kinh doanh','Chuyên viên Phát triển Thị trường','Chuyên viên Chăm sóc Khách hàng','Telesales'],
+        PBKT: ['Trưởng phòng Kế toán','Kế toán Tổng hợp','Kế toán Thanh toán','Kế toán Kho / Công nợ','Nhân viên Tài chính – Kế toán'],
+        PBNS: ['Trưởng phòng Nhân sự','Chuyên viên Tuyển dụng','Chuyên viên C&B','Chuyên viên Đào tạo & Phát triển','Nhân viên Hành chính – Nhân sự']
       };
       async function genCodes(pbField, outMaId, outSoId) {
         const pb = document.getElementById(pbField).value;
@@ -1013,7 +904,11 @@
         e.preventDefault();
         const res = await fetch(e.target.action, { method:'POST', body:new FormData(e.target) }),
               j   = await res.json();
-        if (j.success) location.reload();
+                           if (j.success) {
+                        alert(j.message || "Thêm nhân viên thành công!");
+                        location.reload();
+                    }
+
         else alert('Lỗi:\n' + (j.errors?.join('\n') || j.message));
       });
 
@@ -1168,6 +1063,19 @@
         },
         options: { responsive: true, cutout: '60%' }
       });
+                      document.getElementById('modalThemNhanVien')?.addEventListener('hidden.bs.modal', function () {
+                        document.body.classList.remove('modal-open');
+                        document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
+                      });
     });
+                        document.getElementById('modalThemNhanVien')?.addEventListener('hidden.bs.modal', function () {
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        document.body.style.paddingRight = '';
+                        document.querySelectorAll('.modal-backdrop').forEach(e => e.remove());
+                        // Khôi phục cuộn nếu bị kẹt
+                        setTimeout(() => document.body.style.overflowY = 'auto', 200);
+                    });
+
     </script>
 }

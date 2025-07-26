@@ -5,6 +5,7 @@
     ViewData["Title"] = "Trạng thái chờ (HR)";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
 @if (!User.Identity?.IsAuthenticated ?? true)
 {
     <script>
@@ -18,9 +19,14 @@
     </script>
     return;
 }
+
 <div class="container-fluid px-4 mt-4">
-    <h3 class="fw-bold text-primary"><i class="bi bi-hourglass-split me-2"></i> Ứng viên cần phỏng vấn lần 2</h3>
-    <p class="text-muted mb-4">Danh sách ứng viên đã được đánh giá và được đề xuất tham gia vòng phỏng vấn tiếp theo</p>
+    <h3 class="fw-bold text-primary">
+        <i class="bi bi-hourglass-split me-2"></i> Ứng viên cần phỏng vấn lần 2
+    </h3>
+    <p class="text-muted mb-4">
+        Danh sách ứng viên đã được đánh giá và được đề xuất tham gia vòng phỏng vấn tiếp theo
+    </p>
 
     <div class="row row-cols-1 row-cols-md-2 g-4">
         @foreach (var item in Model)
@@ -63,20 +69,23 @@
                                 📅 Sắp xếp lịch vòng 2
                             </button>
 
-
-
-
-                            <button class="btn btn-sm btn-outline-secondary" onclick="xemCV('@Url.Content("~/cv/" + item.LinkCV)')">
-                                📄 Xem CV
+                            @if (!string.IsNullOrEmpty(@item.LinkCV))
+                        {
+                                <button class="icon-button" onclick="showCV('@Url.Content(@item.LinkCV)')">
+                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+                                <span class="tooltip-text">Xem CV</span>
                             </button>
-
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
                         </div>
                     </div>
                 </div>
             </div>
         }
     </div>
-
 </div>
 
 <!-- Modal tạo lịch phỏng vấn -->
@@ -94,19 +103,20 @@
     </div>
 </div>
 
+<!-- Modal xem CV dùng chung -->
+@await Html.PartialAsync("_CvModalPartial")
+
+
 @section Scripts {
-    <!-- Thư viện SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Mở form tạo lịch vòng 2
         function moFormTaoLich(ungVienId) {
             $.ajax({
                 url: '/LichPhongVans/FormTaoLichVong2',
                 data: { ungVienId },
                 type: 'GET',
                 success: function (res) {
-                    // Nếu là JSON thông báo lỗi đăng nhập (ví dụ: { error: true, message: "Phiên đăng nhập đã hết" })
                     if (res?.error && res?.message) {
                         Swal.fire({
                             icon: 'warning',
@@ -119,13 +129,11 @@
                         return;
                     }
 
-                    // Nếu không phải lỗi → gán nội dung vào modal
                     $('#modalTaoLich .modal-body').html(res);
                     $('#modalTaoLich').modal('show');
                 },
                 error: function (xhr) {
                     try {
-                        // Nếu lỗi là JSON (ví dụ từ Controller trả về lỗi 401 Unauthorized)
                         var json = JSON.parse(xhr.responseText);
                         if (json.error && json.message) {
                             Swal.fire({
@@ -138,9 +146,7 @@
                             });
                             return;
                         }
-                    } catch (e) {
-                        // Không phải JSON → lỗi bình thường
-                    }
+                    } catch (e) {}
 
                     Swal.fire({
                         icon: 'error',
@@ -182,10 +188,12 @@
             });
         });
 
-        // Xem CV
-        function xemCV(link) {
-            window.open(link, '_blank');
+        // Xem CV (dùng modal iframe)
+               function xemCV(link) {
+            const viewer = document.getElementById("cvViewer");
+            viewer.src = link;
+            const modal = new bootstrap.Modal(document.getElementById('cvModal'));
+            modal.show();
         }
     </script>
 }
-
