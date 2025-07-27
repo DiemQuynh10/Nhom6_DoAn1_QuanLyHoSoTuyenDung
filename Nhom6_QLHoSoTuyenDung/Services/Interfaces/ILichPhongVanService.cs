@@ -9,9 +9,9 @@ public interface ILichPhongVanService
     Task<PhongVanDashboardVM> GetDashboardAsync();
 
     Task<TaoLichPhongVanVM?> GetFormDataAsync(string ungVienId);
-    Task<(bool isSuccess, string message)> CreateLichAsync(LichPhongVan model);
     Task<LichPhongVan?> GetLichByUngVienIdAsync(string ungVienId);
     Task<List<UngVien>> GetUngViensChuaCoLichAsync();
     Task<List<DaPhongVanVM>> GetUngViensChuaCoLichVong2Async();
-
+    Task<(bool, string)> CreateLichAsync(CreateLichPhongVanVM vm, bool isReschedule = false);
+    Task<List<DaPhongVanVM>> GetUngViensBiHuyLichAsync();
 }

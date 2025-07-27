@@ -4,14 +4,17 @@ using Nhom6_QLHoSoTuyenDung.Models.Entities;
 using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM;
+using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 
 public class LichPhongVanService : ILichPhongVanService
 {
     private readonly AppDbContext _context;
+    private readonly ITaiKhoanService _taiKhoanService;
 
-    public LichPhongVanService(AppDbContext context)
+    public LichPhongVanService(AppDbContext context, ITaiKhoanService taiKhoanService)
     {
         _context = context;
+        _taiKhoanService = taiKhoanService;
     }
 
     public async Task<LichPhongVan?> GetLichByUngVienIdAsync(string ungVienId)
@@ -34,7 +37,7 @@ public class LichPhongVanService : ILichPhongVanService
         var model = new TaoLichPhongVanVM
         {
             PhongList = phongList,
-            NguoiPhongVanOptions = new List<SelectListItem>() // sẽ gán sau từ controller
+            NguoiPhongVanOptions = new List<SelectListItem>()
         };
 
         if (!string.IsNullOrEmpty(ungVienId))
@@ -55,68 +58,136 @@ public class LichPhongVanService : ILichPhongVanService
         return model;
     }
 
+    public async Task<(bool, string)> CreateLichAsync(CreateLichPhongVanVM vm, bool isReschedule = false)
 
-
-    public async Task<(bool, string)> CreateLichAsync(LichPhongVan model)
     {
-        var ungVien = await _context.UngViens.FirstOrDefaultAsync(u => u.MaUngVien == model.UngVienId);
+        try
+        {
+            var ungVien = await _context.UngViens.FirstOrDefaultAsync(u => u.MaUngVien == vm.UngVienId);
         if (ungVien == null)
             return (false, "Ứng viên không tồn tại.");
 
-        model.ViTriId = ungVien.ViTriUngTuyenId;
-        model.Id = await GenerateNewMaLichAsync();
-
-        // ✅ Kiểm tra thời gian null hoặc quá khứ
-        if (!model.ThoiGian.HasValue)
+        if (!vm.ThoiGian.HasValue)
             return (false, "Vui lòng chọn thời gian hợp lệ.");
-
-        if (model.ThoiGian < DateTime.Now)
+        if (vm.ThoiGian < DateTime.Now)
             return (false, "Không thể tạo lịch với thời gian trong quá khứ.");
 
-        // ✅ Kiểm tra trùng phòng
-        var lichCungPhong = await _context.LichPhongVans
-            .Where(l => l.PhongPhongVanId == model.PhongPhongVanId)
+        var viTriId = ungVien.ViTriUngTuyenId;
+        var thoiGianPhongVan = vm.ThoiGian.Value;
+
+        var lichTrungPhong = await _context.LichPhongVans
+            .Where(l => l.PhongPhongVanId == vm.PhongPhongVanId && l.ThoiGian.HasValue)
             .ToListAsync();
 
-        var clashPhong = lichCungPhong.Any(l =>
-            l.ThoiGian.HasValue && model.ThoiGian.HasValue &&
-            Math.Abs((l.ThoiGian.Value - model.ThoiGian.Value).TotalMinutes) < 30
-        );
-
+        var clashPhong = lichTrungPhong.Any(l =>
+            Math.Abs((l.ThoiGian!.Value - thoiGianPhongVan).TotalMinutes) < 30);
         if (clashPhong)
-            return (false, "Phòng đã có lịch phỏng vấn gần thời gian này. Vui lòng chọn thời gian khác.");
+            return (false, "Phòng đã có lịch gần thời gian này.");
 
-        // ✅ Kiểm tra trùng người phỏng vấn
-        var nhanVienIds = model.NhanVienThamGiaPVs?.Select(n => n.NhanVienId).ToList() ?? new List<string>();
-
-        if (nhanVienIds.Count > 0)
+        var nhanVienIds = vm.NhanVienIds?.Distinct().ToList() ?? new();
+        if (nhanVienIds.Any())
         {
-            var lichTrungNhanVien = await _context.LichPhongVans
-     .Include(l => l.NhanVienThamGiaPVs)
-     .Where(l => l.ThoiGian.HasValue) // Chỉ lấy lịch có thời gian
-     .ToListAsync(); // ⛔ phải đưa ToListAsync() sớm để xử lý trong bộ nhớ
+            var lichTrungNV = await _context.LichPhongVans
+                .Include(l => l.NhanVienThamGiaPVs)
+                .Where(l => l.ThoiGian.HasValue)
+                .ToListAsync();
 
-            var thoiGianMoi = model.ThoiGian ?? DateTime.MinValue;
+            var clash = lichTrungNV.Any(l =>
+                Math.Abs((l.ThoiGian!.Value - thoiGianPhongVan).TotalMinutes) < 30 &&
+                l.NhanVienThamGiaPVs.Any(nv => nhanVienIds.Contains(nv.NhanVienId)));
 
-            bool clashNhanVien = lichTrungNhanVien.Any(l =>
-                Math.Abs((l.ThoiGian!.Value - thoiGianMoi).TotalMinutes) < 30 &&
-                l.NhanVienThamGiaPVs.Any(nv => nhanVienIds.Contains(nv.NhanVienId))
-            );
-            if (clashNhanVien)
-                return (false, "Một trong các người phỏng vấn đã có lịch gần thời gian này.");
-
+            if (clash)
+                return (false, "Một người phỏng vấn đã có lịch gần thời gian này.");
         }
-        model.TrangThai = TrangThaiPhongVanEnum.DaLenLich.ToString();
 
-        // ✅ Lưu lịch nếu không trùng
-        _context.LichPhongVans.Add(model);
+        // ✅ Dùng Guid thực sự làm Id
+        var idLichMoi = Guid.NewGuid().ToString();
+
+        var lichEntity = new LichPhongVan
+        {
+            Id = idLichMoi,
+            UngVienId = vm.UngVienId,
+            ViTriId = viTriId,
+            PhongPhongVanId = vm.PhongPhongVanId,
+            ThoiGian = vm.ThoiGian,
+            TrangThai = TrangThaiPhongVanEnum.DaLenLich.ToString()
+        };
+
+        await _context.LichPhongVans.AddAsync(lichEntity);
+
+        var nguoiPV = nhanVienIds.Select(id => new NhanVienThamGiaPhongVan
+        {
+            Id = Guid.NewGuid().ToString(),
+            NhanVienId = id,
+            LichPhongVanId = idLichMoi
+        }).ToList();
+
+        await _context.NhanVienThamGiaPhongVans.AddRangeAsync(nguoiPV);
         await _context.SaveChangesAsync();
 
+        // Gửi mail
+        var uvInfo = await _context.UngViens
+            .Where(u => u.MaUngVien == vm.UngVienId)
+            .Select(u => new { u.HoTen, u.Email })
+            .FirstOrDefaultAsync();
+
+        var viTriInfo = await _context.ViTriTuyenDungs
+            .Where(v => v.MaViTri == viTriId)
+            .Select(v => v.TenViTri)
+            .FirstOrDefaultAsync();
+
+        var phongInfo = await _context.PhongPhongVans
+            .Where(p => p.Id == vm.PhongPhongVanId)
+            .Select(p => new { p.TenPhong, p.DiaDiem })
+            .FirstOrDefaultAsync();
+
+        if (!string.IsNullOrEmpty(uvInfo?.Email))
+        {
+            var email = uvInfo.Email;
+
+            if (isReschedule)
+            {
+                // 🔁 Gửi email lịch lại (bản TEXT thường)
+                var subject = "🔁 Lịch phỏng vấn mới được cập nhật";
+
+                var body =
+                    $"Thân gửi {uvInfo.HoTen},\n\n" +
+                    $"Lịch phỏng vấn mới đã được sắp xếp lại cho bạn do lịch trước đó đã bị hủy.\n\n" +
+                    $"🔁 Thông tin lịch mới:\n" +
+                    $"- Vị trí: {viTriInfo}\n" +
+                    $"- Thời gian: {thoiGianPhongVan:HH:mm, dd/MM/yyyy}\n" +
+                    $"- Địa điểm: {phongInfo?.TenPhong} - {phongInfo?.DiaDiem}\n\n" +
+                    $"Vui lòng kiểm tra email và có mặt đúng giờ để buổi phỏng vấn diễn ra thuận lợi.\n\n" +
+                    $"Trân trọng,\nPhòng Tuyển dụng";
+
+                await _taiKhoanService.SendEmailAsync(email, subject, body);
+            }
+            else
+            {
+                // 📅 Gửi mail lịch phỏng vấn lần đầu
+                var subject = "📅 Thông báo lịch phỏng vấn";
+
+                var body =
+                    $"Thân gửi {uvInfo.HoTen},\n\n" +
+                    $"Bạn đã được sắp xếp lịch phỏng vấn cho vị trí: {viTriInfo}.\n\n" +
+                    $"🕒 Thời gian: {thoiGianPhongVan:HH:mm, dd/MM/yyyy}\n" +
+                    $"🏢 Địa điểm: {phongInfo?.TenPhong} - {phongInfo?.DiaDiem}\n\n" +
+                    $"Vui lòng có mặt đúng giờ và chuẩn bị sẵn các giấy tờ cần thiết.\n\n" +
+                    $"Trân trọng,\nPhòng Tuyển dụng";
+
+                await _taiKhoanService.SendEmailAsync(email, subject, body);
+            }
+        }
         return (true, "Đã tạo lịch phỏng vấn thành công!");
+    }catch (Exception ex)
+{
+            // Ghi log nếu cần
+            return (false, "Đã có lỗi xảy ra khi tạo lịch: " + ex.Message);
+        }
     }
 
 
-    public async Task<PhongVanDashboardVM> GetDashboardAsync()
+public async Task<PhongVanDashboardVM> GetDashboardAsync()
     {
         var lich = await _context.LichPhongVans
             .Include(l => l.UngVien)
@@ -165,9 +236,11 @@ public class LichPhongVanService : ILichPhongVanService
         var lich = await _context.LichPhongVans
             .Include(l => l.UngVien)
             .Include(l => l.ViTriTuyenDung)
-            .Where(l => l.ThoiGian.HasValue && l.ThoiGian > DateTime.Now)
+            .Where(l => l.ThoiGian.HasValue
+                && l.ThoiGian > DateTime.Now
+                && (l.TrangThai == TrangThaiPhongVanEnum.DaLenLich.ToString())) // ✅ loại bỏ HoanThanh, Huy
             .OrderBy(l => l.ThoiGian)
-            .Take(10) // Giới hạn hiển thị
+            .Take(10)
             .ToListAsync();
 
         return lich.Select(l => new LichPhongVanSapToiVM
@@ -178,6 +251,7 @@ public class LichPhongVanService : ILichPhongVanService
             Ngay = l.ThoiGian.Value.ToString("dd/MM")
         }).ToList();
     }
+
 
 
     public async Task<List<UngVien>> GetUngViensChuaCoLichAsync()
@@ -235,17 +309,37 @@ public class LichPhongVanService : ILichPhongVanService
 
         return result;
     }
-    private async Task<string> GenerateNewMaLichAsync()
+    public async Task<List<DaPhongVanVM>> GetUngViensBiHuyLichAsync()
     {
-        var lastMa = await _context.LichPhongVans
-            .OrderByDescending(l => l.Id)
-            .Select(l => l.Id)
-            .FirstOrDefaultAsync();
+        // B1: Lấy danh sách ứng viên đã có lịch mới
+        var ungViensDaCoLichMoi = await _context.LichPhongVans
+            .Where(l => l.TrangThai == TrangThaiPhongVanEnum.DaLenLich.ToString())
+            .Select(l => l.UngVienId)
+            .Distinct()
+            .ToListAsync();
 
-        if (string.IsNullOrEmpty(lastMa) || !lastMa.StartsWith("LP"))
-            return "LP001";
+        // B2: Lấy lịch bị hủy nhưng ứng viên đó chưa có lịch mới
+        var lichBiHuy = await _context.LichPhongVans
+            .Include(l => l.UngVien)
+            .Include(l => l.ViTriTuyenDung)
+            .Where(l => l.TrangThai == TrangThaiPhongVanEnum.Huy.ToString()
+                && !ungViensDaCoLichMoi.Contains(l.UngVienId))
+            .ToListAsync();
 
-        var number = int.TryParse(lastMa.Substring(2), out int num) ? num : 0;
-        return $"LP{(num + 1):D3}";
+        // B3: Trả về danh sách ViewModel
+        return lichBiHuy.Select(l => new DaPhongVanVM
+        {
+            LichId = l.Id,
+            TenUngVien = l.UngVien?.HoTen ?? "",
+            UngVienId = l.UngVienId,
+            Email = l.UngVien?.Email ?? "",
+            ViTri = l.ViTriTuyenDung?.TenViTri ?? "",
+            ThoiGian = l.ThoiGian ?? DateTime.Now,
+            LinkCV = l.UngVien?.LinkCV,
+            DiemTB = null,
+            NhanXet = l.GhiChu
+        }).ToList();
     }
+
+
 }

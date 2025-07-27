@@ -233,6 +233,9 @@
             <h2 class="fw-bold">Quản lý nhân viên</h2>
             <p class="text-muted mb-0">Tìm kiếm, lọc &amp; quản lý nhân viên</p>
         </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">➕ Thêm nhân viên</button>
+            </div>
     </div>
 
     <!-- Filters -->
@@ -627,6 +630,105 @@
                 </div>
             </div>
         </div>
+            <!-- Create Modal (thủ công) -->
+            <div class="modal fade" id="modalCreate" tabindex="-1">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content rounded-4 p-4">
+                        <div class="modal-header border-0 mb-3">
+                            <h5 class="modal-title">➕ Thêm nhân viên</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form id="formCreate" method="post" action="@Url.Action("CreateNhanVien","NhanViens")">
+                            <div id="validationSummary" class="text-danger mb-3"></div>
+                            <div class="row g-3">
+                                <!-- Phòng ban: chọn để sinh mã -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Phòng ban</label>
+                                    <select name="PhongBanId" id="inpPhongBan" class="form-select" required>
+                                        <option value="">Chọn phòng ban</option>
+                                        @foreach (var pb in ViewBag.PhongBanList as List<PhongBan>)
+                                        {
+                                            <option value="@pb.Id">@pb.TenPhong</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <!-- Mã nhân viên (readonly) -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Mã nhân viên</label>
+                                    <input name="MaNhanVien" id="inpMaNhanVien" class="form-control" readonly />
+                                </div>
+
+                                <!-- Mã số NV (readonly) -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Mã số NV</label>
+                                    <input name="MaSoNV" id="inpMaSoNV" class="form-control" readonly />
+                                </div>
+
+                            
+
+                                <!-- Các trường nhập tay -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Họ tên</label>
+                                    <input name="HoTen" class="form-control" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Ngày sinh</label>
+                                    <input name="NgaySinh" type="date" class="form-control" required />
+                                </div>
+                                <!-- … trong modalCreate, thay input Chức vụ bằng select: -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Chức vụ</label>
+                                    <select id="inpChucVu"
+                                            name="ChucVu"
+                                            class="form-select"
+                                            disabled
+                                            required>
+                                        <option value="">-- Chọn chức vụ --</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Email</label>
+                                    <input name="Email" type="email" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">SĐT</label>
+                                    <input name="SoDienThoai" class="form-control" />
+                                </div>
+
+                                <!-- Ngày vào công ty mặc định = hôm nay -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Ngày vào công ty</label>
+                                    <input name="NgayVaoCongTy"
+                                           type="date"
+                                           class="form-control"
+                                           required
+                                           value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Kinh nghiệm (năm)</label>
+                                    <input name="KinhNghiem" type="number" min="0" class="form-control" />
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Mô tả</label>
+                                    <textarea name="MoTa" class="form-control"></textarea>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Mức lương</label>
+                                    <input name="MucLuong" type="number" step="0.01" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="mt-4 text-end">
+                                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-primary">Lưu</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
         <!-- Modal thêm nhân viên từ ứng viên -->
         <div class="modal fade" id="modalThemNhanVien" tabindex="-1" aria-hidden="true">

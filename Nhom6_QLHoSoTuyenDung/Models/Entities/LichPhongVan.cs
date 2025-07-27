@@ -7,7 +7,6 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Entities
     {
         [Key]
         [Column("id")]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string? Id { get; set; }
 
         [Required]

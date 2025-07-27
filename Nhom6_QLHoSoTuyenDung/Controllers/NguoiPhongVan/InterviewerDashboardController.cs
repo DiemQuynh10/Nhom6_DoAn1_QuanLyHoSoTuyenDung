@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Nhom6_QLHoSoTuyenDung.Models.Enums;
+using Nhom6_QLHoSoTuyenDung.Models.Helpers;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM;
 using Nhom6_QLHoSoTuyenDung.Services.Implementations;
 using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -14,12 +17,19 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
     {
         private readonly INguoiPhongVanService _phongVanService;
         private readonly IWebHostEnvironment _env;
+        private readonly ITaiKhoanService _taiKhoanService;
 
-        public InterviewerDashboardController(INguoiPhongVanService phongVanService, IWebHostEnvironment env)
+        public InterviewerDashboardController(
+            INguoiPhongVanService phongVanService,
+            IWebHostEnvironment env,
+            ITaiKhoanService taiKhoanService)
         {
             _phongVanService = phongVanService;
             _env = env;
+            _taiKhoanService = taiKhoanService;
         }
+
+
 
         public async Task<IActionResult> Index()
         {
@@ -131,10 +141,10 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
             return View("TrangThaiCho", lichPhongVans);
         }
 
-
         [HttpPost]
         public async Task<IActionResult> Huy(string id, string ghiChu)
         {
+            // Hủy lịch phỏng vấn trong database
             var ketQua = await _phongVanService.HuyLichPhongVanAsync(id, ghiChu);
 
             if (!ketQua)
@@ -143,9 +153,27 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
                 return RedirectToAction("LichPhongVan");
             }
 
-            TempData["Success"] = "✅ Đã hủy lịch phỏng vấn thành công.";
+            // ✅ Lấy thông tin ứng viên để gửi email
+            var lich = await _phongVanService.GetLichByIdAsync(id); // bạn cần thêm hàm này trong service
+            if (lich?.UngVien != null)
+            {
+                var email = lich.UngVien.Email;
+                var hoTen = lich.UngVien.HoTen;
+
+                var subject = "⛔ Lịch phỏng vấn bị hủy";
+                var body =
+                    $"Thân gửi {hoTen},\n\n" +
+                    $"Rất tiếc, lịch phỏng vấn của bạn đã bị hủy với lý do sau:\n\n" +
+                    $"{ghiChu}\n\n" +
+                    $"Chúng tôi sẽ liên hệ lại với bạn nếu có lịch mới phù hợp.\n\n" +
+                    $"Trân trọng,\nPhòng Tuyển dụng";
+
+                await _taiKhoanService.SendEmailAsync(email, subject, body);
+            }
+            TempData["Success"] = "✅ Đã hủy lịch phỏng vấn và gửi email thông báo cho ứng viên.";
             return RedirectToAction("LichPhongVan");
         }
+
 
     }
 } 

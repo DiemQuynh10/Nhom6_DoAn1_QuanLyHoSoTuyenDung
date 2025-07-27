@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Nhom6_QLHoSoTuyenDung.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250726170731_seeddulieu")]
-    partial class seeddulieu
+    [Migration("20250727050222_add")]
+    partial class add
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -120,7 +120,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
             modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.LichPhongVan", b =>
                 {
                     b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("id");
 

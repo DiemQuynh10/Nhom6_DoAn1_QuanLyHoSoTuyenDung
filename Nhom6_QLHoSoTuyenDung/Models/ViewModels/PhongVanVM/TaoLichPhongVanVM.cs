@@ -20,6 +20,8 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM
         public string? NhanVienPhongVanId { get; set; }
         public List<SelectListItem>? NguoiPhongVanOptions { get; set; }
         public List<string> NguoiPhongVanIds { get; set; } = new();
+        public bool IsReschedule { get; set; } = false;
+
 
     }
 }

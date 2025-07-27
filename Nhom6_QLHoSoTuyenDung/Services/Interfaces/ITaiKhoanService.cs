@@ -18,5 +18,6 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Interfaces
         Task<bool> DatLaiMatKhauAsync(string tenDangNhap, string matKhauMoi);
 
         Task<NguoiDung?> TimNguoiDungAsync(string key);
+        Task<bool> SendEmailAsync(string to, string subject, string body);
     }
 }
