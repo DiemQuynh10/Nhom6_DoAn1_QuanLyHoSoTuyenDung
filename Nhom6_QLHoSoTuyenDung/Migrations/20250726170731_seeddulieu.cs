@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Nhom6_QLHoSoTuyenDung.Migrations
 {
     /// <inheritdoc />
-    public partial class RenameToQLHoSoTuyenDung : Migration
+    public partial class seeddulieu : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -118,27 +118,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ThongKeTuyenDungs",
-                columns: table => new
-                {
-                    id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    vi_tri_id = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    so_luong_ung_vien = table.Column<int>(type: "int", nullable: true),
-                    so_luong_dat = table.Column<int>(type: "int", nullable: true),
-                    so_luong_truot = table.Column<int>(type: "int", nullable: true),
-                    thoi_gian_thong_ke = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ThongKeTuyenDungs", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_ThongKeTuyenDungs_ViTriTuyenDungs_vi_tri_id",
-                        column: x => x.vi_tri_id,
-                        principalTable: "ViTriTuyenDungs",
-                        principalColumn: "id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "UngViens",
                 columns: table => new
                 {
@@ -146,10 +125,10 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     ho_ten = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ngay_sinh = table.Column<DateTime>(type: "datetime2", nullable: true),
                     gioi_tinh = table.Column<int>(type: "int", nullable: false),
-                    email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    sdt = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    sdt = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     vi_tri_ung_tuyen_id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    link_cv = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    link_cv = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     kinh_nghiem = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     thanh_tich = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     mo_ta = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -205,18 +184,12 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     thoi_gian = table.Column<DateTime>(type: "datetime2", nullable: true),
                     trang_thai = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ghi_chu = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhongPhongVanId1 = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     UngVienMaUngVien = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     ViTriTuyenDungMaViTri = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LichPhongVans", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_LichPhongVans_PhongPhongVans_PhongPhongVanId1",
-                        column: x => x.PhongPhongVanId1,
-                        principalTable: "PhongPhongVans",
-                        principalColumn: "id");
                     table.ForeignKey(
                         name: "FK_LichPhongVans_PhongPhongVans_phong_phong_van_id",
                         column: x => x.phong_phong_van_id,
@@ -254,9 +227,15 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     lich_phong_van_id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     nhan_vien_danh_gia_id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    diem_danh_gia = table.Column<int>(type: "int", nullable: true),
+                    diem_danh_gia = table.Column<float>(type: "real", nullable: true),
                     nhan_xet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    de_xuat = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    de_xuat = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ky_nang_chuyen_mon = table.Column<float>(type: "real", nullable: true),
+                    giao_tiep = table.Column<float>(type: "real", nullable: true),
+                    giai_quyet_van_de = table.Column<float>(type: "real", nullable: true),
+                    thai_do_lam_viec = table.Column<float>(type: "real", nullable: true),
+                    tinh_than_hoc_hoi = table.Column<float>(type: "real", nullable: true),
+                    ngay_danh_gia = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -327,11 +306,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                 column: "phong_phong_van_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LichPhongVans_PhongPhongVanId1",
-                table: "LichPhongVans",
-                column: "PhongPhongVanId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_LichPhongVans_ung_vien_id",
                 table: "LichPhongVans",
                 column: "ung_vien_id");
@@ -372,11 +346,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                 column: "nhan_vien_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ThongKeTuyenDungs_vi_tri_id",
-                table: "ThongKeTuyenDungs",
-                column: "vi_tri_id");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_UngViens_vi_tri_ung_tuyen_id",
                 table: "UngViens",
                 column: "vi_tri_ung_tuyen_id");
@@ -401,9 +370,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
 
             migrationBuilder.DropTable(
                 name: "NhanVienThamGiaPhongVans");
-
-            migrationBuilder.DropTable(
-                name: "ThongKeTuyenDungs");
 
             migrationBuilder.DropTable(
                 name: "LichPhongVans");

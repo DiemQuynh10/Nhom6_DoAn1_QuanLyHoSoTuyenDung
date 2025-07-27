@@ -8,6 +8,8 @@ namespace Nhom6_QLHoSoTuyenDung.Data
         {
             if (context.PhongPhongVans.Any()) return;
 
+            var now = new DateTime(2025, 1, 15);
+
             var dsPhong = new List<PhongPhongVan>
             {
                 new PhongPhongVan {

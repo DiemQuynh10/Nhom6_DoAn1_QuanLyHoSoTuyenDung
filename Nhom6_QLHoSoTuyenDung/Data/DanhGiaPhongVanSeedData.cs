@@ -1,4 +1,5 @@
 ﻿using Nhom6_QLHoSoTuyenDung.Models.Entities;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 
 namespace Nhom6_QLHoSoTuyenDung.Data
 {
@@ -6,52 +7,65 @@ namespace Nhom6_QLHoSoTuyenDung.Data
     {
         public static void Seed(AppDbContext context)
         {
-            if (context.DanhGiaPhongVans.Any()) return;
-
-            var dsDanhGia = new List<DanhGiaPhongVan>();
-            var rnd = new Random();
-            int idCount = 1;
-
-            var nhanXetList = new[]
+            if (context.DanhGiaPhongVans.Any())
             {
-                "Thái độ tốt", "Chuyên môn vững", "Cần cải thiện kỹ năng mềm",
-                "Tự tin, trả lời lưu loát", "Kỹ năng phù hợp vị trí", "Thiếu kinh nghiệm thực tế"
-            };
-
-            // Không còn "Cần bổ sung", thay vào "Duyệt luôn"
-            var deXuatList = new[] { "Tiếp nhận", "Từ chối" };
-
-            for (int i = 1; i <= 40; i++)
-            {
-                var lichId = $"LPV{i:000}";
-
-                // Lấy nhân viên tham gia có vai trò Đánh giá
-                var danhGiaNV = context.NhanVienThamGiaPhongVans
-                    .Where(x => x.LichPhongVanId == lichId && x.VaiTro == "Đánh giá")
-                    .Select(x => x.NhanVienId)
-                    .Distinct()
-                    .ToList();
-
-                foreach (var nvId in danhGiaNV)
-                {
-                    var diem = rnd.Next(6, 11); // 6 đến 10 điểm
-
-                    var danhGia = new DanhGiaPhongVan
-                    {
-                        Id = $"DG{idCount++:000}",
-                        LichPhongVanId = lichId,
-                        NhanVienDanhGiaId = nvId,
-                        DiemDanhGia = diem,
-                        NhanXet = nhanXetList[rnd.Next(nhanXetList.Length)],
-                        DeXuat = diem >= 9 ? "Duyệt luôn" : deXuatList[rnd.Next(deXuatList.Length)]
-                    };
-
-                    dsDanhGia.Add(danhGia);
-                }
+                Console.WriteLine("⚠️ Đã có đánh giá phỏng vấn. Bỏ qua seed.");
+                return;
             }
 
-            context.DanhGiaPhongVans.AddRange(dsDanhGia);
+            var maNhanVien = context.NhanViens.Select(n => n.MaNhanVien).FirstOrDefault();
+            if (string.IsNullOrEmpty(maNhanVien))
+            {
+                Console.WriteLine("❌ Không có nhân viên nào để gán đánh giá!");
+                return;
+            }
+
+            var lichHoanThanh = context.LichPhongVans
+                .Where(l => l.TrangThai == TrangThaiPhongVanEnum.HoanThanh.ToString())
+                .ToList();
+
+            var danhSach = new List<DanhGiaPhongVan>();
+            var rnd = new Random();
+            int stt = 1;
+
+            foreach (var lich in lichHoanThanh)
+            {
+                int gt = rnd.Next(6, 10);
+                int cm = rnd.Next(6, 10);
+                int vd = rnd.Next(6, 10);
+                int td = rnd.Next(6, 10);
+                int hh = rnd.Next(6, 10);
+
+                float diemTB = (gt + cm + vd + td + hh) / 5f;
+
+                DeXuatEnum dexuat;
+                if (diemTB >= 8)
+                    dexuat = DeXuatEnum.TiepNhan;
+                else if (diemTB >= 6.5)
+                    dexuat = rnd.NextDouble() > 0.5 ? DeXuatEnum.TiepNhan : DeXuatEnum.CanPhongVanLan2;
+                else
+                    dexuat = DeXuatEnum.TuChoi;
+
+                danhSach.Add(new DanhGiaPhongVan
+                {
+                    Id = $"DG{stt++:0000}",
+                    LichPhongVanId = lich.Id,
+                    NhanVienDanhGiaId = maNhanVien, // ✅ THÊM DÒNG NÀY
+                    GiaoTiep = gt,
+                    KyNangChuyenMon = cm,
+                    GiaiQuyetVanDe = vd,
+                    ThaiDoLamViec = td,
+                    TinhThanHocHoi = hh,
+                    DiemDanhGia = diemTB,
+                    NhanXet = $"Ứng viên có tiềm năng, {dexuat}",
+                    DeXuat = dexuat.ToString()
+                });
+            }
+
+            context.DanhGiaPhongVans.AddRange(danhSach);
             context.SaveChanges();
+
+            Console.WriteLine($"✅ Đã seed {danhSach.Count} đánh giá phỏng vấn.");
         }
     }
 }
