@@ -506,6 +506,13 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
                     .FirstOrDefault(d => d.NhanVienDanhGiaId == maNhanVien)?.NhanXet
             }).ToList();
         }
+        public async Task<LichPhongVan?> GetLichByIdAsync(string id)
+        {
+            return await _context.LichPhongVans
+                .Include(l => l.UngVien)
+                .FirstOrDefaultAsync(l => l.Id == id);
+        }
+
 
     }
 }

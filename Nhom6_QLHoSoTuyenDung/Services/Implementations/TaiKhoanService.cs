@@ -165,5 +165,34 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
                 .FirstOrDefaultAsync(u =>
                     u.TenDangNhap.ToLower() == key || u.Email.ToLower() == key);
         }
+        // Gửi email đơn giản cho mọi tình huống
+        public async Task<bool> SendEmailAsync(string to, string subject, string body)
+        {
+            try
+            {
+                var msg = new MailMessage
+                {
+                    From = new MailAddress(_mail.Mail, _mail.DisplayName),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = false
+                };
+                msg.To.Add(to);
+
+                using var client = new SmtpClient(_mail.Host, _mail.Port)
+                {
+                    Credentials = new NetworkCredential(_mail.Mail, _mail.Password),
+                    EnableSsl = true
+                };
+
+                await client.SendMailAsync(msg);
+                return true;
+            }
+            catch
+            {
+                return false; // hoặc ghi log nếu cần
+            }
+        }
+
     }
 }

@@ -27,9 +27,14 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         {
             var dashboard = await _lichService.GetDashboardAsync();
             var chuaCoLich = await _lichService.GetUngViensChuaCoLichAsync();
+            var biHuy = await _lichService.GetUngViensBiHuyLichAsync();
+
             ViewBag.UngViensChuaCoLich = chuaCoLich;
+            ViewBag.LichBiHuy = biHuy;
+
             return View(dashboard);
         }
+
 
         // 2. Trả về popup tạo lịch (giao diện HR)
         public async Task<IActionResult> TaoLichPopup(string? ungVienId = null)
@@ -60,41 +65,29 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             return PartialView("_FormTaoLichPhongVan", vm);
         }
 
-
         [HttpPost]
         public async Task<IActionResult> CreateLichFromPopup(TaoLichPhongVanVM vm)
         {
             if (string.IsNullOrEmpty(vm.TrangThai))
                 vm.TrangThai = TrangThaiPhongVanEnum.DaLenLich.ToString();
 
-            // Tạo model lịch từ ViewModel
-            var model = new LichPhongVan
+            // Tạo DTO từ ViewModel
+            var lichVM = new CreateLichPhongVanVM
             {
-                Id = Guid.NewGuid().ToString(),
                 UngVienId = vm.UngVienId,
-                ViTriId = vm.ViTriId,
                 PhongPhongVanId = vm.PhongPhongVanId,
                 ThoiGian = vm.ThoiGian,
-                TrangThai = vm.TrangThai,
-                GhiChu = vm.GhiChu
+                NhanVienIds = vm.NguoiPhongVanIds ?? new()
             };
 
-            model.NhanVienThamGiaPVs = vm.NguoiPhongVanIds
-                .Select(id => new NhanVienThamGiaPhongVan
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    NhanVienId = id,
-                    LichPhongVanId = model.Id,
-                    VaiTro = "Phỏng vấn viên"
-                }).ToList();
+            // Gọi service tạo lịch
+            (bool success, string message) = await _lichService.CreateLichAsync(lichVM, isReschedule: vm.IsReschedule);
 
-            var (success, message) = await _lichService.CreateLichAsync(model);
+            // ❗️Nếu lỗi thì return ngay
             if (!success)
-            {
                 return Json(new { success = false, message });
-            }
 
-            // ✅ Cập nhật trạng thái ứng viên sau khi lên lịch vòng 2
+            // ✅ Chỉ chạy khi thành công
             var ungVien = await _context.UngViens.FindAsync(vm.UngVienId);
             if (ungVien != null && ungVien.TrangThai == TrangThaiUngVienEnum.CanPhongVanLan2.ToString())
             {
@@ -104,6 +97,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return Json(new { success = true, message });
         }
+
 
 
         // 4. Xem chi tiết lịch phỏng vấn của ứng viên
@@ -265,6 +259,34 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return PartialView("_FormTaoLich", vm); // dùng lại view có sẵn
         }
+
+        [HttpGet]
+        public async Task<IActionResult> TaoLichLaiPopup(string ungVienId)
+        {
+            var formVM = await _lichService.GetFormDataAsync(ungVienId);
+            if (formVM == null)
+            {
+                return NotFound("Không tìm thấy ứng viên.");
+            }
+
+            var interviewerIds = await _context.NguoiDungs
+                .Where(nd => nd.VaiTro == "Interviewer")
+                .Select(nd => nd.NhanVienId)
+                .ToListAsync();
+
+            formVM.NguoiPhongVanOptions = await _context.NhanViens
+                .Where(nv => interviewerIds.Contains(nv.MaNhanVien))
+                .Select(nv => new SelectListItem
+                {
+                    Value = nv.MaNhanVien,
+                    Text = nv.HoTen + " (" + nv.Email + ")"
+                }).ToListAsync();
+
+            formVM.IsReschedule = true;
+
+            return PartialView("_FormTaoLich", formVM); // View dùng cho popup
+        }
+
 
     }
 }

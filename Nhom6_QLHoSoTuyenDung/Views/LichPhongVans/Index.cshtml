@@ -206,6 +206,61 @@
             </table>
         </div>
     </div>
+    @* 📍 DANH SÁCH ỨNG VIÊN BỊ HỦY LỊCH *@
+    @if (ViewBag.LichBiHuy != null && ((List<Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.DaPhongVanVM>)ViewBag.LichBiHuy).Any())
+    {
+        <div class="card mt-5 border-danger">
+            <div class="card-header bg-danger text-white fw-bold">
+                🔁 Ứng viên bị hủy lịch phỏng vấn – cần sắp xếp lại
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-bordered mb-0">
+                    <thead class="table-danger">
+                        <tr>
+                            <th>#</th>
+                            <th>Họ tên</th>
+                            <th>Email</th>
+                            <th>Vị trí</th>
+                            <th>Thời gian (cũ)</th>
+                            <th>Ghi chú</th>
+                            <th>CV</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int stt = 1;
+                            foreach (var uv in (List<Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM.DaPhongVanVM>)ViewBag.LichBiHuy)
+                            {
+                                <tr>
+                                    <td>@(stt++)</td>
+                                    <td>@uv.TenUngVien</td>
+                                    <td>@uv.Email</td>
+                                    <td>@uv.ViTri</td>
+                                    <td>@uv.ThoiGian.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@uv.NhanXet</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(uv.LinkCV))
+                                        {
+                                            <a class="btn btn-sm btn-outline-secondary" href="@uv.LinkCV" target="_blank">Xem CV</a>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="javascript:void(0)" class="btn btn-sm btn-primary"
+                                           onclick="openPopupTaoLichLai('@uv.UngVienId')">
+                                            🔄 Lên lịch lại
+                                        </a>
+
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
 </div>
 
 <!-- Modal tạo lịch -->
@@ -223,6 +278,8 @@
         </div>
     </div>
 </div>
+
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -400,6 +457,23 @@
                 }
             }
         });
+             function openPopupTaoLichLai(ungVienId) {
+            const body = document.getElementById('formLichBody');
+            body.innerHTML = "<p>Đang tải biểu mẫu...</p>";
+
+            fetch(`/LichPhongVans/TaoLichLaiPopup?ungVienId=${ungVienId}`)
+                .then(res => res.text())
+                .then(html => {
+                    body.innerHTML = html;
+                })
+                .catch(() => {
+                    body.innerHTML = "<p class='text-danger'>Không thể tải biểu mẫu.</p>";
+                });
+
+            const modal = new bootstrap.Modal(document.getElementById('taoLichModal'));
+            modal.show();
+        }     
+
     </script>
     <style>
         .stat-glass {

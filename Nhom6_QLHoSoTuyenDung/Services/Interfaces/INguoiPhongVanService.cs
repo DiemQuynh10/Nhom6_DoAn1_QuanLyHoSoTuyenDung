@@ -14,5 +14,7 @@ public interface INguoiPhongVanService
     // Interface
     Task<List<string>> GetDanhSachLichPhongVanTheoDeXuatAsync(string nguoiDungId, DeXuatEnum deXuat);
     Task<List<DaPhongVanVM>> GetThongTinChiTietLichAsync(List<string> lichIds, string nguoiDungId);
+    Task<LichPhongVan?> GetLichByIdAsync(string id);
+
 
 }

@@ -117,7 +117,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
             modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.LichPhongVan", b =>
                 {
                     b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("id");
 
