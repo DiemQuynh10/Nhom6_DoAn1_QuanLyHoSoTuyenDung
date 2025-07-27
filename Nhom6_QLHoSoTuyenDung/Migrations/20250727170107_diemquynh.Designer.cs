@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Nhom6_QLHoSoTuyenDung.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250727050222_add")]
-    partial class add
+    [Migration("20250727170107_diemquynh")]
+    partial class diemquynh
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -11,7 +11,7 @@ public interface ILichPhongVanService
     Task<TaoLichPhongVanVM?> GetFormDataAsync(string ungVienId);
     Task<LichPhongVan?> GetLichByUngVienIdAsync(string ungVienId);
     Task<List<UngVien>> GetUngViensChuaCoLichAsync();
-    Task<List<DaPhongVanVM>> GetUngViensChuaCoLichVong2Async();
+    Task<List<DaPhongVanVM>> GetTrangThaiChoHRAsync();
     Task<(bool, string)> CreateLichAsync(CreateLichPhongVanVM vm, bool isReschedule = false);
     Task<List<DaPhongVanVM>> GetUngViensBiHuyLichAsync();
 }

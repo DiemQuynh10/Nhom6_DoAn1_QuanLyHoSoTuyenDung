@@ -18,6 +18,7 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Interfaces
         (List<string>, List<int>) DemTheoThang(List<ViTriTuyenDung> danhSach);
         List<QuyTrinhTuyenDungItem> ThongKeQuyTrinh(List<UngVien> danhSach);
         List<HoatDongDashboardVM> LayHoatDongGanDay();
+        Task CapNhatTrangThaiTuDongAsync();
 
     }
 }

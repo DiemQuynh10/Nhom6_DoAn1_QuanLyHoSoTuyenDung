@@ -30,6 +30,7 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
         public string? NhanXet { get; set; }
 
         [Display(Name = "Đề xuất")]
+        [Required(ErrorMessage = "Vui lòng chọn đề xuất.")]
         public DeXuatEnum? DeXuat { get; set; }
         public string? KinhNghiem { get; set; }
         public string? LinkCV { get; set; }

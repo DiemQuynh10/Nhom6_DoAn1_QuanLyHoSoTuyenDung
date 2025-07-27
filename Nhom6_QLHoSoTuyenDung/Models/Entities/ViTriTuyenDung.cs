@@ -18,7 +18,7 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Entities
         public int? SoLuongCanTuyen { get; set; }
 
         [Column("trang_thai")]
-        public string? TrangThai { get; set; } // Đang tuyển, Tạm dừng, Đã đóng, Đã ban hành
+        public string? TrangThai { get; set; } // Đang tuyển, Tạm dừng, Đã đóng
 
         [Column("phong_ban_id")]
         public string? PhongBanId { get; set; }

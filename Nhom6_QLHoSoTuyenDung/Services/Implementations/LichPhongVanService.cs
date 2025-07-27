@@ -64,10 +64,13 @@ public class LichPhongVanService : ILichPhongVanService
         try
         {
             var ungVien = await _context.UngViens.FirstOrDefaultAsync(u => u.MaUngVien == vm.UngVienId);
-        if (ungVien == null)
-            return (false, "Ứng viên không tồn tại.");
+            if (ungVien == null)
+                return (false, "Ứng viên không tồn tại.");
 
-        if (!vm.ThoiGian.HasValue)
+            var isVong2 = ungVien.TrangThai == TrangThaiUngVienEnum.CanPhongVanLan2.ToString();
+
+
+            if (!vm.ThoiGian.HasValue)
             return (false, "Vui lòng chọn thời gian hợp lệ.");
         if (vm.ThoiGian < DateTime.Now)
             return (false, "Không thể tạo lịch với thời gian trong quá khứ.");
@@ -141,44 +144,50 @@ public class LichPhongVanService : ILichPhongVanService
             .Select(p => new { p.TenPhong, p.DiaDiem })
             .FirstOrDefaultAsync();
 
-        if (!string.IsNullOrEmpty(uvInfo?.Email))
-        {
-            var email = uvInfo.Email;
-
-            if (isReschedule)
+            if (!string.IsNullOrEmpty(uvInfo?.Email))
             {
-                // 🔁 Gửi email lịch lại (bản TEXT thường)
-                var subject = "🔁 Lịch phỏng vấn mới được cập nhật";
+                var email = uvInfo.Email;
 
-                var body =
-                    $"Thân gửi {uvInfo.HoTen},\n\n" +
-                    $"Lịch phỏng vấn mới đã được sắp xếp lại cho bạn do lịch trước đó đã bị hủy.\n\n" +
-                    $"🔁 Thông tin lịch mới:\n" +
-                    $"- Vị trí: {viTriInfo}\n" +
-                    $"- Thời gian: {thoiGianPhongVan:HH:mm, dd/MM/yyyy}\n" +
-                    $"- Địa điểm: {phongInfo?.TenPhong} - {phongInfo?.DiaDiem}\n\n" +
-                    $"Vui lòng kiểm tra email và có mặt đúng giờ để buổi phỏng vấn diễn ra thuận lợi.\n\n" +
-                    $"Trân trọng,\nPhòng Tuyển dụng";
+                if (isReschedule)
+                {
+                    var subject = "🔁 Lịch phỏng vấn mới được cập nhật";
+                    var body = $"Thân gửi {uvInfo.HoTen},\n\n" +
+                               $"Lịch phỏng vấn mới đã được sắp xếp lại cho bạn do lịch trước đó đã bị hủy.\n\n" +
+                               $"🔁 Thông tin lịch mới:\n" +
+                               $"- Vị trí: {viTriInfo}\n" +
+                               $"- Thời gian: {thoiGianPhongVan:HH:mm, dd/MM/yyyy}\n" +
+                               $"- Địa điểm: {phongInfo?.TenPhong} - {phongInfo?.DiaDiem}\n\n" +
+                               $"Vui lòng kiểm tra email và có mặt đúng giờ để buổi phỏng vấn diễn ra thuận lợi.\n\n" +
+                               $"Trân trọng,\nPhòng Tuyển dụng";
 
-                await _taiKhoanService.SendEmailAsync(email, subject, body);
+                    await _taiKhoanService.SendEmailAsync(email, subject, body);
+                }
+                else if (isVong2)
+                {
+                    var subject = "📢 Lịch phỏng vấn vòng 2";
+                    var body = $"Thân gửi {uvInfo.HoTen},\n\n" +
+                               $"Bạn đã được xếp lịch phỏng vấn vòng 2 cho vị trí: {viTriInfo}.\n\n" +
+                               $"🕒 Thời gian: {thoiGianPhongVan:HH:mm, dd/MM/yyyy}\n" +
+                               $"🏢 Địa điểm: {phongInfo?.TenPhong} - {phongInfo?.DiaDiem}\n\n" +
+                               $"Vui lòng kiểm tra email và chuẩn bị kỹ càng cho vòng phỏng vấn tiếp theo.\n\n" +
+                               $"Trân trọng,\nPhòng Tuyển dụng";
+
+                    await _taiKhoanService.SendEmailAsync(email, subject, body);
+                }
+                else
+                {
+                    var subject = "📅 Thông báo lịch phỏng vấn";
+                    var body = $"Thân gửi {uvInfo.HoTen},\n\n" +
+                               $"Bạn đã được sắp xếp lịch phỏng vấn cho vị trí: {viTriInfo}.\n\n" +
+                               $"🕒 Thời gian: {thoiGianPhongVan:HH:mm, dd/MM/yyyy}\n" +
+                               $"🏢 Địa điểm: {phongInfo?.TenPhong} - {phongInfo?.DiaDiem}\n\n" +
+                               $"Vui lòng có mặt đúng giờ và chuẩn bị sẵn các giấy tờ cần thiết.\n\n" +
+                               $"Trân trọng,\nPhòng Tuyển dụng";
+
+                    await _taiKhoanService.SendEmailAsync(email, subject, body);
+                }
             }
-            else
-            {
-                // 📅 Gửi mail lịch phỏng vấn lần đầu
-                var subject = "📅 Thông báo lịch phỏng vấn";
-
-                var body =
-                    $"Thân gửi {uvInfo.HoTen},\n\n" +
-                    $"Bạn đã được sắp xếp lịch phỏng vấn cho vị trí: {viTriInfo}.\n\n" +
-                    $"🕒 Thời gian: {thoiGianPhongVan:HH:mm, dd/MM/yyyy}\n" +
-                    $"🏢 Địa điểm: {phongInfo?.TenPhong} - {phongInfo?.DiaDiem}\n\n" +
-                    $"Vui lòng có mặt đúng giờ và chuẩn bị sẵn các giấy tờ cần thiết.\n\n" +
-                    $"Trân trọng,\nPhòng Tuyển dụng";
-
-                await _taiKhoanService.SendEmailAsync(email, subject, body);
-            }
-        }
-        return (true, "Đã tạo lịch phỏng vấn thành công!");
+            return (true, "Đã tạo lịch phỏng vấn thành công!");
     }catch (Exception ex)
 {
             // Ghi log nếu cần
@@ -267,48 +276,34 @@ public async Task<PhongVanDashboardVM> GetDashboardAsync()
         return chuaCoLich;
     }
 
-    public async Task<List<DaPhongVanVM>> GetUngViensChuaCoLichVong2Async()
+    public async Task<List<DaPhongVanVM>> GetTrangThaiChoHRAsync()
     {
-        // B1: Lấy các lịch có đánh giá đề xuất phỏng vấn lần 2
-        var lichV1 = await _context.LichPhongVans
+        var lichHopLe = await _context.LichPhongVans
             .Include(l => l.UngVien)
             .Include(l => l.ViTriTuyenDung)
             .Include(l => l.DanhGiaPhongVans)
-            .Where(l => l.DanhGiaPhongVans.Any(d => d.DeXuat == DeXuatEnum.CanPhongVanLan2.ToString()))
+            .Where(l =>
+                l.UngVien.TrangThai == TrangThaiUngVienEnum.CanPhongVanLan2.ToString() &&
+                l.TrangThai == TrangThaiPhongVanEnum.HoanThanh.ToString())
             .ToListAsync();
 
-        var result = new List<DaPhongVanVM>();
-
-        foreach (var lich in lichV1)
+        var result = lichHopLe.Select(lich => new DaPhongVanVM
         {
-            var ungVienId = lich.UngVienId;
-
-            // B2: Kiểm tra xem đã có lịch mới cho vòng 2 chưa
-            var daCoLichV2 = await _context.LichPhongVans
-                .AnyAsync(l => l.UngVienId == ungVienId
-                    && l.Id != lich.Id
-                    && l.TrangThai == TrangThaiPhongVanEnum.DaLenLich.ToString());
-
-            if (daCoLichV2)
-                continue;
-
-            // B3: Lấy thông tin ứng viên
-            result.Add(new DaPhongVanVM
-            {
-                LichId = lich.Id,
-                TenUngVien = lich.UngVien?.HoTen ?? "Không rõ",
-                UngVienId = lich.UngVienId,
-                Email = lich.UngVien?.Email ?? "",
-                ViTri = lich.ViTriTuyenDung?.TenViTri ?? "",
-                ThoiGian = lich.ThoiGian ?? DateTime.Now,
-                LinkCV = lich.UngVien?.LinkCV,
-                DiemTB = lich.DanhGiaPhongVans.FirstOrDefault()?.DiemDanhGia,
-                NhanXet = lich.DanhGiaPhongVans.FirstOrDefault()?.NhanXet
-            });
-        }
+            LichId = lich.Id,
+            TenUngVien = lich.UngVien?.HoTen ?? "Không rõ",
+            UngVienId = lich.UngVien?.MaUngVien ?? "",
+            Email = lich.UngVien?.Email ?? "",
+            ViTri = lich.ViTriTuyenDung?.TenViTri ?? "",
+            ThoiGian = lich.ThoiGian ?? DateTime.Now,
+            LinkCV = lich.UngVien?.LinkCV,
+            DiemTB = lich.DanhGiaPhongVans.FirstOrDefault()?.DiemDanhGia,
+            NhanXet = lich.DanhGiaPhongVans.FirstOrDefault()?.NhanXet
+        }).ToList();
 
         return result;
     }
+
+
     public async Task<List<DaPhongVanVM>> GetUngViensBiHuyLichAsync()
     {
         // B1: Lấy danh sách ứng viên đã có lịch mới

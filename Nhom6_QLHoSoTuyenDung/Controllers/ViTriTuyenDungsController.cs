@@ -25,7 +25,15 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
         public async Task<IActionResult> Index(string? keyword, string? trangThai, string? phongBanId)
         {
-            var dsViTri = _viTriService.GetAll(keyword, trangThai, phongBanId);
+            await _viTriService.CapNhatTrangThaiTuDongAsync(); // 🆕 gọi version mới
+            var trangThaiEnum = EnumExtensions.GetEnumFromDisplayName<TrangThaiViTriEnum>(trangThai);
+            var trangThaiValue = trangThaiEnum?.ToString();
+
+            var dsViTri = _viTriService.GetAll(keyword, trangThaiValue, phongBanId);
+
+
+
+            // ✅ Sau đó mới tính lại phân bổ trạng thái
             var phanBoTrangThai = _viTriService.PhanBoTrangThai(dsViTri);
             var (thang, soLuongMoi) = _viTriService.DemTheoThang(dsViTri);
             var soLuongHoanThanh = _viTriService.DemSoLuongHoanThanhTheoThang(dsViTri);
@@ -52,6 +60,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return View(vm);
         }
+
 
         public IActionResult Create()
         {
@@ -180,7 +189,8 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             viTri.TrangThai = model.TrangThai;
             bool isAutoPaused = false;
 
-            if (model.TrangThai == "Đang tuyển")
+            if (model.TrangThai == TrangThaiViTriEnum.DangTuyen.ToString())
+
             {
                 var soLuongUngVien = await _context.UngViens
                     .CountAsync(uv => uv.ViTriUngTuyenId == viTri.MaViTri);

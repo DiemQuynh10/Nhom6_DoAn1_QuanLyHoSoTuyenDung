@@ -53,13 +53,14 @@
             <span asp-validation-for="NhanXet" class="text-danger"></span>
         </div>
 
-        <div class="mt-4">
+        <div class="mb-4">
             <label asp-for="DeXuat" class="form-label">Đề xuất</label>
-            <select asp-for="DeXuat" class="form-select" asp-items="Html.GetEnumSelectList<DeXuatEnum>()">
-                <option disabled selected value="">-- Chọn đề xuất --</option>
+            <select asp-for="DeXuat" asp-items="Html.GetEnumSelectList<DeXuatEnum>()" class="form-select">
+                <option value="">-- Chọn đề xuất --</option>
             </select>
-            <span asp-validation-for="DeXuat" class="text-danger"></span>
+            <span asp-validation-for="DeXuat" class="text-danger"></span> <!-- ✅ THÊM DÒNG NÀY -->
         </div>
+
 
         <div class="d-flex justify-content-between mt-4">
             <a asp-action="DanhGia" asp-route-id="@Model.LichPhongVanId" class="btn btn-outline-secondary">

@@ -17,7 +17,8 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
         public async Task<IActionResult> TrangThaiCho()
         {
-            var danhSach = await _lichService.GetUngViensChuaCoLichVong2Async();
+            // ✅ Sử dụng đúng service đã refactor
+            var danhSach = await _lichService.GetTrangThaiChoHRAsync();
             return View("TrangThaiChoHR", danhSach);
         }
     }

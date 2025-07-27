@@ -51,9 +51,10 @@
                 <div class="col-md-2">
                     <select name="trangThai" class="form-select">
                         <option value="">Tất cả trạng thái</option>
-                        <option value="Đang tuyển" selected="@(ViewBag.CurrentTrangThai == "Đang tuyển")">Đang tuyển</option>
-                        <option value="Tạm dừng" selected="@(ViewBag.CurrentTrangThai == "Tạm dừng")">Tạm dừng</option>
-                        <option value="Đã đóng" selected="@(ViewBag.CurrentTrangThai == "Đã đóng")">Đã đóng</option>
+                        <option value="DangTuyen" selected="@(ViewBag.CurrentTrangThai == "DangTuyen")">Đang tuyển</option>
+                        <option value="TamDung" selected="@(ViewBag.CurrentTrangThai == "TamDung")">Tạm dừng</option>
+                        <option value="DaDong" selected="@(ViewBag.CurrentTrangThai == "DaDong")">Đã đóng</option>
+
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -150,11 +151,12 @@
                                 <td>@item.PhongBan?.TenPhong</td>
                                 <td>
                                     <span class="badge
-                        @(item.TrangThai == "Đang tuyển" ? "bg-success" :
-                          item.TrangThai == "Tạm dừng" ? "bg-warning text-dark" : "bg-secondary")"
+    @(item.TrangThai == TrangThaiViTriEnum.DangTuyen.ToString() ? "bg-success" :
+      item.TrangThai == TrangThaiViTriEnum.TamDung.ToString() ? "bg-warning text-dark" : "bg-secondary")"
                                           id="badge-@item.MaViTri">
-                                        @item.TrangThai
+                                        @((item.TrangThai.ToEnum<TrangThaiViTriEnum>()).GetDisplayName().ToUpper())
                                     </span>
+
                                 </td>
                                 <td>@item.NgayTao?.ToString("dd/MM/yyyy")</td>
                                 <td>@item.SoLuongCanTuyen</td>
@@ -193,7 +195,7 @@
         <div class="col-md-3">
             <div class="card p-3 text-center">
                 <div class="text-success fs-4"><i class="bi bi-play-circle-fill"></i></div>
-                <h4>@Model.DanhSachViTri.Count(v => v.TrangThai == "Đang tuyển")</h4>
+                <h4>@Model.DanhSachViTri.Count(v => v.TrangThai == TrangThaiViTriEnum.DangTuyen.ToString())</h4>
                 <div class="text-muted">Đang tuyển</div>
                 <canvas id="chartDangTuyen" height="40"></canvas>
             </div>
@@ -278,7 +280,7 @@
                     <a href="/ViTriTuyenDungs/HoatDongGanDay" class="text-decoration-none">Xem tất cả →</a>
                 </div>
 
-                @foreach (var item in Model.DanhSachViTri.Where(v => v.TrangThai == "Đang tuyển"))
+                @foreach (var item in Model.DanhSachViTri.Where(v => v.TrangThai == TrangThaiViTriEnum.DangTuyen.ToString()))
                 {
                     var tongHoSo = item.UngViens?.Count() ?? 0;
                     var daDeXuat = item.UngViens?.Count(uv => uv.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString()) ?? 0;
@@ -286,7 +288,10 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <strong>@item.TenViTri</strong>
-                                <span class="badge bg-@((item.TrangThai == "Đang tuyển") ? "success" : "warning text-dark") ms-2">@item.TrangThai.ToUpper()</span>
+                                <span class="badge bg-@((item.TrangThai == TrangThaiViTriEnum.DangTuyen.ToString()) ? "success" : "warning text-dark") ms-2">
+                                    @((Enum.Parse<TrangThaiViTriEnum>(item.TrangThai)).GetDisplayName().ToUpper())
+                                </span>
+
                                 <div class="text-muted small">@item.PhongBan?.TenPhong</div>
                             </div>
                             <div class="text-end small text-muted">
@@ -297,11 +302,12 @@
                                         var trangThai = item.TrangThai;
                                         var moTa = trangThai switch
                                         {
-                                            "Đang tuyển" => "Đang mở nhận hồ sơ",
-                                            "Tạm dừng" => "Tạm dừng tuyển",
-                                            "Đã đóng" => "Đã kết thúc",
+                                            nameof(TrangThaiViTriEnum.DangTuyen) => "Đang mở nhận hồ sơ",
+                                            nameof(TrangThaiViTriEnum.TamDung) => "Tạm dừng tuyển",
+                                            nameof(TrangThaiViTriEnum.DaDong) => "Đã kết thúc",
                                             _ => "Không xác định"
                                         };
+
                                     }
                                     @moTa
                                 </div>
@@ -394,7 +400,7 @@
         }
 
         miniChart('chartTongViTri', [12, 14, 18, 21, 22, 25, @Model.DanhSachViTri.Count()], '#3B82F6');
-        miniChart('chartDangTuyen', [10, 11, 13, 15, 16, 18, @Model.DanhSachViTri.Count(v => v.TrangThai == "Đang tuyển")], '#10B981');
+        miniChart('chartDangTuyen', [10, 11, 13, 15, 16, 18, @Model.DanhSachViTri.Count(v => v.TrangThai == "DangTuyen")], '#10B981');
         miniChart('chartUngVien', [80, 95, 100, 110, 130, 145, @Model.DanhSachViTri.Sum(v => v.UngViens?.Count ?? 0)], '#A855F7');
         miniChart('chartThanhCong', [30, 45, 50, 55, 65, 72, @tyLe], '#0ea5e9');
     </script>
@@ -481,7 +487,7 @@
                     const selectTrangThai = document.getElementById('edit-TrangThai');
 
                     // ❗ Nếu trạng thái hiện tại KHÔNG phải "Đang tuyển" VÀ số lượng đã tuyển >= số cần tuyển
-                    if (trangThaiHienTai !== "Đang tuyển" && daTuyen >= soLuongHienTai) {
+                    if (trangThaiHienTai !== "DangTuyen" && daTuyen >= soLuongHienTai){
                         // Disable chọn lại "Đang tuyển"
                         for (let option of selectTrangThai.options) {
                             if (option.value === "Đang tuyển") {

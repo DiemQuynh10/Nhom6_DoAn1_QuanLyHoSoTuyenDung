@@ -5,6 +5,7 @@ using Nhom6_QLHoSoTuyenDung.Services.Interfaces;
 using Nhom6_QLHoSoTuyenDung.Models.Helpers;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.ViTriTuyenDungVM;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.Dashboard;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 
 namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
 {
@@ -46,6 +47,8 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
         {
             model.MaViTri = GenerateNewMaViTri();
             model.NgayTao = DateTime.Now;
+            if (string.IsNullOrWhiteSpace(model.TrangThai))
+                model.TrangThai = TrangThaiViTriEnum.DangTuyen.ToString();
             _context.ViTriTuyenDungs.Add(model);
             _context.SaveChanges();
         }
@@ -84,7 +87,7 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
             {
                 var thang = DateTime.Now.AddMonths(-i);
                 int count = dsViTri
-                    .Where(v => v.NgayTao.HasValue && v.TrangThai == "Đã đóng")
+                    .Where(v => v.NgayTao.HasValue && v.TrangThai == TrangThaiViTriEnum.DaDong.ToString())
                     .Count(v =>
                         v.NgayTao.Value.Month == thang.Month &&
                         v.NgayTao.Value.Year == thang.Year);
@@ -127,5 +130,27 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
             var numberPart = int.TryParse(lastMa.Substring(2), out int num) ? num : 0;
             return $"VT{(num + 1):D3}";
         }
+        public async Task CapNhatTrangThaiTuDongAsync()
+        {
+            var danhSach = await _context.ViTriTuyenDungs
+               .Where(v => v.TrangThai == TrangThaiViTriEnum.DangTuyen.ToString())
+                .ToListAsync();
+
+            foreach (var viTri in danhSach)
+            {
+                var soLuong = await _context.UngViens
+                    .CountAsync(u => u.ViTriUngTuyenId == viTri.MaViTri &&
+                                     u.TrangThai == TrangThaiUngVienEnum.DaTuyen.ToString());
+
+                if (soLuong >= viTri.SoLuongCanTuyen)
+                {
+                    viTri.TrangThai = TrangThaiViTriEnum.TamDung.ToString();
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+
     }
 }

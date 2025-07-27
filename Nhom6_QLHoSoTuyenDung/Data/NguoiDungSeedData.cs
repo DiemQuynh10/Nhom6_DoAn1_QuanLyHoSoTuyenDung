@@ -18,7 +18,7 @@ namespace Nhom6_QLHoSoTuyenDung.Data
                     TenDangNhap = "admin",
                     MatKhau = "123456",
                     VaiTro = "Admin",
-                    PhongBanId = "PBKT",
+                    PhongBanId = "PBIT",
                     HoTen = "Đinh Thị Diễm Quỳnh",
                     Email = "diemquynhdinh1010@gmail.com",
                     SoDienThoai = "0329801388",
