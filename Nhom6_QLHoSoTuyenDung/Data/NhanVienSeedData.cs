@@ -81,7 +81,7 @@ namespace Nhom6_QLHoSoTuyenDung.Data
                     ChucVu = "Trưởng phòng NS", PhongBanId = "PBNS", Email = "dung.truongns@example.com",
                     SoDienThoai = "0901000012", NgayVaoCongTy = new DateTime(2013, 5, 1),
                     KinhNghiem = "10 năm", MoTa = "Quản lý nhân sự", MucLuong = 27000000
-                },
+                }
             };
 
             context.NhanViens.AddRange(nhanViens);
@@ -89,4 +89,3 @@ namespace Nhom6_QLHoSoTuyenDung.Data
         }
     }
 }
-

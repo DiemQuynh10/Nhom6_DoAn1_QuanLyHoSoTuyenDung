@@ -42,19 +42,23 @@ namespace Nhom6_QLHoSoTuyenDung
             builder.Services.AddScoped<ITaiKhoanService, TaiKhoanService>();
             builder.Services.AddScoped<IThongKeService, ThongKeService>();
             var app = builder.Build();
+
             using (var scope = app.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
                 PhongBanSeedData.Seed(context);
+                PhongPhongVanSeedData.Seed(context);
                 NhanVienSeedData.Seed(context);
                 NguoiDungSeedData.Seed(context);
-                PhongPhongVanSeedData.Seed(context);
                 ViTriTuyenDungSeedData.Seed(context);
-                UngVienSeedData.Seed(context);
-                LichPhongVanSeedData.Seed(context);
-                NhanVienThamGiaPhongVanSeedData.Seed(context);
+                UngVienSeedData.Seed(context); // cần trước Lịch
+                LichPhongVanSeedData.Seed(context); // cần sau các bảng trên
                 DanhGiaPhongVanSeedData.Seed(context);
+                CapNhatTrangThaiUngVienSauDanhGia.CapNhat(context);
+
                 HoSoLuuTruSeedData.Seed(context);
+
             }
 
             // Configure the HTTP request pipeline.

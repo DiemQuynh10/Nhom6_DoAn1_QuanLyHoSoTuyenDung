@@ -130,9 +130,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("phong_phong_van_id");
 
-                    b.Property<string>("PhongPhongVanId1")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime?>("ThoiGian")
                         .HasColumnType("datetime2")
                         .HasColumnName("thoi_gian");
@@ -160,8 +157,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PhongPhongVanId");
-
-                    b.HasIndex("PhongPhongVanId1");
 
                     b.HasIndex("UngVienId");
 
@@ -503,14 +498,10 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
             modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.LichPhongVan", b =>
                 {
                     b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongPhongVan", "PhongPhongVan")
-                        .WithMany()
+                        .WithMany("LichPhongVans")
                         .HasForeignKey("PhongPhongVanId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongPhongVan", null)
-                        .WithMany("LichPhongVans")
-                        .HasForeignKey("PhongPhongVanId1");
 
                     b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.UngVien", "UngVien")
                         .WithMany()

@@ -8,19 +8,21 @@ namespace Nhom6_QLHoSoTuyenDung.Data
         {
             if (context.NguoiDungs.Any()) return;
 
+            var ngayTao = new DateTime(2024, 1, 1);
+
             var nguoiDungs = new List<NguoiDung>
             {
-                // Admin hệ thống (quản lý toàn bộ)
+                // Admin hệ thống
                 new NguoiDung {
                     NhanVienId = "NV001",
                     TenDangNhap = "admin",
                     MatKhau = "123456",
                     VaiTro = "Admin",
                     PhongBanId = "PBKT",
-                    HoTen = "Nguyễn Văn An",
-                    Email = "an.kt@example.com",
-                    SoDienThoai = "0901000001",
-                    NgayTao = DateTime.Now
+                    HoTen = "Đinh Thị Diễm Quỳnh",
+                    Email = "diemquynhdinh1010@gmail.com",
+                    SoDienThoai = "0329801388",
+                    NgayTao = ngayTao
                 },
 
                 // HR phụ trách tuyển dụng
@@ -33,7 +35,7 @@ namespace Nhom6_QLHoSoTuyenDung.Data
                     HoTen = "Trần Thị Bích",
                     Email = "bich.ns@example.com",
                     SoDienThoai = "0901000002",
-                    NgayTao = DateTime.Now
+                    NgayTao = ngayTao
                 },
                 new NguoiDung {
                     NhanVienId = "NV010",
@@ -44,10 +46,10 @@ namespace Nhom6_QLHoSoTuyenDung.Data
                     HoTen = "Lưu Thị Hằng",
                     Email = "hang.ns@example.com",
                     SoDienThoai = "0901000010",
-                    NgayTao = DateTime.Now
+                    NgayTao = ngayTao
                 },
 
-                // Người phỏng vấn (Interviewer)
+                // Người phỏng vấn
                 new NguoiDung {
                     NhanVienId = "NV003",
                     TenDangNhap = "pv1",
@@ -57,7 +59,7 @@ namespace Nhom6_QLHoSoTuyenDung.Data
                     HoTen = "Lê Hoàng Giang",
                     Email = "giang.it@example.com",
                     SoDienThoai = "0901000003",
-                    NgayTao = DateTime.Now
+                    NgayTao = ngayTao
                 },
                 new NguoiDung {
                     NhanVienId = "NV004",
@@ -68,7 +70,7 @@ namespace Nhom6_QLHoSoTuyenDung.Data
                     HoTen = "Phạm Thị Lan",
                     Email = "lan.da@example.com",
                     SoDienThoai = "0901000004",
-                    NgayTao = DateTime.Now
+                    NgayTao = ngayTao
                 },
                 new NguoiDung {
                     NhanVienId = "NV011",
@@ -79,8 +81,8 @@ namespace Nhom6_QLHoSoTuyenDung.Data
                     HoTen = "Nguyễn Văn Long",
                     Email = "long.full@example.com",
                     SoDienThoai = "0901000011",
-                    NgayTao = DateTime.Now
-                },
+                    NgayTao = ngayTao
+                }
             };
 
             context.NguoiDungs.AddRange(nguoiDungs);

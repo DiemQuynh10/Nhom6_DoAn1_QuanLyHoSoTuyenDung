@@ -70,12 +70,14 @@
                             </button>
 
                             @if (!string.IsNullOrEmpty(@item.LinkCV))
-                        {
-                                <button class="icon-button" onclick="showCV('@Url.Content(@item.LinkCV)')">
-                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
-                                <span class="tooltip-text">Xem CV</span>
-                            </button>
-                        }
+                            {
+                                <button class="btn btn-sm btn-outline-danger"
+                                        onclick="xemCV('@Url.Content(@item.LinkCV)')"
+                                        data-bs-toggle="tooltip" title="Xem CV ứng viên">
+                                    <i class="bi bi-file-pdf-fill"></i>
+                                </button>
+                            }
+
                         else
                         {
                             <span class="text-muted">—</span>
@@ -103,8 +105,20 @@
     </div>
 </div>
 
-<!-- Modal xem CV dùng chung -->
-@await Html.PartialAsync("_CvModalPartial")
+<!-- Test modal xem CV -->
+<div class="modal fade" id="cvModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xem CV</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="cvViewer" width="100%" height="600px" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 @section Scripts {
@@ -195,5 +209,9 @@
             const modal = new bootstrap.Modal(document.getElementById('cvModal'));
             modal.show();
         }
+                $(document).ready(function () {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+
     </script>
 }

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Nhom6_QLHoSoTuyenDung.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250705022925_RenameToQLHoSoTuyenDung")]
-    partial class RenameToQLHoSoTuyenDung
+    [Migration("20250726170731_seeddulieu")]
+    partial class seeddulieu
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,7 +24,7 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.DanhGiaPhongVan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.DanhGiaPhongVan", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)")
@@ -34,14 +34,30 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("de_xuat");
 
-                    b.Property<int?>("DiemDanhGia")
-                        .HasColumnType("int")
+                    b.Property<float?>("DiemDanhGia")
+                        .HasColumnType("real")
                         .HasColumnName("diem_danh_gia");
+
+                    b.Property<float?>("GiaiQuyetVanDe")
+                        .HasColumnType("real")
+                        .HasColumnName("giai_quyet_van_de");
+
+                    b.Property<float?>("GiaoTiep")
+                        .HasColumnType("real")
+                        .HasColumnName("giao_tiep");
+
+                    b.Property<float?>("KyNangChuyenMon")
+                        .HasColumnType("real")
+                        .HasColumnName("ky_nang_chuyen_mon");
 
                     b.Property<string>("LichPhongVanId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("lich_phong_van_id");
+
+                    b.Property<DateTime?>("NgayDanhGia")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ngay_danh_gia");
 
                     b.Property<string>("NhanVienDanhGiaId")
                         .IsRequired()
@@ -52,6 +68,14 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("nhan_xet");
 
+                    b.Property<float?>("ThaiDoLamViec")
+                        .HasColumnType("real")
+                        .HasColumnName("thai_do_lam_viec");
+
+                    b.Property<float?>("TinhThanHocHoi")
+                        .HasColumnType("real")
+                        .HasColumnName("tinh_than_hoc_hoi");
+
                     b.HasKey("Id");
 
                     b.HasIndex("LichPhongVanId");
@@ -61,7 +85,7 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("DanhGiaPhongVans");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.HoSoLuuTru", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.HoSoLuuTru", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)")
@@ -93,9 +117,10 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("HoSoLuuTrus");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.LichPhongVan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.LichPhongVan", b =>
                 {
                     b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("id");
 
@@ -107,9 +132,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("phong_phong_van_id");
-
-                    b.Property<string>("PhongPhongVanId1")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime?>("ThoiGian")
                         .HasColumnType("datetime2")
@@ -139,8 +161,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
 
                     b.HasIndex("PhongPhongVanId");
 
-                    b.HasIndex("PhongPhongVanId1");
-
                     b.HasIndex("UngVienId");
 
                     b.HasIndex("UngVienMaUngVien");
@@ -152,7 +172,7 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("LichPhongVans");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.NguoiDung", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.NguoiDung", b =>
                 {
                     b.Property<string>("NhanVienId")
                         .HasColumnType("nvarchar(450)")
@@ -200,7 +220,7 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("NguoiDungs");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.NhanVien", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.NhanVien", b =>
                 {
                     b.Property<string>("MaNhanVien")
                         .HasColumnType("nvarchar(450)")
@@ -259,7 +279,7 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("NhanViens");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.NhanVienThamGiaPhongVan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.NhanVienThamGiaPhongVan", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)")
@@ -288,7 +308,7 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("NhanVienThamGiaPhongVans");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.PhongBan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongBan", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)")
@@ -308,7 +328,7 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("PhongBans");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.PhongPhongVan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongPhongVan", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)")
@@ -332,47 +352,13 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("PhongPhongVans");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.ThongKeTuyenDung", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("id");
-
-                    b.Property<int?>("SoLuongDat")
-                        .HasColumnType("int")
-                        .HasColumnName("so_luong_dat");
-
-                    b.Property<int?>("SoLuongTruot")
-                        .HasColumnType("int")
-                        .HasColumnName("so_luong_truot");
-
-                    b.Property<int?>("SoLuongUngVien")
-                        .HasColumnType("int")
-                        .HasColumnName("so_luong_ung_vien");
-
-                    b.Property<DateTime?>("ThoiGianThongKe")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("thoi_gian_thong_ke");
-
-                    b.Property<string>("ViTriId")
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("vi_tri_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ViTriId");
-
-                    b.ToTable("ThongKeTuyenDungs");
-                });
-
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.UngVien", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.UngVien", b =>
                 {
                     b.Property<string>("MaUngVien")
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("id");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("email");
 
@@ -391,7 +377,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                         .HasColumnName("kinh_nghiem");
 
                     b.Property<string>("LinkCV")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("link_cv");
 
@@ -414,7 +399,6 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                         .HasColumnName("nguon_ung_tuyen");
 
                     b.Property<string>("SoDienThoai")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("sdt");
 
@@ -440,7 +424,7 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("UngViens");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.ViTriTuyenDung", b =>
                 {
                     b.Property<string>("MaViTri")
                         .HasColumnType("nvarchar(450)")
@@ -478,15 +462,15 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.ToTable("ViTriTuyenDungs");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.DanhGiaPhongVan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.DanhGiaPhongVan", b =>
                 {
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.LichPhongVan", "LichPhongVan")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.LichPhongVan", "LichPhongVan")
                         .WithMany("DanhGiaPhongVans")
                         .HasForeignKey("LichPhongVanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.NhanVien", "NhanVienDanhGia")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.NhanVien", "NhanVienDanhGia")
                         .WithMany()
                         .HasForeignKey("NhanVienDanhGiaId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -497,15 +481,15 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.Navigation("NhanVienDanhGia");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.HoSoLuuTru", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.HoSoLuuTru", b =>
                 {
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.UngVien", "UngVien")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.UngVien", "UngVien")
                         .WithMany("HoSoLuuTrus")
                         .HasForeignKey("UngVienId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung", "ViTriTuyenDung")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.ViTriTuyenDung", "ViTriTuyenDung")
                         .WithMany()
                         .HasForeignKey("ViTriId");
 
@@ -514,35 +498,31 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.Navigation("ViTriTuyenDung");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.LichPhongVan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.LichPhongVan", b =>
                 {
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.PhongPhongVan", "PhongPhongVan")
-                        .WithMany()
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongPhongVan", "PhongPhongVan")
+                        .WithMany("LichPhongVans")
                         .HasForeignKey("PhongPhongVanId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.PhongPhongVan", null)
-                        .WithMany("LichPhongVans")
-                        .HasForeignKey("PhongPhongVanId1");
-
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.UngVien", "UngVien")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.UngVien", "UngVien")
                         .WithMany()
                         .HasForeignKey("UngVienId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.UngVien", null)
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.UngVien", null)
                         .WithMany("LichPhongVans")
                         .HasForeignKey("UngVienMaUngVien");
 
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung", "ViTriTuyenDung")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.ViTriTuyenDung", "ViTriTuyenDung")
                         .WithMany()
                         .HasForeignKey("ViTriId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung", null)
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.ViTriTuyenDung", null)
                         .WithMany("LichPhongVans")
                         .HasForeignKey("ViTriTuyenDungMaViTri");
 
@@ -553,15 +533,15 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.Navigation("ViTriTuyenDung");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.NguoiDung", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.NguoiDung", b =>
                 {
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.NhanVien", "NhanVien")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.NhanVien", "NhanVien")
                         .WithMany()
                         .HasForeignKey("NhanVienId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.PhongBan", "PhongBan")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongBan", "PhongBan")
                         .WithMany("NguoiDungs")
                         .HasForeignKey("PhongBanId");
 
@@ -570,24 +550,24 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.Navigation("PhongBan");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.NhanVien", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.NhanVien", b =>
                 {
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.PhongBan", "PhongBan")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongBan", "PhongBan")
                         .WithMany("NhanViens")
                         .HasForeignKey("PhongBanId");
 
                     b.Navigation("PhongBan");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.NhanVienThamGiaPhongVan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.NhanVienThamGiaPhongVan", b =>
                 {
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.LichPhongVan", "LichPhongVan")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.LichPhongVan", "LichPhongVan")
                         .WithMany("NhanVienThamGiaPVs")
                         .HasForeignKey("LichPhongVanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.NhanVien", "NhanVien")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.NhanVien", "NhanVien")
                         .WithMany()
                         .HasForeignKey("NhanVienId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -598,18 +578,9 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.Navigation("NhanVien");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.ThongKeTuyenDung", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.UngVien", b =>
                 {
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung", "ViTriTuyenDung")
-                        .WithMany("ThongKeTuyenDungs")
-                        .HasForeignKey("ViTriId");
-
-                    b.Navigation("ViTriTuyenDung");
-                });
-
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.UngVien", b =>
-                {
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung", "ViTriUngTuyen")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.ViTriTuyenDung", "ViTriUngTuyen")
                         .WithMany("UngViens")
                         .HasForeignKey("ViTriUngTuyenId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -618,23 +589,23 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.Navigation("ViTriUngTuyen");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.ViTriTuyenDung", b =>
                 {
-                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.PhongBan", "PhongBan")
+                    b.HasOne("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongBan", "PhongBan")
                         .WithMany("ViTriTuyenDungs")
                         .HasForeignKey("PhongBanId");
 
                     b.Navigation("PhongBan");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.LichPhongVan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.LichPhongVan", b =>
                 {
                     b.Navigation("DanhGiaPhongVans");
 
                     b.Navigation("NhanVienThamGiaPVs");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.PhongBan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongBan", b =>
                 {
                     b.Navigation("NguoiDungs");
 
@@ -643,23 +614,21 @@ namespace Nhom6_QLHoSoTuyenDung.Migrations
                     b.Navigation("ViTriTuyenDungs");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.PhongPhongVan", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.PhongPhongVan", b =>
                 {
                     b.Navigation("LichPhongVans");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.UngVien", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.UngVien", b =>
                 {
                     b.Navigation("HoSoLuuTrus");
 
                     b.Navigation("LichPhongVans");
                 });
 
-            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.ViTriTuyenDung", b =>
+            modelBuilder.Entity("Nhom6_QLHoSoTuyenDung.Models.Entities.ViTriTuyenDung", b =>
                 {
                     b.Navigation("LichPhongVans");
-
-                    b.Navigation("ThongKeTuyenDungs");
 
                     b.Navigation("UngViens");
                 });
