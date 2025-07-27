@@ -13,6 +13,7 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels
 
         public List<SelectListItem>? ViTriList { get; set; }
         public List<SelectListItem>? GioiTinhList { get; set; }
+        public List<SelectListItem> TrangThaiList { get; set; }
 
         public string ResetUrl { get; set; } = "/UngViens";
     }

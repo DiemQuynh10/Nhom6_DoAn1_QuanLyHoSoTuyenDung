@@ -6,14 +6,20 @@
     <input type="hidden" asp-for="UngVienId" />
     <input type="hidden" asp-for="ViTriId" />
 
-    <div class="mb-3">
-        <label class="form-label fw-bold">Ứng viên</label>
-        <input class="form-control" value="@Model.TenUngVien" readonly />
+    <!-- Chọn hoặc tìm kiếm ứng viên -->
+    <div class="row">
+        <div class="col-md-8 mb-3">
+            <label class="form-label fw-bold">Tìm kiếm ứng viên</label>
+            <select id="ungVienSelect2" name="UngVienId" class="form-select w-100" required>
+                <option></option>
+            </select>
+            <div class="form-text text-muted">Tìm theo tên hoặc email (ứng viên chưa có lịch)</div>
+        </div>
     </div>
 
     <div class="mb-3">
         <label class="form-label fw-bold">Vị trí ứng tuyển</label>
-        <input class="form-control" value="@Model.TenViTri" readonly />
+        <input id="tenViTriDisplay" class="form-control" value="@Model.TenViTri" readonly />
     </div>
 
     <div class="mb-3">
@@ -44,3 +50,44 @@
         <button type="submit" class="btn btn-primary">Lưu lịch</button>
     </div>
 </form>
+
+@section Scripts {
+    <script>
+        // ⚠️ CHỈ GỌI TỪ INDEX KHI FORM ĐÃ LOAD
+        function initSelect2UngVien() {
+            const select = $('#ungVienSelect2');
+            if (select.length === 0) return;
+
+            select.select2({
+                placeholder: 'Tìm theo tên hoặc email',
+                allowClear: true,
+                minimumInputLength: 1,
+                ajax: {
+                    url: '/LichPhongVans/TimUngVienSelect2',
+                    dataType: 'json',
+                    delay: 300,
+                    data: function (params) {
+                        return { tuKhoa: params.term };
+                    },
+                    processResults: function (data) {
+                        return { results: data };
+                    }
+                },
+                dropdownParent: $('#taoLichModal')
+            });
+
+            select.on('select2:select', function (e) {
+                const data = e.params.data;
+                $("input[name='UngVienId']").val(data.id);
+                $('#tenViTriDisplay').val(data.viTri || '');
+            });
+
+            $('#ungVienThuCong').on('change', function () {
+                const id = $(this).val();
+                const text = $(this).find('option:selected').text();
+                const newOption = new Option(text, id, true, true);
+                $('#ungVienSelect2').append(newOption).trigger('change');
+            });
+        }
+    </script>
+}

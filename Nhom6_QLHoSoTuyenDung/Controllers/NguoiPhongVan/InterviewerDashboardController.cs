@@ -123,16 +123,15 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers.NguoiPhongVan
             // ⚠️ KHÔNG THÊM HEADER Content-Disposition
             return File(stream, "application/pdf");
         }
-        public async Task<IActionResult> DaPhongVan()
+        public async Task<IActionResult> TrangThaiCho()
         {
-            var id = HttpContext.Session.GetString("IDNguoiDung");
-            if (string.IsNullOrEmpty(id))
-                return RedirectToAction("DangNhap", "NguoiDungs");
-
-            var userId = id;
-            var result = await _phongVanService.GetLichPhongVanDaDanhGiaAsync(userId);
-            return View(result);
+            var username = User.Identity?.Name ?? "";
+            var lichIds = await _phongVanService.GetDanhSachLichPhongVanTheoDeXuatAsync(username, DeXuatEnum.CanPhongVanLan2);
+            var lichPhongVans = await _phongVanService.GetThongTinChiTietLichAsync(lichIds, username);
+            return View("TrangThaiCho", lichPhongVans);
         }
+
+
         [HttpPost]
         public async Task<IActionResult> Huy(string id, string ghiChu)
         {

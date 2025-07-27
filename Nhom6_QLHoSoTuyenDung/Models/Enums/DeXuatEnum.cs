@@ -4,13 +4,13 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Enums
 {
     public enum DeXuatEnum
     {
-        [Display(Name = "Không phù hợp")]
-        KhongPhuHop,
-
-        [Display(Name = "Tiếp Nhận")]
+        [Display(Name = "Tiếp nhận")]
         TiepNhan,
 
-        [Display(Name = "Cần xem xét thêm")]
-        CanXemXet
+        [Display(Name = "Từ chối")]
+        TuChoi,
+
+        [Display(Name = "Cần phỏng vấn lần 2")]
+        CanPhongVanLan2
     }
 }

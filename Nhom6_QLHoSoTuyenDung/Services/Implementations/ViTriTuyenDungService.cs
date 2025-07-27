@@ -44,7 +44,7 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
 
         public void Create(ViTriTuyenDung model)
         {
-            model.MaViTri = Guid.NewGuid().ToString();
+            model.MaViTri = GenerateNewMaViTri();
             model.NgayTao = DateTime.Now;
             _context.ViTriTuyenDungs.Add(model);
             _context.SaveChanges();
@@ -113,6 +113,19 @@ namespace Nhom6_QLHoSoTuyenDung.Services.Implementations
         public List<HoatDongDashboardVM> LayHoatDongGanDay()
         {
             return ThongKeViTriHelper.LayHoatDong7Ngay(_context);
+        }
+        public string GenerateNewMaViTri()
+        {
+            var lastMa = _context.ViTriTuyenDungs
+                .OrderByDescending(v => v.MaViTri)
+                .Select(v => v.MaViTri)
+                .FirstOrDefault();
+
+            if (string.IsNullOrEmpty(lastMa) || !lastMa.StartsWith("VT"))
+                return "VT001";
+
+            var numberPart = int.TryParse(lastMa.Substring(2), out int num) ? num : 0;
+            return $"VT{(num + 1):D3}";
         }
     }
 }

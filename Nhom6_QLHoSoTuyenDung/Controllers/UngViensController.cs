@@ -54,6 +54,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             ViewBag.TongUngVien = stats["TongUngVien"];
             ViewBag.MoiTuanNay = stats["MoiTuanNay"];
+            ViewBag.DaPhongVan = stats["DaPhongVan"];
             ViewBag.DaTuyen = stats["DaTuyen"];
             ViewBag.TyLeChuyenDoi = stats["TyLeChuyenDoi"];
             ViewBag.NguonLabels = stats["NguonLabels"];
@@ -73,18 +74,20 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
                 ToDate = filter.ToDate?.ToString("yyyy-MM-dd"),
                 ViTriList = ((SelectList)ViewBag.ViTriList).ToList(),
                 GioiTinhList = ((SelectList)ViewBag.GioiTinhList).ToList(),
-                ResetUrl = "/UngViens"
+                TrangThaiList = Enum.GetValues(typeof(TrangThaiUngVienEnum)) // 🟦 hoặc TrangThaiPhongVanEnum tuỳ form lọc
+         .Cast<Enum>()
+         .Select(tt => new SelectListItem
+         {
+             Value = tt.ToString(),
+             Text = tt.GetDisplayName()
+         }).ToList(),
+                ResetUrl = Url.Action("Index", "UngViens")
             };
+
             ViewBag.FilterViewModel = filterViewModel;
 
-            var totalItems = allUngViens.Count;
-            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-            var pagedUngViens = allUngViens.OrderByDescending(x => x.NgayNop).Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var pagedUngViens = allUngViens.OrderByDescending(x => x.NgayNop).ToList();
 
-            ViewBag.CurrentPage = page;
-            ViewBag.PageSize = pageSize;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalItems = totalItems;
 
             ViewBag.LichPhongVanMap = await _context.LichPhongVans.GroupBy(l => l.UngVienId).ToDictionaryAsync(g => g.Key, g => g.First());
 
@@ -102,7 +105,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(UngVien model, IFormFile CvFile)
         {
-            if (!ModelState.IsValid || CvFile == null)
+            if (!ModelState.IsValid ||CvFile == null)
             {
                 TempData["Error"] = "Vui lòng nhập đầy đủ thông tin và chọn CV.";
                 return RedirectToAction("Index");
@@ -140,6 +143,8 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return RedirectToAction("Index");
         }
+
+        // nếu đã copy sẵn file vào thư mục cv
         [HttpPost]
         public async Task<IActionResult> CapNhatLinkCVHangLoat()
         {
@@ -184,5 +189,64 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
 
             return RedirectToAction("Index");
         }
+        [HttpPost]
+        public async Task<IActionResult> UploadCvTheoMaUngVien(List<IFormFile> cvFiles)
+        {
+            if (cvFiles == null || cvFiles.Count == 0)
+            {
+                TempData["ErrorMessage"] = "❌ Vui lòng chọn file để tải lên.";
+                return RedirectToAction("Index");
+            }
+
+            var danhSachUngVien = await _context.UngViens.ToListAsync();
+            var pathCv = Path.Combine(_env.WebRootPath, "cv");
+            if (!Directory.Exists(pathCv)) Directory.CreateDirectory(pathCv);
+
+            int demThanhCong = 0;
+            int demKhongTimThay = 0;
+            int daCoCv = 0;
+
+            foreach (var file in cvFiles)
+            {
+                var tenFileGoc = Path.GetFileNameWithoutExtension(file.FileName).Trim();
+                var ungVien = danhSachUngVien.FirstOrDefault(u =>
+                    u.MaUngVien.Equals(tenFileGoc, StringComparison.OrdinalIgnoreCase));
+
+                if (ungVien == null)
+                {
+                    demKhongTimThay++;
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(ungVien.LinkCV))
+                {
+                    daCoCv++;
+                    continue;
+                }
+
+                var ext = Path.GetExtension(file.FileName);
+                var tenMoi = $"{ungVien.MaUngVien}_{Guid.NewGuid().ToString().Substring(0, 5)}{ext}";
+                var filePath = Path.Combine(pathCv, tenMoi);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                ungVien.LinkCV = $"/cv/{tenMoi}";
+                demThanhCong++;
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"✅ {demThanhCong} CV đã được cập nhật.";
+            if (demKhongTimThay > 0)
+                TempData["ErrorMessage"] = $"⚠️ Có {demKhongTimThay} file không khớp mã ứng viên.";
+            if (daCoCv > 0)
+                TempData["WarningMessage"] = $"🔁 Bỏ qua {daCoCv} ứng viên đã có CV.";
+
+            return RedirectToAction("Index");
+        }
+
     }
 }

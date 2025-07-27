@@ -5,11 +5,61 @@
 @{
     var lichMap = ViewBag.LichPhongVanMap as Dictionary<string, LichPhongVan>;
 }
+<style>
+    .icon-button {
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+        position: relative;
+    }
+
+        .icon-button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .icon-button i {
+            font-size: 20px;
+            color: #444;
+        }
+
+        .icon-button[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .tooltip-text {
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #000;
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        opacity: 0;
+        white-space: nowrap;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 100;
+    }
+
+    .icon-button:hover .tooltip-text {
+        opacity: 1;
+    }
+
+
+</style>
+
 
 <div class="card p-3">
     <h5 class="fw-bold mb-3">Danh sách ứng viên</h5>
-    <table class="table table-hover align-middle">
-        <thead class="table-light">
+    <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
+        <table class="table table-hover align-middle">
+            <thead class="table-light" style="position: sticky; top: 0; background: #fff; z-index: 2;">
             <tr>
                 <th><input type="checkbox" /></th>
                 <th>Ứng viên</th>
@@ -48,51 +98,58 @@
                             @uv.TrangThai
                         </span>
                     </td>
-                    <td>
+                    <td class="text-center">
                         @if (!string.IsNullOrEmpty(uv.LinkCV))
                         {
-                            <button class="btn btn-sm btn-outline-info"
-                                    onclick="showCV('@Url.Content(uv.LinkCV)')"
-                                    title="Xem CV trực tiếp">
-                                <i class="bi bi-eye-fill"></i>
+                            <button class="icon-button" onclick="showCV('@Url.Content(uv.LinkCV)')">
+                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+                                <span class="tooltip-text">Xem CV</span>
                             </button>
                         }
                         else
                         {
-                            <span class="text-muted">Không có</span>
+                            <span class="text-muted">—</span>
                         }
                     </td>
-                    <td>
-                        <!-- Nút xem chi tiết -->
-                        <button class="btn btn-sm btn-outline-primary me-1"
-                                onclick="showChiTiet('@uv.MaUngVien')"
-                                title="Xem chi tiết ứng viên">
-                            <i class="bi bi-person-vcard"></i>
-                        </button>
 
-                        @if (daCoLich)
-                        {
-                            <!-- Nút xem lịch -->
-                            <button class="btn btn-sm btn-outline-success"
-                                    onclick="xemLichPhongVan('@uv.MaUngVien')"
-                                    title="Xem lịch phỏng vấn">
-                                <i class="bi bi-calendar-check-fill"></i>
+
+                    <td class="text-center">
+                        <div class="d-flex gap-1 justify-content-center align-items-center">
+                            <!-- 👁 Xem chi tiết -->
+                            <button class="icon-button" onclick="showChiTiet('@uv.MaUngVien')">
+                                <i class="bi bi-eye-fill text-primary fs-5"></i>
+                                <span class="tooltip-text">Chi tiết</span>
                             </button>
-                        }
-                        else
-                        {
-                            // nút tạo lịch phỏng vấn
-                            <a class="btn btn-sm btn-outline-secondary"
-                               onclick="moFormTaoLich('@uv.MaUngVien')"
-                               title="Tạo lịch phỏng vấn">
-                                <i class="bi bi-calendar-plus-fill"></i>
-                            </a>
-                        }
+
+                            <!-- 📅 Lịch -->
+                            @if (daCoLich)
+                            {
+                                <button class="icon-button" onclick="xemLichPhongVan('@uv.MaUngVien')">
+                                    <i class="bi bi-calendar-check-fill text-success fs-5"></i>
+                                    <span class="tooltip-text">Xem lịch</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="icon-button"
+                                        onclick="moFormTaoLich('@uv.MaUngVien')"
+                                        title="Tạo lịch phỏng vấn">
+                                    <i class="bi bi-calendar-plus text-success fs-5"></i>
+                                    <span class="tooltip-text">Tạo lịch</span>
+                                </button>
+
+
+                            }
+
+                        </div>
                     </td>
+
+
                 </tr>
             }
         </tbody>
-    </table>
+        </table>
+    </div>
 </div>
 
 @functions {
@@ -127,12 +184,11 @@
     {
         return status?.ToLower() switch
         {
-            "mới" => "#BBDEFB",
-            "sàng lọc" => "#FFF176",
-            "phỏng vấn" => "#AED581",
-            "đề nghị" => "#FFCC80",
-            "từ chối" => "#EF9A9A",
-            "đã tuyển" => "#B39DDB",
+            "moi" => "#BBDEFB",
+            "canphongvanlan2" => "#FFF176",
+            "dalenlich" => "#AED581",
+            "tuchoi" => "#EF9A9A",
+            "datuyen" => "#B39DDB",
             _ => "#CFD8DC"
         };
     }

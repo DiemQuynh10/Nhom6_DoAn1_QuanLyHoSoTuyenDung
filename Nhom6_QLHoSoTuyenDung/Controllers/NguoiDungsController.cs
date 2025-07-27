@@ -13,19 +13,38 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
     {
         private readonly ITaiKhoanService _svc;
         private const int MAX_FAILED = 5;
-        private const int OTP_EXPIRE_SEC = 120;
+        private const int OTP_EXPIRE_SEC = 30;
 
         public NguoiDungsController(ITaiKhoanService svc)
             => _svc = svc;
 
-        // --- Đăng nhập (giữ nguyên) ---
         [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public IActionResult DangNhap() => View(new DangNhapVM());
+
 
         [HttpPost]
         public async Task<IActionResult> DangNhap(DangNhapVM vm)
         {
             if (!ModelState.IsValid) return View(vm);
+            // ✅ Nếu có dấu @ thì kiểm tra định dạng email
+            if (vm.TenDangNhap.Contains("@"))
+            {
+                var emailValid = System.Text.RegularExpressions.Regex.IsMatch(vm.TenDangNhap,
+                    @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+
+                if (!emailValid)
+                {
+                    ModelState.AddModelError("TenDangNhap", "Email không hợp lệ.");
+                    return View(vm);
+                }
+            }
 
             var fails = HttpContext.Session.GetInt32("SoLanSai") ?? 0;
             if (fails >= MAX_FAILED)
@@ -63,12 +82,6 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             HttpContext.Session.SetString("HoTen", user.HoTen ?? "Người dùng");
             HttpContext.Session.SetString("VaiTro", user.VaiTro);
 
-            if (user == null)
-            {
-                HttpContext.Session.SetInt32("SoLanSai", fails + 1);
-                ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
-                return View(vm);
-            }
 
             HttpContext.Session.SetInt32("SoLanSai", 0);
             var role = user.VaiTro.Trim().ToLowerInvariant();
@@ -89,30 +102,28 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
         [HttpGet]
         public IActionResult QuenMatKhau() => View(new QuenMatKhauVM());
 
-        // --- Gửi OTP AJAX ---
+        // --- Hiển thị form nhập email để gửi mã OTP ---
         [HttpPost]
         public async Task<JsonResult> QuenMatKhauAjax([FromBody] QuenMatKhauVM vm)
         {
             if (!ModelState.IsValid)
                 return Json(new { success = false, error = "Vui lòng nhập đầy đủ thông tin." });
 
-            var otp = await _svc.GuiMaXacNhanAsync(vm.TenDangNhap.Trim(), vm.Email.Trim().ToLowerInvariant(), HttpContext);
-            if (otp == null)
-                return Json(new { success = false, error = "Không tìm thấy tài khoản." });
+            var errorMessage = await _svc.GuiMaXacNhanAsync(vm.TenDangNhap.Trim(), vm.Email.Trim().ToLowerInvariant(), HttpContext);
 
-            HttpContext.Session.SetString("Otp_Email", vm.Email.Trim().ToLowerInvariant());
-            HttpContext.Session.SetString("ThoiGianMa", DateTime.UtcNow.ToString("O"));
-            HttpContext.Session.SetString("Otp_User", vm.TenDangNhap.Trim().ToLowerInvariant());
+            if (!string.IsNullOrEmpty(errorMessage))
+                return Json(new { success = false, error = errorMessage }); // Gửi lỗi ra giao diện
 
-            return Json(new { success = true });
+            return Json(new { success = true }); // ✅ gửi thành công, không trả mã
         }
 
-        // --- Hiển thị form Xác nhận mã ---
+
+        // --- Hiển thị form nhập mã OTP, đồng thời tính SecondsLeft (thời gian còn lại trước khi mã hết hạn) ---
         [HttpGet]
         public IActionResult XacNhanMa(string tenDangNhap)
         {
             var timeStr = HttpContext.Session.GetString("ThoiGianMa");
-            int rem = 0;
+            int rem = OTP_EXPIRE_SEC;
             if (!string.IsNullOrEmpty(timeStr))
             {
                 var issued = DateTime.Parse(timeStr).ToUniversalTime();
@@ -124,7 +135,7 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             return View(new XacNhanMaVM { TenDangNhap = tenDangNhap });
         }
 
-        // --- Verify OTP AJAX ---
+        // --- Kiểm tra mã OTP người dùng nhập vào ---
         [HttpPost]
         public JsonResult VerifyOtpAjax([FromBody] XacNhanMaVM vm)
         {
@@ -143,16 +154,20 @@ namespace Nhom6_QLHoSoTuyenDung.Controllers
             return Json(new { success = true });
         }
 
-        // --- Resend OTP AJAX ---
+        // --- Gửi lại mã xác nhận mới nếu người dùng yêu cầu---
         [HttpPost]
-        public JsonResult ResendOtp()
+        public async Task<JsonResult> ResendOtp()
         {
             var key = HttpContext.Session.GetString("Otp_User");
             var email = HttpContext.Session.GetString("Otp_Email");
+
             if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(email))
                 return Json(new { success = false, error = "Phiên đã hết, vui lòng thử lại Quên mật khẩu." });
 
-            _ = _svc.GuiMaXacNhanAsync(key, email, HttpContext);
+            var result = await _svc.GuiMaXacNhanAsync(key, email, HttpContext);
+            if (!string.IsNullOrEmpty(result))
+                return Json(new { success = false, error = result });
+
             HttpContext.Session.SetString("ThoiGianMa", DateTime.UtcNow.ToString("O"));
             return Json(new { success = true });
         }

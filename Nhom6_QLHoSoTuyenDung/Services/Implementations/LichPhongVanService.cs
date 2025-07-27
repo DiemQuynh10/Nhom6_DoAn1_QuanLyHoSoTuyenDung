@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Nhom6_QLHoSoTuyenDung.Models.Entities;
+using Nhom6_QLHoSoTuyenDung.Models.Enums;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM;
 using Nhom6_QLHoSoTuyenDung.Models.ViewModels.PhongVanVM;
 
@@ -21,14 +22,8 @@ public class LichPhongVanService : ILichPhongVanService
             .FirstOrDefaultAsync(l => l.UngVienId == ungVienId);
     }
 
-    public async Task<TaoLichPhongVanVM?> GetFormDataAsync(string ungVienId)
+    public async Task<TaoLichPhongVanVM?> GetFormDataAsync(string? ungVienId)
     {
-        var ungVien = await _context.UngViens
-            .Include(u => u.ViTriUngTuyen)
-            .FirstOrDefaultAsync(u => u.MaUngVien == ungVienId);
-
-        if (ungVien == null) return null;
-
         var phongList = await _context.PhongPhongVans
             .Select(p => new SelectListItem
             {
@@ -36,15 +31,30 @@ public class LichPhongVanService : ILichPhongVanService
                 Text = p.TenPhong + " - " + p.DiaDiem
             }).ToListAsync();
 
-        return new TaoLichPhongVanVM
+        var model = new TaoLichPhongVanVM
         {
-            UngVienId = ungVien.MaUngVien,
-            TenUngVien = ungVien.HoTen,
-            ViTriId = ungVien.ViTriUngTuyenId,
-            TenViTri = ungVien.ViTriUngTuyen?.TenViTri,
-            PhongList = phongList
+            PhongList = phongList,
+            NguoiPhongVanOptions = new List<SelectListItem>() // sẽ gán sau từ controller
         };
+
+        if (!string.IsNullOrEmpty(ungVienId))
+        {
+            var ungVien = await _context.UngViens
+                .Include(u => u.ViTriUngTuyen)
+                .FirstOrDefaultAsync(u => u.MaUngVien == ungVienId);
+
+            if (ungVien != null)
+            {
+                model.UngVienId = ungVien.MaUngVien;
+                model.TenUngVien = ungVien.HoTen;
+                model.ViTriId = ungVien.ViTriUngTuyenId;
+                model.TenViTri = ungVien.ViTriUngTuyen?.TenViTri;
+            }
+        }
+
+        return model;
     }
+
 
 
     public async Task<(bool, string)> CreateLichAsync(LichPhongVan model)
@@ -54,7 +64,7 @@ public class LichPhongVanService : ILichPhongVanService
             return (false, "Ứng viên không tồn tại.");
 
         model.ViTriId = ungVien.ViTriUngTuyenId;
-        model.Id = Guid.NewGuid().ToString();
+        model.Id = await GenerateNewMaLichAsync();
 
         // ✅ Kiểm tra thời gian null hoặc quá khứ
         if (!model.ThoiGian.HasValue)
@@ -96,6 +106,7 @@ public class LichPhongVanService : ILichPhongVanService
                 return (false, "Một trong các người phỏng vấn đã có lịch gần thời gian này.");
 
         }
+        model.TrangThai = TrangThaiPhongVanEnum.DaLenLich.ToString();
 
         // ✅ Lưu lịch nếu không trùng
         _context.LichPhongVans.Add(model);
@@ -182,5 +193,59 @@ public class LichPhongVanService : ILichPhongVanService
         return chuaCoLich;
     }
 
+    public async Task<List<DaPhongVanVM>> GetUngViensChuaCoLichVong2Async()
+    {
+        // B1: Lấy các lịch có đánh giá đề xuất phỏng vấn lần 2
+        var lichV1 = await _context.LichPhongVans
+            .Include(l => l.UngVien)
+            .Include(l => l.ViTriTuyenDung)
+            .Include(l => l.DanhGiaPhongVans)
+            .Where(l => l.DanhGiaPhongVans.Any(d => d.DeXuat == DeXuatEnum.CanPhongVanLan2.ToString()))
+            .ToListAsync();
 
+        var result = new List<DaPhongVanVM>();
+
+        foreach (var lich in lichV1)
+        {
+            var ungVienId = lich.UngVienId;
+
+            // B2: Kiểm tra xem đã có lịch mới cho vòng 2 chưa
+            var daCoLichV2 = await _context.LichPhongVans
+                .AnyAsync(l => l.UngVienId == ungVienId
+                    && l.Id != lich.Id
+                    && l.TrangThai == TrangThaiPhongVanEnum.DaLenLich.ToString());
+
+            if (daCoLichV2)
+                continue;
+
+            // B3: Lấy thông tin ứng viên
+            result.Add(new DaPhongVanVM
+            {
+                LichId = lich.Id,
+                TenUngVien = lich.UngVien?.HoTen ?? "Không rõ",
+                UngVienId = lich.UngVienId,
+                Email = lich.UngVien?.Email ?? "",
+                ViTri = lich.ViTriTuyenDung?.TenViTri ?? "",
+                ThoiGian = lich.ThoiGian ?? DateTime.Now,
+                LinkCV = lich.UngVien?.LinkCV,
+                DiemTB = lich.DanhGiaPhongVans.FirstOrDefault()?.DiemDanhGia,
+                NhanXet = lich.DanhGiaPhongVans.FirstOrDefault()?.NhanXet
+            });
+        }
+
+        return result;
+    }
+    private async Task<string> GenerateNewMaLichAsync()
+    {
+        var lastMa = await _context.LichPhongVans
+            .OrderByDescending(l => l.Id)
+            .Select(l => l.Id)
+            .FirstOrDefaultAsync();
+
+        if (string.IsNullOrEmpty(lastMa) || !lastMa.StartsWith("LP"))
+            return "LP001";
+
+        var number = int.TryParse(lastMa.Substring(2), out int num) ? num : 0;
+        return $"LP{(num + 1):D3}";
+    }
 }

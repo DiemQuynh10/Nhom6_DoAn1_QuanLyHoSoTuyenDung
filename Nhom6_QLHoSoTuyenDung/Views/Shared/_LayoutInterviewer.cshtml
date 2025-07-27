@@ -12,31 +12,90 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <link href="~/css/site.css" rel="stylesheet" />
+
+    <style>
+        body {
+            overflow-x: hidden;
+            background: radial-gradient(circle at bottom left, rgba(42,157,143,0.05) 0%, white 100%);
+            background-color: #f3fefc;
+        }
+
+        .sidebar {
+            width: 230px;
+            min-height: 100vh;
+            background-color: #e6f4f1;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: all 0.3s;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+        }
+
+            .sidebar .nav-link {
+                color: #333;
+            }
+
+                .sidebar .nav-link.active,
+                .sidebar .nav-link:hover {
+                    font-weight: bold;
+                    background-color: #cceee7;
+                    color: #2a9d8f;
+                }
+
+        .content-wrapper {
+            margin-left: 230px;
+            transition: all 0.3s;
+        }
+
+        @@media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+                .sidebar.show {
+                    transform: translateX(0);
+                    z-index: 1000;
+                }
+
+            .content-wrapper {
+                margin-left: 0;
+            }
+        }
+    </style>
+
+    @RenderSection("Styles", required: false)
 </head>
 <body>
-    @* sidebar *@
-    @await Html.PartialAsync("_SidebarInterviewer")
+    <!-- Sidebar -->
+    <div class="sidebar d-flex flex-column p-3" id="sidebarMenu">
+        <div class="text-center mb-3">
+            <img src="~/images/logosidebar.png"
+                 style="width: 100%; max-width: 220px; height: auto; object-fit: contain;" />
+        </div>
 
-    @* header với nút ☰ mobile *@
-    <header class="dashboard-header d-flex align-items-center justify-content-between px-3 py-2 bg-white shadow-sm">
-        <button class="btn-icon d-lg-none" id="btnToggle"><i class="bi bi-list"></i></button>
-        <div class="fw-bold text-primary">Dashboard Người Phỏng Vấn</div>
-    </header>
+
+        @await Html.PartialAsync("_SidebarInterviewer") @* Bạn có thể dùng _SidebarInterviewer nếu vẫn muốn tách riêng *@
+    </div>
+
+    <!-- Topbar -->
     @await Html.PartialAsync("_TopbarPartial")
-    <main class="iv-wrapper p-3">
+
+    <!-- Main content -->
+    <main class="content-wrapper p-4">
         @RenderBody()
     </main>
 
-    @RenderSection("Scripts", false)
+    @RenderSection("Scripts", required: false)
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // toggle sidebar mobile
-        document.getElementById('btnToggle')?.addEventListener('click', () =>
-            document.body.classList.toggle('iv-open'));
+        const sidebar = document.getElementById("sidebarMenu");
+        const toggle = document.getElementById("menuToggle");
+        toggle?.addEventListener("click", () => {
+            sidebar.classList.toggle("show");
+        });
     </script>
+    @await Html.PartialAsync("_CvModalPartial")
 </body>
 </html>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-@await Html.PartialAsync("_CvModalPartial")

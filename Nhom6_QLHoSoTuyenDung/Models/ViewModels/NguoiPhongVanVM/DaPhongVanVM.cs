@@ -5,6 +5,8 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
     public class DaPhongVanVM
     {
         public string LichId { get; set; } = string.Empty;
+        public string? UngVienId { get; set; }
+
 
         public string TenUngVien { get; set; } = string.Empty;
 

@@ -45,15 +45,17 @@ namespace Nhom6_QLHoSoTuyenDung.Models.Entities
         [Column("link_cv")]
         public string? LinkCV { get; set; }
 
+        [Required(ErrorMessage = "Kinh nghiệm không được bỏ trống")]
         [Column("kinh_nghiem")]
         [Display(Name = "Kinh nghiệm")]
         public string KinhNghiem { get; set; } = "";
 
+        [Required(ErrorMessage = "Thành tích không đc bỏ trống")]
         [Column("thanh_tich")]
-
         [Display(Name = "Thành tích")]
         public string ThanhTich { get; set; } = "";
 
+        [Required(ErrorMessage = "Hãy nhập mô tả")]
         [Column("mo_ta")]
         [Display(Name = "Mô tả")]
         public string MoTa { get; set; } = "";

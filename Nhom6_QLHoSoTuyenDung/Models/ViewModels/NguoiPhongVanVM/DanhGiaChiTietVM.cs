@@ -23,6 +23,10 @@ namespace Nhom6_QLHoSoTuyenDung.Models.ViewModels.NguoiPhongVanVM
         public float TinhThanHocHoi { get; set; }
 
         public string? NhanXet { get; set; }
+
         public string? DeXuat { get; set; }
+
+        // ✅ Thêm điểm đánh giá trung bình
+        public float DiemDanhGia { get; set; }
     }
 }
